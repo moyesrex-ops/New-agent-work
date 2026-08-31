@@ -38,7 +38,7 @@ export default async function ConfirmBusiness({
       <p className={shell.lede}>{copy.confirm.source(invite.buyerName)}</p>
 
       <form action={confirmDetails}>
-        <DocumentCard label="Your business details">
+        <DocumentCard label={copy.confirm.cardLabel}>
           <Field
             name="businessName"
             label={copy.confirm.businessName}

@@ -7,12 +7,12 @@ import { uploadVendorMaster } from "../actions";
 import shell from "@/components/shell.module.css";
 
 const ERRORS: Record<string, string> = {
-  no_file: "Choose a file first.",
-  too_large: "That file is over 5MB. Split it, or send it to us and we will load it.",
-  empty: "That file has no rows in it.",
+  no_file: copy.buyer.uploadErrors.no_file,
+  too_large: copy.buyer.uploadErrors.too_large,
+  empty: copy.buyer.uploadErrors.empty,
   unreadable:
     "We could not find a vendor name or a phone number in that file. Check it has a header row.",
-  expired: "That upload timed out. Choose the file again — it only takes a moment.",
+  expired: copy.buyer.uploadErrors.expired,
 };
 
 /** B3 Upload. */
@@ -41,10 +41,10 @@ export default async function Upload({
         <form action={uploadVendorMaster}>
           <FileField
             name="file"
-            label="Vendor master"
+            label={copy.buyer.uploadLabel}
             accept=".csv,text/csv"
             required
-            hint="Any column order. We match the headers ourselves and show you what we matched."
+            hint={copy.buyer.uploadHint}
           />
           <Button type="submit" block>
             {copy.buyer.uploadCta}
@@ -57,7 +57,7 @@ export default async function Upload({
       </p>
 
       <section className={shell.section} style={{ marginTop: "var(--space-8)" }}>
-        <h2 className={shell.sectionTitle}>What we keep</h2>
+        <h2 className={shell.sectionTitle}>{copy.buyer.uploadKeepHeading}</h2>
         <p className={shell.note}>
           Business name, phone, TIN, address, vendor code, category, bank name, the last four
           digits of the account number and annual spend if your export carries it. Nothing else,

@@ -28,12 +28,13 @@
 }
 
 /*
- * Everything in the header is a tap target before it is a link. 44px is the
- * floor from the Phase 14.7 accessibility rules, and the header is where it is
- * easiest to forget: an 18px "Help" link reads fine on a monitor and is a
- * coin-flip for a thumb on a bus.
+ * A text action is a tap target before it is a link. The floor comes from the
+ * Phase 14.7 accessibility rules, and a bare link is where it is easiest to
+ * forget: an 18px "Help" reads fine on a monitor and is a coin-flip for a
+ * thumb on a bus. Used by the header, and by every "call us instead" escape
+ * hatch in the body flow.
  */
-.headerLink {
+.textLink {
   display: inline-flex;
   align-items: center;
   min-height: var(--target-min);
@@ -45,7 +46,7 @@
   text-underline-offset: 3px;
 }
 
-.headerLink:hover {
+.textLink:hover {
   color: var(--color-ink-900);
 }
 

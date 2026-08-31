@@ -31,7 +31,7 @@ export default async function DeleteAccount({
 
       {!check.allowed ? <Banner tone="warning">{copy.account.deleteBlocked}</Banner> : null}
 
-      <DocumentCard label="What deletion does">
+      <DocumentCard label={copy.account.deleteCardLabel}>
         <p className={shell.lede}>{copy.account.deleteBody}</p>
         <p className={shell.note} style={{ marginTop: "var(--space-4)" }}>
           {copy.account.deleteLaw}

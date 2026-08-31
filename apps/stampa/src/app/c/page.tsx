@@ -2,7 +2,7 @@ import { ButtonLink } from "@/components/Button";
 import { Card, EmptyState, StatusChip } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
 import { copy, formatDateTime } from "@/lib/copy";
-import { formatKobo } from "@/lib/money";
+import { formatNaira } from "@/lib/money";
 import { computeExposure, getOrganisation, listSuppliers } from "@/lib/services/buyer";
 import { listInboundInvoices } from "@/lib/services/invoices";
 import shell from "@/components/shell.module.css";
@@ -31,7 +31,7 @@ export default async function Overview() {
         <h1 className={shell.title}>{copy.buyer.overviewHeading}</h1>
         <EmptyState
           heading={copy.buyer.overviewEmpty}
-          body="It takes one CSV and about a minute."
+          body={copy.buyer.overviewEmptyBody}
           action={<ButtonLink href="/c/upload">{copy.buyer.uploadCta}</ButtonLink>}
         />
       </>
@@ -58,39 +58,51 @@ export default async function Overview() {
         <div className={shell.metricGrid}>
           <Card>
             <p className={shell.metricLabel}>{copy.buyer.exposureSubhead}</p>
-            <p className={shell.metricValue}>{formatKobo(exposure.vatAtRiskKobo)}</p>
+            {/* Carries NGN. A seven-figure number with no currency beside it
+                is the one metric on this page nobody should have to infer. */}
+            <p className={shell.metricValue}>{formatNaira(exposure.vatAtRiskKobo)}</p>
           </Card>
           <Card>
-            <p className={shell.metricLabel}>Vendors not yet compliant</p>
+            <p className={shell.metricLabel}>{copy.buyer.overviewExposed}</p>
             <p className={shell.metricValue}>{exposure.exposedVendors}</p>
           </Card>
           <Card>
-            <p className={shell.metricLabel}>Vendors live on Stampa</p>
+            <p className={shell.metricLabel}>{copy.buyer.overviewLive}</p>
             <p className={shell.metricValue}>{live}</p>
           </Card>
           <Card>
-            <p className={shell.metricLabel}>Stamped invoices received</p>
+            <p className={shell.metricLabel}>{copy.buyer.overviewReceived}</p>
             <p className={shell.metricValue}>{inbound.length}</p>
           </Card>
         </div>
       </section>
 
       <section className={shell.section}>
-        <h2 className={shell.sectionTitle}>Where your suppliers are</h2>
+        <h2 className={shell.sectionTitle}>{copy.buyer.overviewWhere}</h2>
+        {/* A zero row is dropped rather than printed. "0 opened the link and
+            stopped" is a sentence about nobody. */}
         <div className={shell.stackTight}>
-          <p>
-            <StatusChip status="live" /> {live} finished and can send stamped invoices
-          </p>
-          <p>
-            <StatusChip status="opened" /> {opened} opened the link and stopped
-          </p>
-          <p>
-            <StatusChip status="invited" /> {invited} have been invited and not opened it
-          </p>
+          {live ? (
+            <p>
+              <StatusChip status="live" /> {copy.buyer.overviewLiveLine(live)}
+            </p>
+          ) : null}
+          {opened ? (
+            <p>
+              <StatusChip status="opened" /> {copy.buyer.overviewOpenedLine(opened)}
+            </p>
+          ) : null}
+          {invited ? (
+            <p>
+              <StatusChip status="invited" /> {copy.buyer.overviewInvitedLine(invited)}
+            </p>
+          ) : null}
         </div>
         <div style={{ marginTop: "var(--space-5)", display: "flex", gap: "var(--space-3)" }}>
-          <ButtonLink href="/c/suppliers" compact>
-            {copy.buyer.suppliersHeading}
+          {/* The primary action is the one that changes the number above it.
+              Opening a list does not. */}
+          <ButtonLink href="/c/invite" compact>
+            {copy.buyer.exposureCta}
           </ButtonLink>
           <ButtonLink href="/c/exposure" variant="secondary" compact>
             {copy.buyer.exposureSeeList}
@@ -102,11 +114,13 @@ export default async function Overview() {
         <section className={shell.section}>
           <h2 className={shell.sectionTitle}>{copy.buyer.invoicesHeading}</h2>
           <p className={shell.note}>
-            Most recent {formatDateTime(inbound[0].stampedAt ?? inbound[0].createdAt)}.
+            {copy.buyer.overviewMostRecent(
+              formatDateTime(inbound[0].stampedAt ?? inbound[0].createdAt),
+            )}
           </p>
           <div style={{ marginTop: "var(--space-4)" }}>
             <ButtonLink href="/c/invoices" variant="secondary" compact>
-              See all {inbound.length}
+              {copy.buyer.overviewSeeAll(inbound.length)}
             </ButtonLink>
           </div>
         </section>

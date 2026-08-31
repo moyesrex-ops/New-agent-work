@@ -82,6 +82,7 @@ export const copy = {
   // ---- S4 Confirm business ----
   confirm: {
     heading: "Is this your business?",
+    cardLabel: "Your business details",
     source: (buyer: string) => `${buyer} sent us these details.`,
     businessName: "Business name",
     tin: "TIN",
@@ -206,6 +207,9 @@ export const copy = {
 
   // ---- S12 Invoice detail ----
   detail: {
+    draftHeading: "Not sent yet.",
+    draftWhy: "This invoice is saved but has not been sent to the NRS.",
+    draftCta: "Review and send",
     share: "Share",
     reshare: "Send again",
     lines: "What you supplied",
@@ -231,10 +235,11 @@ export const copy = {
     signOut: "Sign out",
     deleteLink: "Delete my account",
     deleteHeading: "Delete your account",
+    deleteCardLabel: "What deletion does",
     deleteBody:
       "We will delete your profile, your drafts and your contact details immediately.",
     deleteLaw:
-      "Invoices that have already been stamped are tax records. The law requires them to be kept for six years, so those stay — but they are no longer linked to your account, and you can download them now.",
+      "Invoices that have already been stamped are tax records. The law requires us to keep them for six years, so those stay. They are no longer linked to your account, and you can download them now.",
     deleteFirst: "Download everything first",
     deleteConfirmLabel: "Type DELETE to confirm",
     deleteCta: "Delete my account",
@@ -268,6 +273,16 @@ export const copy = {
     signInWorkEmail: "Use your work email.",
     overviewHeading: "Overview",
     overviewEmpty: "Upload your vendor list to see your exposure.",
+    overviewEmptyBody: "It takes one CSV and about a minute.",
+    overviewExposed: "Vendors not yet compliant",
+    overviewLive: "Vendors live on Stampa",
+    overviewReceived: "Stamped invoices received",
+    overviewWhere: "Where your suppliers are",
+    overviewLiveLine: (count: number) => `${count} finished and can send stamped invoices`,
+    overviewOpenedLine: (count: number) => `${count} opened the link and stopped`,
+    overviewInvitedLine: (count: number) => `${count} invited and have not opened it`,
+    overviewMostRecent: (when: string) => `Most recent ${when}.`,
+    overviewSeeAll: (count: number) => `See all ${count}`,
     uploadHeading: "Upload your vendor list",
     uploadBody: "CSV or XLSX. We read it, keep eight fields, and delete the file.",
     uploadCta: "Upload",
@@ -293,6 +308,22 @@ export const copy = {
     exposureSeeList: "See the list",
     exposureCta: "Invite these suppliers",
     exposureClear: (total: number) => `Good news — all ${total} vendors are compliant.`,
+    exposureLabel: "Input VAT exposure report",
+    exposureClearLabel: "Exposure report",
+    exposureClearBody:
+      "Every vendor we could check has transmitted at least one stamped invoice through Stampa.",
+    exposureSpendYours: "Spend figures are the ones in your own upload.",
+    exposureSpendAssumed: (perVendor: string) =>
+      `Your upload carried no spend column, so this uses a stated assumption of ${perVendor} of annual spend per vendor. Upload a file with a spend column and this becomes your own number.`,
+    exposureRate:
+      "One quarter of annual spend at the 7.5% standard rate. Vendors with no usable TIN are counted as uncheckable, not as exposed.",
+    exposureCompliant: "Compliant",
+    exposureNotCompliant: "Not compliant",
+    exposureUncheckableLabel: "Could not be checked",
+    exposureRemaining: (count: number) =>
+      count === 1
+        ? "1 of them has not finished signing up."
+        : `${count} of them have not finished signing up.`,
     suppliersHeading: "Suppliers",
     suppliersEmpty: "No suppliers yet.",
     inviteHeading: (count: number) => (count === 1 ? "Invite 1 supplier" : `Invite ${count} suppliers`),
@@ -310,6 +341,127 @@ export const copy = {
     exportCta: "Export CSV",
     nudge: "Nudge",
     nudged: "Nudged",
+
+    signInLabel: "Work email",
+    signInErrors: {
+      empty: "Enter your work email address.",
+      malformed: "That does not look like an email address.",
+      not_work_email: "Use your work email.",
+      expired: "That link has expired. We will send you another one.",
+      used: "That link has already been used. Ask for a new one.",
+      invalid: "That link is not valid. Ask for a new one.",
+    },
+
+    uploadLabel: "Vendor master",
+    uploadKeepHeading: "What we keep",
+    uploadHint: "Any column order. We match the headers ourselves and show you what we matched.",
+    uploadErrors: {
+      no_file: "Choose a file first.",
+      too_large: "That file is over 5MB. Split it, or send it to us and we will load it.",
+      empty: "That file has no rows in it.",
+      unreadable: "We could not read that file. Save it as CSV and try again.",
+      expired: "That upload timed out. Choose the file again — it only takes a moment.",
+    },
+
+    /** Column names, shared by the mapping screen and every console table. */
+    fields: {
+      businessName: "Vendor name",
+      phone: "Phone number",
+      tin: "TIN",
+      address: "Address",
+      vendorCode: "Vendor code",
+      category: "Category",
+      bankName: "Bank",
+      bankLast4: "Account number",
+      annualSpend: "Annual spend",
+    },
+    mappingSkipped: "Rows we had to skip",
+    mappingPreviewHeading: "First five rows, as we read them",
+    mappingPreview: "First five rows of the vendor master as parsed",
+    mappingChooseAnother: "Choose a different file",
+    mappingDiscard: "Discard this upload",
+    mappingMoreProblems: (count: number) =>
+      count === 1
+        ? "And 1 more. Everything else still imports."
+        : `And ${count} more. Everything else still imports.`,
+
+    suppliersSearch: "Search suppliers",
+    suppliersSearchHint: "Name, phone or vendor code",
+    suppliersSearchCta: "Search",
+    suppliersFilterAll: "All",
+    suppliersFilterNotInvited: "Not invited",
+    suppliersNoMatch: "No suppliers match that filter.",
+    suppliersClearFilter: "Clear the filter",
+    suppliersCaption: "Suppliers and their status",
+    suppliersColumns: {
+      vendor: "Vendor",
+      code: "Code",
+      phone: "Phone",
+      tin: "TIN",
+      status: "Status",
+      stamped: "Stamped",
+    },
+
+    detailInvited: "Invited",
+    detailOpened: "Opened the link",
+    detailActivated: "Finished signing up",
+    detailLink: "Their link",
+    detailPaidInto: "Paid into",
+    detailInvoicesHeading: "Their invoices to you",
+    detailInvoicesCaption: "Invoices from this supplier",
+    detailInvoicesEmpty: "Nothing yet.",
+    detailInvoicesEmptyLive: "They have finished signing up but have not sent an invoice.",
+    detailInvoicesEmptyNotLive: "They have not finished signing up.",
+    detailBack: "Back to suppliers",
+    detailBankSource:
+      "From your vendor master. Change it there and re-upload — it cannot be edited here, by you or by the supplier.",
+    detailNudgeNote: (buyer: string) =>
+      `Sends the invitation again in ${buyer}'s name, on WhatsApp with SMS behind it.`,
+    notProvided: "Not provided",
+    notYet: "Not yet",
+    noneSent: "None sent",
+    notInYourFile: "Not in your file",
+
+    invoicesCaption: "Stamped invoices received from your suppliers",
+    invoicesEmptyBody: "They appear here the moment a supplier's invoice is stamped by the NRS.",
+    invoicesColumns: {
+      reference: "NRS reference",
+      invoice: "Invoice",
+      supplier: "Supplier",
+      supplierTin: "Supplier TIN",
+      total: "Total",
+      stamped: "Stamped",
+    },
+
+    /** Stand-ins for a company whose name we somehow do not have. */
+    yourCompany: "Your company",
+    yourCompanyLower: "your company",
+    inviteWho: "Who to invite",
+    invitePreview: "Preview",
+    invitePreviewLabel: "The message your suppliers will receive",
+    inviteNoneSelected: "Tick at least one supplier.",
+    inviteAllLive: "Every supplier is already live.",
+    inviteUploadFirst: "Upload your vendor list first.",
+    inviteCancel: "Cancel",
+    inviteChannels:
+      "Sent on WhatsApp with SMS behind it. You will see which ones did not reach a number.",
+
+    settingsHeading: "Settings",
+    settingsCompanySection: "Company",
+    settingsCompany: "Registered name",
+    settingsSlug: "Invite code prefix",
+    settingsNameNote: (phone: string) =>
+      `Your registered name appears at the top of every invitation your suppliers receive. Call ${phone} to change it. We check it against your CAC record first. A supplier deciding whether to trust the link is reading that line.`,
+    settingsPlanSection: "Plan",
+    settingsPlan: "Plan",
+    settingsCap: "Active suppliers",
+    settingsCapValue: (live: number, cap: number) => `${live} of ${cap}`,
+    settingsBillingNote:
+      "We invoice you by email and you pay by bank transfer. There is no card on file and the product never takes one. Suppliers are never charged anything.",
+    settingsData: "Your data",
+    settingsReupload: "Re-upload vendor master",
+    settingsReuploadNote:
+      "Re-uploading updates bank details and is the only way they change. Every change is recorded with who did it and when.",
   },
 
   // ---- Operator console ----
@@ -338,6 +490,23 @@ export const copy = {
     help: "Help",
     home: "Home",
     signOut: "Sign out",
+    console: "Console",
+    overview: "Overview",
+    suppliers: "Suppliers",
+    invoices: "Invoices",
+    settings: "Settings",
+  },
+
+  /**
+   * Strings only a screen reader ever reaches. They are in the catalogue for
+   * the same reason the visible ones are: a translator who cannot see them
+   * cannot translate them, and an untranslated aria-label is a screen reader
+   * dropping into English mid-sentence.
+   */
+  a11y: {
+    supplierHome: `${BRAND.name} home`,
+    consoleHome: `${BRAND.name} console`,
+    filterByStatus: "Filter by status",
   },
 
   // ---- Status chips. Six only (Phase 15.1). ----

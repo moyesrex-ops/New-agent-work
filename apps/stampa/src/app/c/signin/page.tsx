@@ -8,8 +8,8 @@ import { requestMagicLink } from "../actions";
 import shell from "@/components/shell.module.css";
 
 const ERRORS: Record<string, string> = {
-  empty: "Enter your work email address.",
-  malformed: "That does not look like an email address.",
+  empty: copy.buyer.signInErrors.empty,
+  malformed: copy.buyer.signInErrors.malformed,
   not_work_email: copy.buyer.signInWorkEmail,
   expired: "That link has expired. We will send you another one.",
   used: "That link has already been used. Ask for a new one.",
@@ -43,7 +43,7 @@ export default async function BuyerSignIn({
         <form action={requestMagicLink}>
           <Field
             name="email"
-            label="Work email"
+            label={copy.buyer.signInLabel}
             type="email"
             inputMode="email"
             autoComplete="email"

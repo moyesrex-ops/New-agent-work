@@ -52,44 +52,44 @@ export default async function SupplierDetail({ params }: { params: Promise<{ id:
               </p>
             </div>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Phone</p>
+              <p className={shell.displayLabel}>{copy.buyer.suppliersColumns.phone}</p>
               <p className={shell.displayValue}>{formatPhone(link.supplier.phone)}</p>
             </div>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>TIN</p>
+              <p className={shell.displayLabel}>{copy.buyer.fields.tin}</p>
               <p className={shell.displayValue}>
-                {link.supplier.tin ? maskTin(link.supplier.tin) : "Not provided"}
+                {link.supplier.tin ? maskTin(link.supplier.tin) : copy.buyer.notProvided}
               </p>
             </div>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Vendor code</p>
+              <p className={shell.displayLabel}>{copy.buyer.fields.vendorCode}</p>
               <p className={shell.displayValue}>{link.vendorCode ?? "—"}</p>
             </div>
           </Card>
 
           <Card>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Invited</p>
+              <p className={shell.displayLabel}>{copy.buyer.detailInvited}</p>
               <p className={shell.displayValue}>
-                {link.invitedAt ? formatDateTime(link.invitedAt) : "Not yet"}
+                {link.invitedAt ? formatDateTime(link.invitedAt) : copy.buyer.notYet}
               </p>
             </div>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Opened the link</p>
+              <p className={shell.displayLabel}>{copy.buyer.detailOpened}</p>
               <p className={shell.displayValue}>
-                {link.openedAt ? formatDateTime(link.openedAt) : "Not yet"}
+                {link.openedAt ? formatDateTime(link.openedAt) : copy.buyer.notYet}
               </p>
             </div>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Finished signing up</p>
+              <p className={shell.displayLabel}>{copy.buyer.detailActivated}</p>
               <p className={shell.displayValue}>
-                {link.activatedAt ? formatDateTime(link.activatedAt) : "Not yet"}
+                {link.activatedAt ? formatDateTime(link.activatedAt) : copy.buyer.notYet}
               </p>
             </div>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Their link</p>
+              <p className={shell.displayLabel}>{copy.buyer.detailLink}</p>
               <p className={shell.displayValue} style={{ wordBreak: "break-all" }}>
-                {invitation ? appUrl(`/s/i/${invitation.code}`) : "None sent"}
+                {invitation ? appUrl(`/s/i/${invitation.code}`) : copy.buyer.noneSent}
               </p>
             </div>
           </Card>
@@ -100,12 +100,9 @@ export default async function SupplierDetail({ params }: { params: Promise<{ id:
         <div className={shell.lockedRow} style={{ marginTop: "var(--space-4)" }}>
           <p className={shell.displayLabel}>{copy.confirm.paidInto}</p>
           <p className={shell.displayValue}>
-            {link.bankName ? `${link.bankName} ••••${link.bankLast4 ?? "????"}` : "Not in your file"}
+            {link.bankName ? `${link.bankName} ••••${link.bankLast4 ?? "????"}` : copy.buyer.notInYourFile}
           </p>
-          <p className={shell.note}>
-            From your vendor master. Change it there and re-upload — it cannot be edited here, by
-            you or by the supplier.
-          </p>
+          <p className={shell.note}>{copy.buyer.detailBankSource}</p>
         </div>
       </section>
 
@@ -117,49 +114,48 @@ export default async function SupplierDetail({ params }: { params: Promise<{ id:
             </Button>
           </form>
           <p className={shell.note} style={{ marginTop: "var(--space-2)" }}>
-            Sends the invitation again in {link.organisation.legalName}&rsquo;s name, on WhatsApp
-            with SMS behind it.
+            {copy.buyer.detailNudgeNote(link.organisation.legalName)}
           </p>
         </section>
       ) : null}
 
       <section className={shell.section}>
-        <h2 className={shell.sectionTitle}>Their invoices to you</h2>
+        <h2 className={shell.sectionTitle}>{copy.buyer.detailInvoicesHeading}</h2>
         <DataTable
-          caption="Invoices from this supplier"
+          caption={copy.buyer.detailInvoicesCaption}
           rows={invoices}
           empty={
             <EmptyState
-              heading="Nothing yet."
+              heading={copy.buyer.detailInvoicesEmpty}
               body={
                 link.status === "live"
-                  ? "They have finished signing up but have not sent an invoice."
-                  : "They have not finished signing up."
+                  ? copy.buyer.detailInvoicesEmptyLive
+                  : copy.buyer.detailInvoicesEmptyNotLive
               }
               action={
                 <ButtonLink href="/c/suppliers" variant="secondary">
-                  Back to suppliers
+                  {copy.buyer.detailBack}
                 </ButtonLink>
               }
             />
           }
           columns={[
-            { key: "number", header: "Invoice", render: (row) => row.invoiceNumber },
+            { key: "number", header: copy.buyer.invoicesColumns.invoice, render: (row) => row.invoiceNumber },
             {
               key: "status",
-              header: "Status",
+              header: copy.buyer.suppliersColumns.status,
               render: (row) => <StatusChip status={INVOICE_STATUS[row.status] ?? "draft"} />,
             },
-            { key: "irn", header: "NRS reference", render: (row) => row.irn ?? "—" },
+            { key: "irn", header: copy.buyer.invoicesColumns.reference, render: (row) => row.irn ?? "—" },
             {
               key: "total",
-              header: "Total",
+              header: copy.buyer.invoicesColumns.total,
               numeric: true,
               render: (row) => formatKobo(kobo(row.totalKobo)),
             },
             {
               key: "stamped",
-              header: "Stamped",
+              header: copy.buyer.invoicesColumns.stamped,
               render: (row) => (row.stampedAt ? formatDateTime(row.stampedAt) : "—"),
             },
           ]}

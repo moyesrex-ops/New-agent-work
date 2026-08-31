@@ -36,10 +36,8 @@ export default async function InviteComposer({
   if (!invitable.length) {
     return (
       <EmptyState
-        heading={
-          suppliers.length ? "Every supplier is already live." : copy.buyer.suppliersEmpty
-        }
-        body={suppliers.length ? undefined : "Upload your vendor list first."}
+        heading={suppliers.length ? copy.buyer.inviteAllLive : copy.buyer.suppliersEmpty}
+        body={suppliers.length ? undefined : copy.buyer.inviteUploadFirst}
         action={
           <ButtonLink href={suppliers.length ? "/c/suppliers" : "/c/upload"}>
             {suppliers.length ? copy.buyer.suppliersHeading : copy.buyer.uploadCta}
@@ -50,7 +48,7 @@ export default async function InviteComposer({
   }
 
   const preview = copy.buyer.inviteMessage(
-    organisation?.legalName ?? "Your company",
+    organisation?.legalName ?? copy.buyer.yourCompany,
     `stampa.ng/s/${organisation?.inviteSlug ?? "ABC"}-4471`,
   );
 
@@ -58,24 +56,24 @@ export default async function InviteComposer({
     <div style={{ maxWidth: 720 }}>
       <h1 className={shell.title}>{copy.buyer.inviteHeading(invitable.length)}</h1>
       <p className={shell.lede} style={{ marginBottom: "var(--space-5)" }}>
-        {copy.buyer.inviteBody(organisation?.legalName ?? "your company")}
+        {copy.buyer.inviteBody(organisation?.legalName ?? copy.buyer.yourCompanyLower)}
       </p>
 
       {error === "none_selected" ? (
         <div style={{ marginBottom: "var(--space-5)" }}>
-          <Banner tone="danger">Tick at least one supplier.</Banner>
+          <Banner tone="danger">{copy.buyer.inviteNoneSelected}</Banner>
         </div>
       ) : null}
 
-      <DocumentCard label="The message your suppliers will receive">
-        <p className={shell.note}>Preview</p>
+      <DocumentCard label={copy.buyer.invitePreviewLabel}>
+        <p className={shell.note}>{copy.buyer.invitePreview}</p>
         <p style={{ marginTop: "var(--space-2)" }}>{preview}</p>
       </DocumentCard>
 
       <form action={inviteSuppliers} style={{ marginTop: "var(--space-6)" }}>
         <Card>
           <fieldset style={{ border: "none", padding: 0, margin: 0 }}>
-            <legend className={shell.sectionTitle}>Who to invite</legend>
+            <legend className={shell.sectionTitle}>{copy.buyer.inviteWho}</legend>
             <ul className={shell.stackTight}>
               {invitable.map((row) => (
                 <li key={row.linkId}>
@@ -95,11 +93,11 @@ export default async function InviteComposer({
         <div style={{ marginTop: "var(--space-5)", display: "flex", gap: "var(--space-3)" }}>
           <Button type="submit">{copy.buyer.inviteCta}</Button>
           <ButtonLink href="/c/suppliers" variant="secondary">
-            Cancel
+            {copy.buyer.inviteCancel}
           </ButtonLink>
         </div>
         <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-          Sent on WhatsApp with SMS behind it. You will see which ones did not reach a number.
+          {copy.buyer.inviteChannels}
         </p>
       </form>
     </div>

@@ -28,66 +28,62 @@ export default async function Settings() {
 
   return (
     <div style={{ maxWidth: 640 }}>
-      <h1 className={shell.title}>Settings</h1>
+      <h1 className={shell.title}>{copy.buyer.settingsHeading}</h1>
 
       <section className={shell.section}>
-        <h2 className={shell.sectionTitle}>Company</h2>
+        <h2 className={shell.sectionTitle}>{copy.buyer.settingsCompanySection}</h2>
         <Card>
           <div className={shell.displayRow}>
-            <p className={shell.displayLabel}>Registered name</p>
+            <p className={shell.displayLabel}>{copy.buyer.settingsCompany}</p>
             <p className={shell.displayValue}>{organisation?.legalName}</p>
           </div>
           <div className={shell.displayRow}>
-            <p className={shell.displayLabel}>TIN</p>
+            <p className={shell.displayLabel}>{copy.buyer.fields.tin}</p>
             <p className={shell.displayValue}>
               {organisation?.tin ? maskTin(organisation.tin) : "—"}
             </p>
           </div>
           <div className={shell.displayRow}>
-            <p className={shell.displayLabel}>Invite code prefix</p>
+            <p className={shell.displayLabel}>{copy.buyer.settingsSlug}</p>
             <p className={shell.displayValue}>{organisation?.inviteSlug}</p>
           </div>
         </Card>
         <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-          Your registered name appears at the top of every invitation your suppliers receive.
-          Call {BRAND.supportPhone} to change it — we verify it against your CAC record first,
-          because a supplier deciding whether to trust a link is reading that line.
+          {copy.buyer.settingsNameNote(BRAND.supportPhone)}
         </p>
       </section>
 
       <section className={shell.section}>
-        <h2 className={shell.sectionTitle}>Plan</h2>
+        <h2 className={shell.sectionTitle}>{copy.buyer.settingsPlanSection}</h2>
         <Card>
           <div className={shell.displayRow}>
-            <p className={shell.displayLabel}>Plan</p>
+            <p className={shell.displayLabel}>{copy.buyer.settingsPlan}</p>
             <p className={shell.displayValue}>{organisation?.plan}</p>
           </div>
           <div className={shell.displayRow}>
-            <p className={shell.displayLabel}>Active suppliers</p>
+            <p className={shell.displayLabel}>{copy.buyer.settingsCap}</p>
             <p className={shell.displayValue}>
-              {live} of {organisation?.activeSupplierCap}
+              {copy.buyer.settingsCapValue(live, organisation?.activeSupplierCap ?? 0)}
             </p>
           </div>
         </Card>
         <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-          We invoice you by email and you pay by bank transfer. There is no card on file and the
-          product never takes one. Suppliers are never charged anything.
+          {copy.buyer.settingsBillingNote}
         </p>
       </section>
 
       <section className={shell.section}>
-        <h2 className={shell.sectionTitle}>Your data</h2>
+        <h2 className={shell.sectionTitle}>{copy.buyer.settingsData}</h2>
         <div style={{ display: "flex", gap: "var(--space-3)" }}>
           <ButtonLink href="/c/invoices/export" variant="secondary" compact>
             {copy.buyer.exportCta}
           </ButtonLink>
           <ButtonLink href="/c/upload" variant="secondary" compact>
-            Re-upload vendor master
+            {copy.buyer.settingsReupload}
           </ButtonLink>
         </div>
         <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-          Re-uploading updates bank details and is the only way they change. Every change is
-          recorded with who did it and when.
+          {copy.buyer.settingsReuploadNote}
         </p>
       </section>
 

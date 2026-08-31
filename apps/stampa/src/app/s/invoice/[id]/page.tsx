@@ -36,10 +36,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
       return (
         <ErrorState
           status="draft"
-          what="Not sent yet."
-          why="This invoice is saved but has not been sent to the NRS."
+          what={copy.detail.draftHeading}
+          why={copy.detail.draftWhy}
           reassurance={TRUST.saved}
-          action={<ButtonLink href={`/s/invoice/${invoice.id}/review`}>Review and send</ButtonLink>}
+          action={
+            <ButtonLink href={`/s/invoice/${invoice.id}/review`}>{copy.detail.draftCta}</ButtonLink>
+          }
         />
       );
     case "queued":
@@ -172,7 +174,7 @@ function NotStamped({ invoice }: { invoice: Invoice }) {
       next={copy.notStamped.neither.next(caseNumber(transmission?.id ?? invoice.id))}
       reassurance={copy.notStamped.saved}
       action={
-        <a href={`tel:${BRAND.supportPhone}`} className={shell.note}>
+        <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>
           {copy.notStamped.neither.cta}
         </a>
       }

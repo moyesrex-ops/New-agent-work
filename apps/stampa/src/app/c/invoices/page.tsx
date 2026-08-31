@@ -43,23 +43,27 @@ export default async function InboundInvoices() {
       ) : null}
 
       <DataTable
-        caption="Stamped invoices received from your suppliers"
+        caption={copy.buyer.invoicesCaption}
         rows={rows}
         limit={500}
         empty={
           <EmptyState
             heading={copy.buyer.invoicesEmpty}
-            body="They appear here the moment a supplier's invoice is stamped by the NRS."
+            body={copy.buyer.invoicesEmptyBody}
             action={<ButtonLink href="/c/suppliers">{copy.buyer.suppliersHeading}</ButtonLink>}
           />
         }
         columns={[
-          { key: "irn", header: "NRS reference", render: (row) => row.irn ?? "—" },
-          { key: "number", header: "Invoice", render: (row) => row.invoiceNumber },
-          { key: "supplier", header: "Supplier", render: (row) => row.supplier.businessName },
+          { key: "irn", header: copy.buyer.invoicesColumns.reference, render: (row) => row.irn ?? "—" },
+          { key: "number", header: copy.buyer.invoicesColumns.invoice, render: (row) => row.invoiceNumber },
+          {
+            key: "supplier",
+            header: copy.buyer.invoicesColumns.supplier,
+            render: (row) => row.supplier.businessName,
+          },
           {
             key: "tin",
-            header: "Supplier TIN",
+            header: copy.buyer.invoicesColumns.supplierTin,
             render: (row) => (row.supplier.tin ? maskTin(row.supplier.tin) : "—"),
           },
           {
@@ -70,13 +74,13 @@ export default async function InboundInvoices() {
           },
           {
             key: "total",
-            header: "Total",
+            header: copy.buyer.invoicesColumns.total,
             numeric: true,
             render: (row) => formatKobo(kobo(row.totalKobo)),
           },
           {
             key: "stamped",
-            header: "Stamped",
+            header: copy.buyer.invoicesColumns.stamped,
             render: (row) => (row.stampedAt ? formatDateTime(row.stampedAt) : "—"),
           },
         ]}

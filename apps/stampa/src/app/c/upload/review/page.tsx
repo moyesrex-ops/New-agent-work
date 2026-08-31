@@ -22,15 +22,15 @@ import shell from "@/components/shell.module.css";
 export const dynamic = "force-dynamic";
 
 const LABELS: Record<ColumnKey, string> = {
-  businessName: "Vendor name",
-  phone: "Phone number",
+  businessName: copy.buyer.fields.businessName,
+  phone: copy.buyer.fields.phone,
   tin: "TIN",
-  address: "Address",
-  vendorCode: "Vendor code",
-  category: "Category",
-  bankName: "Bank",
-  bankLast4: "Account number",
-  annualSpend: "Annual spend",
+  address: copy.buyer.fields.address,
+  vendorCode: copy.buyer.fields.vendorCode,
+  category: copy.buyer.fields.category,
+  bankName: copy.buyer.fields.bankName,
+  bankLast4: copy.buyer.fields.bankLast4,
+  annualSpend: copy.buyer.fields.annualSpend,
 };
 
 const ERRORS: Record<ColumnKey | string, string> = {
@@ -113,13 +113,13 @@ export default async function MappingReview({
         </section>
 
         <section className={shell.section}>
-          <h2 className={shell.sectionTitle}>First five rows, as we read them</h2>
+          <h2 className={shell.sectionTitle}>{copy.buyer.mappingPreviewHeading}</h2>
           <Preview vendors={parsed.vendors.slice(0, 5)} />
         </section>
 
         {parsed.problems.length ? (
           <section className={shell.section}>
-            <h2 className={shell.sectionTitle}>Rows we had to skip</h2>
+            <h2 className={shell.sectionTitle}>{copy.buyer.mappingSkipped}</h2>
             <Card>
               <ul className={shell.stackTight}>
                 {parsed.problems.slice(0, 10).map((problem) => (
@@ -130,7 +130,7 @@ export default async function MappingReview({
               </ul>
               {parsed.problems.length > 10 ? (
                 <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-                  And {parsed.problems.length - 10} more. Everything else still imports.
+                  {copy.buyer.mappingMoreProblems(parsed.problems.length - 10)}
                 </p>
               ) : null}
             </Card>
@@ -140,14 +140,14 @@ export default async function MappingReview({
         <div style={{ display: "flex", gap: "var(--space-3)" }}>
           <Button type="submit">{copy.buyer.mappingCta}</Button>
           <ButtonLink href="/c/upload" variant="secondary">
-            Choose a different file
+            {copy.buyer.mappingChooseAnother}
           </ButtonLink>
         </div>
       </form>
 
       <form action={discardUpload} style={{ marginTop: "var(--space-6)" }}>
         <Button type="submit" variant="quiet">
-          Discard this upload
+          {copy.buyer.mappingDiscard}
         </Button>
       </form>
     </div>
@@ -157,7 +157,7 @@ export default async function MappingReview({
 function Preview({ vendors }: { vendors: ParsedVendor[] }) {
   return (
     <DataTable
-      caption="First five rows of the vendor master as parsed"
+      caption={copy.buyer.mappingPreview}
       rows={vendors}
       empty={
         <Card>
@@ -167,8 +167,8 @@ function Preview({ vendors }: { vendors: ParsedVendor[] }) {
         </Card>
       }
       columns={[
-        { key: "name", header: "Vendor name", render: (row) => row.businessName },
-        { key: "phone", header: "Phone", render: (row) => formatPhone(row.phone) },
+        { key: "name", header: copy.buyer.fields.businessName, render: (row) => row.businessName },
+        { key: "phone", header: copy.buyer.suppliersColumns.phone, render: (row) => formatPhone(row.phone) },
         {
           key: "tin",
           header: "TIN",
@@ -184,13 +184,13 @@ function Preview({ vendors }: { vendors: ParsedVendor[] }) {
         },
         {
           key: "bank",
-          header: "Bank",
+          header: copy.buyer.fields.bankName,
           render: (row) =>
             row.bankName ? `${row.bankName} ••••${row.bankLast4 ?? "????"}` : "—",
         },
         {
           key: "spend",
-          header: "Annual spend",
+          header: copy.buyer.fields.annualSpend,
           numeric: true,
           render: (row) =>
             row.annualSpendKobo === null ? "—" : formatKobo(kobo(row.annualSpendKobo)),

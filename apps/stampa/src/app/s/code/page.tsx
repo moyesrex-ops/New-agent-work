@@ -58,7 +58,7 @@ export default async function CodeEntry({
             human either way, which is the part that matters at this step.
             Sized as a tap target, not a footnote — the supplier reaching for
             it is the one the SMS never arrived for. */}
-        <a href={`tel:${BRAND.supportPhone}`} className={shell.headerLink}>
+        <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>
           {copy.otp.voice}
         </a>
       </div>

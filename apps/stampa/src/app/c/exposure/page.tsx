@@ -2,7 +2,7 @@ import { ButtonLink } from "@/components/Button";
 import { Card, DocumentCard, EmptyState } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
 import { copy, formatDate } from "@/lib/copy";
-import { formatKobo } from "@/lib/money";
+import { formatNaira } from "@/lib/money";
 import {
   ASSUMED_ANNUAL_SPEND_KOBO,
   computeExposure,
@@ -46,11 +46,9 @@ export default async function ExposureReport() {
 
   if (exposure.exposedVendors === 0) {
     return (
-      <DocumentCard label="Exposure report">
+      <DocumentCard label={copy.buyer.exposureClearLabel}>
         <h1 className={shell.title}>{copy.buyer.exposureClear(exposure.totalVendors)}</h1>
-        <p className={shell.lede}>
-          Every vendor we could check has transmitted at least one stamped invoice through Stampa.
-        </p>
+        <p className={shell.lede}>{copy.buyer.exposureClearBody}</p>
         <p className={shell.note} style={{ marginTop: "var(--space-4)" }}>
           {copy.buyer.exposureMethod(exposure.totalVendors, formatDate(new Date()))}
         </p>
@@ -60,7 +58,7 @@ export default async function ExposureReport() {
 
   return (
     <>
-      <DocumentCard label="Input VAT exposure report">
+      <DocumentCard label={copy.buyer.exposureLabel}>
         <p className={shell.note}>{organisation?.legalName}</p>
         <h1 className={shell.title} style={{ marginTop: "var(--space-2)" }}>
           {copy.buyer.exposureHeading(exposure.exposedVendors, exposure.totalVendors)}
@@ -70,7 +68,7 @@ export default async function ExposureReport() {
           {copy.buyer.exposureSubhead}
         </p>
         <p className={shell.display} style={{ fontFamily: "var(--font-family-mono)" }}>
-          NGN {formatKobo(exposure.vatAtRiskKobo)}
+          {formatNaira(exposure.vatAtRiskKobo)}
         </p>
 
         <div style={{ marginTop: "var(--space-6)" }}>
@@ -84,28 +82,25 @@ export default async function ExposureReport() {
           ) : null}
           <p className={shell.note}>
             {exposure.spendSource === "buyer_data"
-              ? "Spend figures are the ones in your own upload."
-              : `Your upload carried no spend column, so this uses a stated assumption of ${formatKobo(ASSUMED_ANNUAL_SPEND_KOBO)} of annual spend per vendor. Upload a file with a spend column and this becomes your own number.`}
+              ? copy.buyer.exposureSpendYours
+              : copy.buyer.exposureSpendAssumed(formatNaira(ASSUMED_ANNUAL_SPEND_KOBO))}
           </p>
-          <p className={shell.note}>
-            One quarter of annual spend at the 7.5% standard rate. Vendors with no usable TIN are
-            counted as uncheckable, not as exposed.
-          </p>
+          <p className={shell.note}>{copy.buyer.exposureRate}</p>
         </div>
       </DocumentCard>
 
       <section className={shell.section} style={{ marginTop: "var(--space-6)" }}>
         <div className={shell.metricGrid}>
           <Card>
-            <p className={shell.metricLabel}>Compliant</p>
+            <p className={shell.metricLabel}>{copy.buyer.exposureCompliant}</p>
             <p className={shell.metricValue}>{exposure.compliantVendors}</p>
           </Card>
           <Card>
-            <p className={shell.metricLabel}>Not compliant</p>
+            <p className={shell.metricLabel}>{copy.buyer.exposureNotCompliant}</p>
             <p className={shell.metricValue}>{exposure.exposedVendors}</p>
           </Card>
           <Card>
-            <p className={shell.metricLabel}>Could not be checked</p>
+            <p className={shell.metricLabel}>{copy.buyer.exposureUncheckableLabel}</p>
             <p className={shell.metricValue}>{exposure.uncheckableVendors}</p>
           </Card>
         </div>
@@ -118,7 +113,7 @@ export default async function ExposureReport() {
         </ButtonLink>
       </div>
       <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-        {invitable.length} of them have not finished signing up.
+        {copy.buyer.exposureRemaining(invitable.length)}
       </p>
     </>
   );

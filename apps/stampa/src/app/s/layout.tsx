@@ -15,11 +15,11 @@ export default function SupplierLayout({ children }: { children: React.ReactNode
       <OfflineBanner />
       <div className={shell.supplier}>
           <header className={shell.header}>
-            <Link href="/s" aria-label="Stampa home" className={shell.headerHome}>
+            <Link href="/s" aria-label={copy.a11y.supplierHome} className={shell.headerHome}>
               <Wordmark size={26} />
             </Link>
             <span className={shell.headerSpacer} />
-            <Link href="/s/help" className={shell.headerLink}>
+            <Link href="/s/help" className={shell.textLink}>
               {copy.nav.help}
             </Link>
           </header>

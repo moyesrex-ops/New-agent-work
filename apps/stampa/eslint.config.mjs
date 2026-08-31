@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The browser walk builds into its own distDir so it can run beside a dev
+    // server. Compiled output is not source and must not reach the linter.
+    ".next-walk/**",
+    ".walk/**",
+    ".data/**",
   ]),
 ]);
 

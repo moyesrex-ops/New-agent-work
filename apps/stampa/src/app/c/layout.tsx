@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
-import { BRAND } from "@/lib/copy";
+import { BRAND, copy } from "@/lib/copy";
 import { currentPrincipal } from "@/lib/auth/session";
 import shell from "@/components/shell.module.css";
 
@@ -19,24 +19,24 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
     <div className={shell.page}>
       <div className={shell.console}>
         <header className={shell.consoleHeader}>
-          <Link href="/c" aria-label="Stampa console" className={shell.consoleHome}>
+          <Link href="/c" aria-label={copy.a11y.consoleHome} className={shell.consoleHome}>
             <Wordmark size={22} />
           </Link>
           {/* No navigation before sign-in: a sign-in page with menu items
               behind it is a set of dead links. */}
           {signedIn ? (
-            <nav className={shell.nav} aria-label="Console">
+            <nav className={shell.nav} aria-label={copy.nav.console}>
               <Link href="/c" className={shell.navLink}>
-                Overview
+                {copy.nav.overview}
               </Link>
               <Link href="/c/suppliers" className={shell.navLink}>
-                Suppliers
+                {copy.nav.suppliers}
               </Link>
               <Link href="/c/invoices" className={shell.navLink}>
-                Invoices
+                {copy.nav.invoices}
               </Link>
               <Link href="/c/settings" className={shell.navLink}>
-                Settings
+                {copy.nav.settings}
               </Link>
             </nav>
           ) : null}

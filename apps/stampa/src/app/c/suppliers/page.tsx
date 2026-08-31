@@ -11,11 +11,11 @@ import shell from "@/components/shell.module.css";
 export const dynamic = "force-dynamic";
 
 const FILTERS = [
-  { value: "all", label: "All" },
+  { value: "all", label: copy.buyer.suppliersFilterAll },
   { value: "live", label: copy.status.live },
   { value: "opened", label: copy.status.opened },
   { value: "invited", label: copy.status.invited },
-  { value: "imported", label: "Not invited" },
+  { value: "imported", label: copy.buyer.suppliersFilterNotInvited },
 ] as const;
 
 /** Link statuses are a superset of chip statuses; anything unmapped is "invited". */
@@ -67,7 +67,7 @@ export default async function Suppliers({
           marginBottom: "var(--space-5)",
         }}
       >
-        <nav aria-label="Filter by status" style={{ display: "flex", gap: "var(--space-3)" }}>
+        <nav aria-label={copy.a11y.filterByStatus} style={{ display: "flex", gap: "var(--space-3)" }}>
           {FILTERS.map((filter) => (
             <Link
               key={filter.value}
@@ -89,17 +89,17 @@ export default async function Suppliers({
         <form method="get" style={{ marginLeft: "auto", display: "flex", gap: "var(--space-2)" }}>
           <input type="hidden" name="status" value={status} />
           <label className="visually-hidden" htmlFor="supplier-search">
-            Search suppliers
+            {copy.buyer.suppliersSearch}
           </label>
           <input
             id="supplier-search"
             name="q"
             defaultValue={q}
-            placeholder="Name, phone or vendor code"
+            placeholder={copy.buyer.suppliersSearchHint}
             className={shell.searchInput}
           />
           <button type="submit" className={shell.searchButton}>
-            Search
+            {copy.buyer.suppliersSearchCta}
           </button>
         </form>
 
@@ -109,15 +109,15 @@ export default async function Suppliers({
       </div>
 
       <DataTable<SupplierRow>
-        caption="Suppliers and their status"
+        caption={copy.buyer.suppliersCaption}
         rows={rows}
         empty={
           <EmptyState
-            heading={all.length ? "No suppliers match that filter." : copy.buyer.suppliersEmpty}
+            heading={all.length ? copy.buyer.suppliersNoMatch : copy.buyer.suppliersEmpty}
             action={
               all.length ? (
                 <ButtonLink href="/c/suppliers" variant="secondary">
-                  Clear the filter
+                  {copy.buyer.suppliersClearFilter}
                 </ButtonLink>
               ) : (
                 <ButtonLink href="/c/upload">{copy.buyer.uploadCta}</ButtonLink>
@@ -128,25 +128,25 @@ export default async function Suppliers({
         columns={[
           {
             key: "name",
-            header: "Vendor",
+            header: copy.buyer.suppliersColumns.vendor,
             render: (row) => <Link href={`/c/suppliers/${row.linkId}`}>{row.businessName}</Link>,
           },
-          { key: "code", header: "Code", render: (row) => row.vendorCode ?? "—" },
-          { key: "phone", header: "Phone", render: (row) => formatPhone(row.phone) },
+          { key: "code", header: copy.buyer.suppliersColumns.code, render: (row) => row.vendorCode ?? "—" },
+          { key: "phone", header: copy.buyer.suppliersColumns.phone, render: (row) => formatPhone(row.phone) },
           {
             key: "tin",
-            header: "TIN",
+            header: copy.buyer.suppliersColumns.tin,
             render: (row) =>
               row.tin ? maskTin(row.tin) : <span className={shell.note}>missing</span>,
           },
           {
             key: "status",
-            header: "Status",
+            header: copy.buyer.suppliersColumns.status,
             render: (row) => <StatusChip status={chipStatus(row.status)} />,
           },
           {
             key: "stamped",
-            header: "Stamped",
+            header: copy.buyer.suppliersColumns.stamped,
             numeric: true,
             render: (row) => row.stampedCount,
           },
