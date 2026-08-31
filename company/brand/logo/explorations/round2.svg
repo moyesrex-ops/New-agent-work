@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1080" viewBox="0 0 1180 1080">
+  <defs>
+    <!-- S variants, all drawn to sit inside a 120 box with ~24 margin -->
+    <path id="sPath" d="M 74 45 A 15 15 0 1 0 60 60 A 15 15 0 1 1 46 75"/>
+
+    <mask id="mE"><rect x="0" y="0" width="120" height="120" fill="#fff"/>
+      <use href="#sPath" fill="none" stroke="#000" stroke-width="14" stroke-linecap="butt"/></mask>
+    <mask id="mF"><rect x="0" y="0" width="120" height="120" fill="#fff"/>
+      <use href="#sPath" fill="none" stroke="#000" stroke-width="14" stroke-linecap="butt"/></mask>
+    <mask id="mG"><rect x="0" y="0" width="120" height="120" fill="#fff"/>
+      <use href="#sPath" fill="none" stroke="#000" stroke-width="15" stroke-linecap="butt"/>
+      <rect x="52" y="53" width="16" height="7" fill="#fff" transform="rotate(-45 60 56)"/></mask>
+    <mask id="mH"><rect x="0" y="0" width="120" height="120" fill="#fff"/>
+      <use href="#sPath" fill="none" stroke="#000" stroke-width="14" stroke-linecap="butt"/></mask>
+
+    <!-- perforated square: big scallops, 3 per side -->
+    <mask id="perfBig">
+      <rect x="6" y="6" width="108" height="108" rx="8" fill="#fff"/>
+      <g fill="#000">
+        <circle cx="24" cy="6"  r="7"/><circle cx="60" cy="6"  r="7"/><circle cx="96" cy="6"  r="7"/>
+        <circle cx="24" cy="114" r="7"/><circle cx="60" cy="114" r="7"/><circle cx="96" cy="114" r="7"/>
+        <circle cx="6"  cy="24" r="7"/><circle cx="6"  cy="60" r="7"/><circle cx="6"  cy="96" r="7"/>
+        <circle cx="114" cy="24" r="7"/><circle cx="114" cy="60" r="7"/><circle cx="114" cy="96" r="7"/>
+      </g>
+    </mask>
+    <!-- round seal with notched edge -->
+    <mask id="notchRound">
+      <circle cx="60" cy="60" r="54" fill="#fff"/>
+      <g fill="#000">
+        <circle cx="60" cy="6"   r="6.5"/><circle cx="98.2" cy="21.8" r="6.5"/>
+        <circle cx="114" cy="60" r="6.5"/><circle cx="98.2" cy="98.2" r="6.5"/>
+        <circle cx="60" cy="114" r="6.5"/><circle cx="21.8" cy="98.2" r="6.5"/>
+        <circle cx="6"  cy="60"  r="6.5"/><circle cx="21.8" cy="21.8" r="6.5"/>
+      </g>
+    </mask>
+
+    <!-- E: perforated stamp, upright -->
+    <symbol id="dirE" viewBox="0 0 120 120">
+      <g mask="url(#mE)"><rect x="6" y="6" width="108" height="108" rx="8" fill="currentColor" mask="url(#perfBig)"/></g>
+    </symbol>
+    <!-- F: perforated stamp, pressed at 8 degrees -->
+    <symbol id="dirF" viewBox="0 0 120 120">
+      <g transform="rotate(-8 60 60)"><g mask="url(#mF)"><rect x="6" y="6" width="108" height="108" rx="8" fill="currentColor" mask="url(#perfBig)"/></g></g>
+    </symbol>
+    <!-- G: solid block, pressed hard at 12 degrees, stencil-break S -->
+    <symbol id="dirG" viewBox="0 0 120 120">
+      <g transform="rotate(-12 60 60)"><g mask="url(#mG)"><rect x="10" y="10" width="100" height="100" rx="16" fill="currentColor"/></g></g>
+    </symbol>
+    <!-- H: round notched seal -->
+    <symbol id="dirH" viewBox="0 0 120 120">
+      <g mask="url(#mH)"><circle cx="60" cy="60" r="54" fill="currentColor" mask="url(#notchRound)"/></g>
+    </symbol>
+  </defs>
+
+  <rect width="1180" height="1080" fill="#FBF9F4"/>
+  <g font-family="Archivo" font-size="13" fill="#6B6675" letter-spacing="1.4">
+    <text x="40"  y="40">E - PERF STAMP, UPRIGHT</text>
+    <text x="330" y="40">F - PERF STAMP, PRESSED 8</text>
+    <text x="620" y="40">G - BLOCK, PRESSED 12, STENCIL</text>
+    <text x="910" y="40">H - ROUND NOTCHED SEAL</text>
+  </g>
+
+  <g color="#4C2A85">
+    <use href="#dirE" x="40"  y="60" width="170" height="170"/>
+    <use href="#dirF" x="330" y="60" width="170" height="170"/>
+    <use href="#dirG" x="620" y="60" width="170" height="170"/>
+    <use href="#dirH" x="910" y="60" width="170" height="170"/>
+  </g>
+
+  <g color="#14121A">
+    <use href="#dirE" x="40"  y="260" width="64" height="64"/><use href="#dirE" x="116" y="284" width="40" height="40"/><use href="#dirE" x="168" y="300" width="24" height="24"/><use href="#dirE" x="202" y="308" width="16" height="16"/>
+    <use href="#dirF" x="330" y="260" width="64" height="64"/><use href="#dirF" x="406" y="284" width="40" height="40"/><use href="#dirF" x="458" y="300" width="24" height="24"/><use href="#dirF" x="492" y="308" width="16" height="16"/>
+    <use href="#dirG" x="620" y="260" width="64" height="64"/><use href="#dirG" x="696" y="284" width="40" height="40"/><use href="#dirG" x="748" y="300" width="24" height="24"/><use href="#dirG" x="782" y="308" width="16" height="16"/>
+    <use href="#dirH" x="910" y="260" width="64" height="64"/><use href="#dirH" x="986" y="284" width="40" height="40"/><use href="#dirH" x="1038" y="300" width="24" height="24"/><use href="#dirH" x="1072" y="308" width="16" height="16"/>
+  </g>
+  <text x="40" y="342" font-family="Archivo" font-size="10" fill="#9A94A5">64 / 40 / 24 / 16 px, pure black</text>
+
+  <rect x="0" y="360" width="1180" height="180" fill="#14121A"/>
+  <g color="#FBF9F4">
+    <use href="#dirE" x="40"  y="385" width="130" height="130"/>
+    <use href="#dirF" x="330" y="385" width="130" height="130"/>
+    <use href="#dirG" x="620" y="385" width="130" height="130"/>
+    <use href="#dirH" x="910" y="385" width="130" height="130"/>
+  </g>
+  <text x="190" y="455" font-family="Archivo" font-size="11" fill="#7E7889">reversed (true knockout)</text>
+
+  <g color="#14121A">
+    <use href="#dirE" x="40"  y="575" width="54" height="54"/><text x="106" y="616" font-family="Archivo" font-weight="600" font-size="42" fill="#14121A" letter-spacing="-1.4">Stampa</text>
+    <use href="#dirF" x="330" y="575" width="54" height="54"/><text x="396" y="616" font-family="Archivo" font-weight="600" font-size="42" fill="#14121A" letter-spacing="-1.4">Stampa</text>
+    <use href="#dirG" x="620" y="575" width="54" height="54"/><text x="686" y="616" font-family="Archivo" font-weight="600" font-size="42" fill="#14121A" letter-spacing="-1.4">Stampa</text>
+    <use href="#dirH" x="910" y="575" width="54" height="54"/><text x="976" y="616" font-family="Archivo" font-weight="600" font-size="42" fill="#14121A" letter-spacing="-1.4">Stampa</text>
+  </g>
+
+  <text x="40" y="672" font-family="Archivo" font-size="11" fill="#9A94A5">app icon, violet field, 96 and 40</text>
+  <g>
+    <rect x="40" y="686" width="96" height="96" rx="21" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirE" x="52" y="698" width="72" height="72"/></g>
+    <rect x="150" y="742" width="40" height="40" rx="9" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirE" x="155" y="747" width="30" height="30"/></g>
+    <rect x="330" y="686" width="96" height="96" rx="21" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirF" x="342" y="698" width="72" height="72"/></g>
+    <rect x="440" y="742" width="40" height="40" rx="9" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirF" x="445" y="747" width="30" height="30"/></g>
+    <rect x="620" y="686" width="96" height="96" rx="21" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirG" x="632" y="698" width="72" height="72"/></g>
+    <rect x="730" y="742" width="40" height="40" rx="9" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirG" x="735" y="747" width="30" height="30"/></g>
+    <rect x="910" y="686" width="96" height="96" rx="21" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirH" x="922" y="698" width="72" height="72"/></g>
+    <rect x="1020" y="742" width="40" height="40" rx="9" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirH" x="1025" y="747" width="30" height="30"/></g>
+  </g>
+
+  <text x="40" y="826" font-family="Archivo" font-size="11" fill="#9A94A5">thermal receipt, 1-bit on newsprint, 44px</text>
+  <rect x="30" y="838" width="1120" height="110" fill="#D9D6CF"/>
+  <g color="#000000">
+    <use href="#dirE" x="60"  y="866" width="44" height="44"/>
+    <use href="#dirF" x="350" y="866" width="44" height="44"/>
+    <use href="#dirG" x="640" y="866" width="44" height="44"/>
+    <use href="#dirH" x="930" y="866" width="44" height="44"/>
+  </g>
+  <g font-family="IBM Plex Mono" font-size="12" fill="#000">
+    <text x="116" y="886">STAMPA</text><text x="116" y="903">IRN-7K2M-88QX</text>
+    <text x="406" y="886">STAMPA</text><text x="406" y="903">IRN-7K2M-88QX</text>
+    <text x="696" y="886">STAMPA</text><text x="696" y="903">IRN-7K2M-88QX</text>
+    <text x="986" y="886">STAMPA</text><text x="986" y="903">IRN-7K2M-88QX</text>
+  </g>
+
+  <text x="40" y="985" font-family="Archivo" font-size="11" fill="#9A94A5">confusion check: alongside a generic fintech gradient tile and a lottery tile</text>
+  <defs>
+    <linearGradient id="gen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12D6C6"/><stop offset="1" stop-color="#6C4BF6"/></linearGradient>
+  </defs>
+  <rect x="40" y="1000" width="60" height="60" rx="14" fill="url(#gen)"/>
+  <circle cx="70" cy="1030" r="17" fill="none" stroke="#fff" stroke-width="5"/>
+  <rect x="120" y="1000" width="60" height="60" rx="14" fill="#E31E24"/>
+  <text x="132" y="1042" font-family="Archivo" font-weight="700" font-size="26" fill="#FFD200">WIN</text>
+  <rect x="200" y="1000" width="60" height="60" rx="14" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirF" x="208" y="1008" width="44" height="44"/></g>
+  <rect x="280" y="1000" width="60" height="60" rx="14" fill="#4C2A85"/><g color="#FBF9F4"><use href="#dirG" x="288" y="1008" width="44" height="44"/></g>
+</svg>

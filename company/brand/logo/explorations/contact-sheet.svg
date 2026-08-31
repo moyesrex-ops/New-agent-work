@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1000" viewBox="0 0 1160 1000">
+  <defs>
+    <!-- Shared geometric S, stroked. Built from two half-turns of r=18. -->
+    <g id="s-round">
+      <path d="M 78 40 A 18 18 0 1 0 60 60 A 18 18 0 1 1 42 80"
+            fill="none" stroke-width="15" stroke-linecap="round"/>
+    </g>
+    <g id="s-flat">
+      <path d="M 78 40 A 18 18 0 1 0 60 60 A 18 18 0 1 1 42 80"
+            fill="none" stroke-width="15" stroke-linecap="butt"/>
+    </g>
+
+    <!-- A: OFFICIAL SEAL -->
+    <symbol id="dirA" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="5"/>
+      <circle cx="60" cy="60" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
+      <g color="currentColor" stroke="currentColor"><use href="#s-round"/></g>
+    </symbol>
+
+    <!-- B: CORNER FOLD (document) -->
+    <symbol id="dirB" viewBox="0 0 120 120">
+      <path d="M 12 20 a 8 8 0 0 1 8 -8 h 60 l 28 28 v 60 a 8 8 0 0 1 -8 8 h -80 a 8 8 0 0 1 -8 -8 z"
+            fill="currentColor"/>
+      <path d="M 80 12 l 28 28 h -28 z" fill="#FBF9F4" opacity="0.42"/>
+      <g stroke="#FBF9F4"><use href="#s-round"/></g>
+    </symbol>
+
+    <!-- C: PERFORATED STAMP -->
+    <mask id="perf">
+      <rect x="8" y="8" width="104" height="104" rx="10" fill="#fff"/>
+      <g fill="#000">
+        <circle cx="21" cy="8"  r="5.2"/><circle cx="47" cy="8"  r="5.2"/><circle cx="73" cy="8"  r="5.2"/><circle cx="99" cy="8"  r="5.2"/>
+        <circle cx="21" cy="112" r="5.2"/><circle cx="47" cy="112" r="5.2"/><circle cx="73" cy="112" r="5.2"/><circle cx="99" cy="112" r="5.2"/>
+        <circle cx="8"  cy="21" r="5.2"/><circle cx="8"  cy="47" r="5.2"/><circle cx="8"  cy="73" r="5.2"/><circle cx="8"  cy="99" r="5.2"/>
+        <circle cx="112" cy="21" r="5.2"/><circle cx="112" cy="47" r="5.2"/><circle cx="112" cy="73" r="5.2"/><circle cx="112" cy="99" r="5.2"/>
+      </g>
+    </mask>
+    <symbol id="dirC" viewBox="0 0 120 120">
+      <rect x="8" y="8" width="104" height="104" rx="10" fill="currentColor" mask="url(#perf)"/>
+      <g stroke="#FBF9F4"><use href="#s-round"/></g>
+    </symbol>
+
+    <!-- D: PRESSED BLOCK -->
+    <symbol id="dirD" viewBox="0 0 120 120">
+      <g transform="rotate(-5 60 60)">
+        <rect x="10" y="10" width="100" height="100" rx="18" fill="currentColor"/>
+      </g>
+      <g stroke="#FBF9F4"><use href="#s-flat"/></g>
+    </symbol>
+  </defs>
+
+  <rect width="1160" height="1000" fill="#FBF9F4"/>
+
+  <g font-family="Archivo" font-size="13" fill="#6B6675" letter-spacing="1.4">
+    <text x="40"  y="40">A  OFFICIAL SEAL</text>
+    <text x="320" y="40">B  CORNER FOLD</text>
+    <text x="600" y="40">C  PERFORATED STAMP</text>
+    <text x="880" y="40">D  PRESSED BLOCK</text>
+  </g>
+
+  <!-- Row 1: 160px in stamp violet -->
+  <g color="#4C2A85">
+    <use href="#dirA" x="40"  y="60" width="160" height="160"/>
+    <use href="#dirB" x="320" y="60" width="160" height="160"/>
+    <use href="#dirC" x="600" y="60" width="160" height="160"/>
+    <use href="#dirD" x="880" y="60" width="160" height="160"/>
+  </g>
+
+  <!-- Row 2: 64 / 40 / 24 / 16 in ink -->
+  <g color="#14121A">
+    <use href="#dirA" x="40"  y="250" width="64" height="64"/>
+    <use href="#dirA" x="116" y="274" width="40" height="40"/>
+    <use href="#dirA" x="168" y="290" width="24" height="24"/>
+    <use href="#dirA" x="202" y="298" width="16" height="16"/>
+
+    <use href="#dirB" x="320" y="250" width="64" height="64"/>
+    <use href="#dirB" x="396" y="274" width="40" height="40"/>
+    <use href="#dirB" x="448" y="290" width="24" height="24"/>
+    <use href="#dirB" x="482" y="298" width="16" height="16"/>
+
+    <use href="#dirC" x="600" y="250" width="64" height="64"/>
+    <use href="#dirC" x="676" y="274" width="40" height="40"/>
+    <use href="#dirC" x="728" y="290" width="24" height="24"/>
+    <use href="#dirC" x="762" y="298" width="16" height="16"/>
+
+    <use href="#dirD" x="880" y="250" width="64" height="64"/>
+    <use href="#dirD" x="956" y="274" width="40" height="40"/>
+    <use href="#dirD" x="1008" y="290" width="24" height="24"/>
+    <use href="#dirD" x="1042" y="298" width="16" height="16"/>
+  </g>
+  <g font-family="Archivo" font-size="10" fill="#9A94A5">
+    <text x="40" y="332">64 / 40 / 24 / 16 px  pure black ink</text>
+    <text x="600" y="332">64 / 40 / 24 / 16 px  pure black ink</text>
+  </g>
+
+  <!-- Row 3: reversed on ink -->
+  <rect x="0" y="350" width="1160" height="170" fill="#14121A"/>
+  <g color="#FBF9F4">
+    <use href="#dirA" x="40"  y="375" width="120" height="120"/>
+    <use href="#dirB" x="320" y="375" width="120" height="120"/>
+    <use href="#dirC" x="600" y="375" width="120" height="120"/>
+    <use href="#dirD" x="880" y="375" width="120" height="120"/>
+  </g>
+  <text x="180" y="440" font-family="Archivo" font-size="11" fill="#7E7889">reversed on dark surface</text>
+
+  <!-- Row 4: horizontal lockups -->
+  <g color="#14121A">
+    <use href="#dirA" x="40"  y="560" width="52" height="52"/>
+    <text x="102" y="599" font-family="Archivo" font-weight="600" font-size="40" fill="#14121A" letter-spacing="-1.2">Stampa</text>
+
+    <use href="#dirB" x="320" y="560" width="52" height="52"/>
+    <text x="382" y="599" font-family="Archivo" font-weight="600" font-size="40" fill="#14121A" letter-spacing="-1.2">Stampa</text>
+
+    <use href="#dirC" x="600" y="560" width="52" height="52"/>
+    <text x="662" y="599" font-family="Archivo" font-weight="600" font-size="40" fill="#14121A" letter-spacing="-1.2">Stampa</text>
+
+    <use href="#dirD" x="880" y="560" width="52" height="52"/>
+    <text x="942" y="599" font-family="Archivo" font-weight="600" font-size="40" fill="#14121A" letter-spacing="-1.2">Stampa</text>
+  </g>
+
+  <!-- Row 5: app icon simulation (squircle masked, 96 and 40) -->
+  <g font-family="Archivo" font-size="11" fill="#9A94A5"><text x="40" y="660">app icon on a launcher (96px, 40px)</text></g>
+  <g>
+    <rect x="40" y="675" width="96" height="96" rx="21" fill="#4C2A85"/>
+    <g color="#FBF9F4" transform="translate(40,675) scale(0.8) translate(12,12)"><use href="#dirA" width="120" height="120"/></g>
+    <rect x="150" y="731" width="40" height="40" rx="9" fill="#4C2A85"/>
+    <g color="#FBF9F4" transform="translate(150,731) scale(0.333) translate(12,12)"><use href="#dirA" width="120" height="120"/></g>
+
+    <rect x="320" y="675" width="96" height="96" rx="21" fill="#4C2A85"/>
+    <g color="#FBF9F4" transform="translate(320,675) scale(0.8) translate(12,12)"><use href="#dirB" width="120" height="120"/></g>
+    <rect x="430" y="731" width="40" height="40" rx="9" fill="#4C2A85"/>
+    <g color="#FBF9F4" transform="translate(430,731) scale(0.333) translate(12,12)"><use href="#dirB" width="120" height="120"/></g>
+
+    <rect x="600" y="675" width="96" height="96" rx="21" fill="#FBF9F4" stroke="#E3DED4"/>
+    <g color="#4C2A85" transform="translate(600,675) scale(0.8) translate(12,12)"><use href="#dirC" width="120" height="120"/></g>
+    <rect x="710" y="731" width="40" height="40" rx="9" fill="#FBF9F4" stroke="#E3DED4"/>
+    <g color="#4C2A85" transform="translate(710,731) scale(0.333) translate(12,12)"><use href="#dirC" width="120" height="120"/></g>
+
+    <rect x="880" y="675" width="96" height="96" rx="21" fill="#FBF9F4" stroke="#E3DED4"/>
+    <g color="#4C2A85" transform="translate(880,675) scale(0.8) translate(12,12)"><use href="#dirD" width="120" height="120"/></g>
+    <rect x="990" y="731" width="40" height="40" rx="9" fill="#FBF9F4" stroke="#E3DED4"/>
+    <g color="#4C2A85" transform="translate(990,731) scale(0.333) translate(12,12)"><use href="#dirD" width="120" height="120"/></g>
+  </g>
+
+  <!-- Row 6: thermal receipt simulation  1-bit, low res, on grey paper -->
+  <g font-family="Archivo" font-size="11" fill="#9A94A5"><text x="40" y="815">thermal receipt: 1-bit black on newsprint grey, 44px</text></g>
+  <rect x="30" y="828" width="1100" height="120" fill="#D9D6CF"/>
+  <g color="#000000">
+    <use href="#dirA" x="60"  y="860" width="44" height="44"/>
+    <use href="#dirB" x="340" y="860" width="44" height="44"/>
+    <use href="#dirC" x="620" y="860" width="44" height="44"/>
+    <use href="#dirD" x="900" y="860" width="44" height="44"/>
+  </g>
+  <g font-family="IBM Plex Mono" font-size="12" fill="#000">
+    <text x="116" y="880">STAMPA</text><text x="116" y="897">IRN-7K2M-88QX</text>
+    <text x="396" y="880">STAMPA</text><text x="396" y="897">IRN-7K2M-88QX</text>
+    <text x="676" y="880">STAMPA</text><text x="676" y="897">IRN-7K2M-88QX</text>
+    <text x="956" y="880">STAMPA</text><text x="956" y="897">IRN-7K2M-88QX</text>
+  </g>
+</svg>
