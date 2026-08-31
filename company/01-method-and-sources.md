@@ -40,7 +40,11 @@ Moniepoint (Nigeria, 1m+ active POS terminals `REPORTED`, ~2m business users `RE
 Micro-supplier compliance under buyer-forced e-invoicing; tenant-side rental fraud verification in Lagos/Nairobi/Jo'burg; cocoa cooperative EUDR plot data in Côte d'Ivoire and Ghana; Gulf-corridor recruitment-debt transparency; wage/shift proof for informal field labour; clinic queue and record continuity; last-mile government paperwork agents.
 
 **Bucket C — transferable models awaiting re-localisation.**
-The **buyer-initiated invoice** (Kenya's eTIMS carve-out for suppliers under KES 5m) is the single most transferable mechanism I found: it moves the burden of onboarding a micro-supplier onto the buyer who needs the deduction. It exists in Kenya. It is not productised anywhere I could find. Also transferable: the *proof card* pattern (a screenshot-forwardable receipt object) that Paystack/M-Pesa normalised; the *agent-assisted onboarding* pattern from Moniepoint and India's CSC network; the *co-op field-data collection* pattern from Fairtrade's Plot Insights.
+The **buyer-initiated invoice** (Kenya's eTIMS carve-out for suppliers under KES 5m) is the single most transferable mechanism I found: it moves the burden of onboarding a micro-supplier onto the buyer who needs the deduction.
+
+> **Correction, 2026-08-31.** This entry originally read *"It exists in Kenya. It is not productised anywhere I could find."* The second sentence was wrong. Stream B returned late and established `OBSERVED` that **KRA productised it themselves** — free, on eCitizen and the `*222#` USSD menu, with CSV batch upload, automatic seller onboarding and a 30-day SMS consent window, under Tax Procedures Act **s.23A(3A)**. The mechanic is not unclaimed; in the one jurisdiction that has it, the state is the incumbent. What remains unproductised is the *workflow around* it. This is now carried as risk #11 in `company/06-comparison.md` and written up in `research/mena-east-southern-africa-fiscalisation-scan.md` §0.
+
+Also transferable: the *proof card* pattern (a screenshot-forwardable receipt object) that Paystack/M-Pesa normalised; the *agent-assisted onboarding* pattern from Moniepoint and India's CSC network; the *co-op field-data collection* pattern from Fairtrade's Plot Insights.
 
 ## 0.3 Repeating user-arrival mechanisms extracted
 
