@@ -9,11 +9,14 @@
     "lint": "eslint",
     "tokens": "node scripts/build-tokens.mjs",
     "tokens:check": "node scripts/build-tokens.mjs --check",
+    "env:example": "tsx scripts/build-env-example.mts",
+    "env:check": "tsx scripts/build-env-example.mts --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "seed": "tsx --env-file=.env.local scripts/seed.mts",
-    "verify": "npm run tokens:check && npm run typecheck && npm run lint && npm run test"
+    "migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.mts",
+    "verify": "npm run tokens:check && npm run env:check && npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

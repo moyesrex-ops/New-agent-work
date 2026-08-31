@@ -1,4 +1,5 @@
 import "server-only";
+import { env } from "../env";
 
 /**
  * Who may open the operator console.
@@ -10,10 +11,7 @@ import "server-only";
  * table — and the session, policy and audit layers around it do not change.
  */
 export function operatorEmails(): string[] {
-  return (process.env.STAMPA_OPERATORS ?? "")
-    .split(",")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
+  return env().STAMPA_OPERATORS;
 }
 
 export function isOperator(email: string): boolean {

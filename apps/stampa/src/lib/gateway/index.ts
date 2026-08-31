@@ -2,6 +2,7 @@
  * Gateway selection. Exactly one place decides which implementation is live,
  * and it says so out loud on every surface that shows a stamp.
  */
+import { env } from "../env";
 import { FakeGateway } from "./fake";
 import type { EInvoiceGateway } from "./types";
 
@@ -13,9 +14,7 @@ export { FakeGateway, FAKE_TRIGGERS, deterministicIrn } from "./fake";
 export type GatewayMode = "fake" | "sandbox" | "partner";
 
 export function gatewayMode(): GatewayMode {
-  const mode = process.env.STAMPA_GATEWAY ?? "fake";
-  if (mode === "sandbox" || mode === "partner") return mode;
-  return "fake";
+  return env().STAMPA_GATEWAY;
 }
 
 /**
@@ -43,7 +42,7 @@ export function getGateway(): EInvoiceGateway {
         "PartnerGateway is not implemented. Set STAMPA_GATEWAY=fake for local development.",
       );
     default:
-      cached = new FakeGateway({ latencyMs: Number(process.env.STAMPA_FAKE_LATENCY_MS ?? 0) });
+      cached = new FakeGateway({ latencyMs: env().STAMPA_FAKE_LATENCY_MS });
       return cached;
   }
 }

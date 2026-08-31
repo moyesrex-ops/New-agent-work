@@ -30,8 +30,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files. The example is committed on purpose: it is the only list of what
+# the app needs to boot, and a clone that cannot boot is not a handover.
 .env*
+!.env.example
 
 # vercel
 .vercel

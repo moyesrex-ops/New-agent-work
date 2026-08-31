@@ -9,6 +9,7 @@
 import { createHash, randomInt, timingSafeEqual } from "node:crypto";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import type { Db } from "../db/client";
+import { env } from "../env";
 import { otpChallenges } from "../db/schema";
 import { newId } from "../ids";
 import type { E164 } from "../phone";
@@ -22,8 +23,14 @@ export const ISSUE_WINDOW_MS = 15 * 60 * 1000;
 export const RESEND_AFTER_MS = 30 * 1000;
 export const VOICE_AFTER_MS = 60 * 1000;
 
+/**
+ * The default is unreachable in production: env.ts marks OTP_PEPPER required
+ * there and refuses to boot without it. Locally it keeps the suite from
+ * needing a secret to run, and the name is what would appear in a leaked hash
+ * if that guard were ever removed.
+ */
 function pepper(): string {
-  return process.env.OTP_PEPPER ?? "development-pepper-not-for-production";
+  return env().OTP_PEPPER ?? "development-pepper-not-for-production";
 }
 
 export function hashCode(phone: string, code: string): string {

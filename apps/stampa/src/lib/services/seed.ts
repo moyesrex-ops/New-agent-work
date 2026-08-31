@@ -9,11 +9,12 @@
  * invite, one is stuck, one will fail transmission. A demo where everything
  * works teaches nobody how the product behaves.
  */
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "../db/client";
 import {
   buyerUsers,
   invitations,
+  invoices,
   organisations,
   supplierLinks,
   suppliers,
@@ -96,7 +97,7 @@ const SUPPLIERS: SeedSupplier[] = [
     bank: "First Bank",
     last4: "7788",
     spendKobo: 12_400_000_00,
-    status: "invited",
+    status: "live",
   },
   {
     name: "Halima Transport Services",
@@ -141,7 +142,7 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
   });
 
   const now = new Date();
-  let liveSupplierId: string | null = null;
+  const liveSupplierIds: string[] = [];
 
   for (const entry of SUPPLIERS) {
     const supplierId = newId("sup");
@@ -165,9 +166,9 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
       bankLast4: entry.last4,
       annualSpendKobo: entry.spendKobo,
       status: entry.status,
-      invitedAt: entry.status === "imported" ? null : now,
-      openedAt: entry.status === "opened" || entry.status === "live" ? now : null,
-      activatedAt: entry.status === "live" ? now : null,
+      invitedAt: entry.status === "imported" ? null : daysAgo(now, 9),
+      openedAt: entry.status === "opened" || entry.status === "live" ? daysAgo(now, 8) : null,
+      activatedAt: entry.status === "live" ? daysAgo(now, 8) : null,
     });
 
     if (entry.status !== "imported") {
@@ -176,51 +177,109 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
         code: entry.code ?? `${DEMO_BUYER.slug}-${supplierId.slice(-4).toUpperCase()}`,
         supplierLinkId: linkId,
         channel: "whatsapp",
-        sentAt: now,
-        openedAt: entry.status === "opened" || entry.status === "live" ? now : null,
-        expiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+        sentAt: daysAgo(now, 9),
+        // Backdated past the three-day mark on purpose, so the day-3 nudge has
+        // a genuine candidate the first time the worker runs.
+        openedAt: entry.status === "opened" || entry.status === "live" ? daysAgo(now, 8) : null,
+        expiresAt: new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000),
       });
     }
 
-    if (entry.status === "live") liveSupplierId = supplierId;
+    if (entry.status === "live") liveSupplierIds.push(supplierId);
   }
 
-  // A history worth looking at: two stamped, one that failed on purpose so the
-  // operator failure queue and the S10 screen are not empty in a demo.
-  if (liveSupplierId) {
-    const actor = { type: "supplier" as const, id: liveSupplierId };
+  const [packaging, steel] = liveSupplierIds;
 
-    for (const [description, quantity, unitPrice] of [
-      ["Corrugated cartons, 300gsm", 4000, 1_250_00],
-      ["Shrink wrap, 500m rolls", 120, 18_400_00],
-    ] as const) {
-      const invoice = await createInvoice(
-        {
-          supplierId: liveSupplierId,
-          organisationId,
-          description,
-          quantity,
-          unitPriceKobo: kobo(unitPrice),
-        },
-        actor,
-      );
-      await transmitInvoice(invoice.id, `seed-${invoice.id}`, actor);
-    }
+  // A history worth looking at. Enough rows that the S5 search box earns its
+  // place, spread over months so the list is not one undifferentiated block of
+  // today, and three different failures so the operator queue has real groups.
+  if (packaging) {
+    await history(organisationId, packaging, now, [
+      ["Corrugated cartons, 300gsm", 4000, 1_250_00, 132],
+      ["Shrink wrap, 500m rolls", 120, 18_400_00, 118],
+      ["Pallet wrap, 23 micron", 260, 9_800_00, 96],
+      ["Corrugated cartons, 300gsm", 2500, 1_250_00, 74],
+      ["Carton handles, nylon", 12000, 41_00, 61],
+      ["Adhesive tape, 48mm", 900, 1_150_00, 47],
+      ["Shrink wrap, 500m rolls", 200, 18_400_00, 33],
+      ["Stretch film, machine grade", 80, 26_500_00, 21],
+      ["Corrugated cartons, 300gsm", 5200, 1_250_00, 12],
+      ["Carton liners, kraft", 3000, 320_00, 4],
+    ]);
 
-    const failing = await createInvoice(
-      {
-        supplierId: liveSupplierId,
-        organisationId,
-        description: `Pallet delivery ${FAKE_TRIGGERS.nrsDown}`,
-        quantity: 10,
-        unitPriceKobo: kobo(45_000_00),
-      },
-      actor,
-    );
-    await transmitInvoice(failing.id, `seed-${failing.id}`, actor);
+    // Retryable, nobody's fault. Sits in the failure queue awaiting a retry.
+    await failed(organisationId, packaging, now, `Pallet delivery ${FAKE_TRIGGERS.nrsDown}`, 10, 45_000_00, 2);
+    // A code we have never seen. This is the group an operator has to triage
+    // by hand, and the demo is dishonest without one.
+    await failed(organisationId, packaging, now, `Bale twine ${FAKE_TRIGGERS.unmappedCode}`, 40, 3_400_00, 1);
+  }
+
+  if (steel) {
+    await history(organisationId, steel, now, [
+      ["Mild steel angle bar, 50mm", 300, 12_600_00, 58],
+      ["Galvanised sheet, 1.2mm", 180, 31_400_00, 40],
+      ["Steel fittings, assorted", 640, 4_250_00, 17],
+    ]);
+
+    // Supplier-fixable: the S10 "what to fix" screen needs a live example.
+    await failed(organisationId, steel, now, `Rebar 16mm ${FAKE_TRIGGERS.supplierFault}`, 220, 8_900_00, 3);
   }
 
   return { inviteCode: DEMO_INVITE_CODE, organisationId };
+}
+
+function daysAgo(now: Date, days: number): Date {
+  return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Invoices are created through the real service, then their timestamps are
+ * pushed backwards. Writing rows directly would skip the totals, the audit
+ * entry and the transmission record — which is precisely the machinery a demo
+ * is meant to exercise.
+ */
+async function backdate(invoiceId: string, when: Date): Promise<void> {
+  const db = await getDb();
+  await db
+    .update(invoices)
+    .set({ createdAt: when, issuedAt: when })
+    .where(eq(invoices.id, invoiceId));
+}
+
+async function history(
+  organisationId: string,
+  supplierId: string,
+  now: Date,
+  lines: ReadonlyArray<readonly [string, number, number, number]>,
+): Promise<void> {
+  const actor = { type: "supplier" as const, id: supplierId };
+
+  for (const [description, quantity, unitPrice, age] of lines) {
+    const invoice = await createInvoice(
+      { supplierId, organisationId, description, quantity, unitPriceKobo: kobo(unitPrice) },
+      actor,
+    );
+    await transmitInvoice(invoice.id, `seed-${invoice.id}`, actor);
+    await backdate(invoice.id, daysAgo(now, age));
+  }
+}
+
+async function failed(
+  organisationId: string,
+  supplierId: string,
+  now: Date,
+  description: string,
+  quantity: number,
+  unitPrice: number,
+  age: number,
+): Promise<void> {
+  const actor = { type: "supplier" as const, id: supplierId };
+  const invoice = await createInvoice(
+    { supplierId, organisationId, description, quantity, unitPriceKobo: kobo(unitPrice) },
+    actor,
+  );
+  await transmitInvoice(invoice.id, `seed-${invoice.id}`, actor);
+  await backdate(invoice.id, daysAgo(now, age));
 }
 
 export async function isSeeded(): Promise<boolean> {

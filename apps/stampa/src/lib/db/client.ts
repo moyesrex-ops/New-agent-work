@@ -13,6 +13,7 @@ import { resolve } from "node:path";
 import { drizzle as drizzlePg, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 import { sql } from "drizzle-orm";
+import { env } from "../env";
 import * as schema from "./schema";
 
 export type Db = NodePgDatabase<typeof schema> | PgliteDatabase<typeof schema>;
@@ -44,8 +45,12 @@ $$;
  * Deliberately not drizzle-kit's runner: this has to work identically over
  * PGlite and node-postgres, and it is thirty lines. Applied names are recorded
  * so a persistent data directory is not rebuilt on every boot.
+ *
+ * Against Postgres this is a deploy step (`npm run migrate`), never a lazy
+ * first-request one. Two instances rolling out at once would otherwise race
+ * each other through the same DDL.
  */
-async function applySchema(db: Db): Promise<void> {
+export async function migrate(db: Db): Promise<void> {
   await db.execute(
     sql.raw(
       `CREATE TABLE IF NOT EXISTS _migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`,
@@ -75,8 +80,9 @@ async function applySchema(db: Db): Promise<void> {
     await db.execute(sql`INSERT INTO _migrations (name) VALUES (${name})`);
   }
 
-  // Idempotent, and cheap. Re-asserted on every boot so a manually restored
-  // database cannot come back without the bank-column revocation in place.
+  // Idempotent, and cheap. Re-asserted on every migration run so a restored
+  // backup cannot come back without the bank-column revocation in place —
+  // which is the one permission that closes the payment-diversion attack.
   await db.execute(sql.raw(BANK_REVOCATION));
 }
 
@@ -87,8 +93,9 @@ type Cache = { db: Db | null; ready: Promise<Db> | null };
 const globalCache = globalThis as unknown as { __stampaDb?: Cache };
 const cache: Cache = (globalCache.__stampaDb ??= { db: null, ready: null });
 
-async function connect(): Promise<Db> {
-  const url = process.env.DATABASE_URL;
+/** Connect without touching the schema. Used by the migration script. */
+export async function connect(): Promise<Db> {
+  const url = env().DATABASE_URL;
 
   if (url && !url.startsWith("pglite:")) {
     const { Pool } = await import("pg");
@@ -102,14 +109,23 @@ async function connect(): Promise<Db> {
   // PGlite's node filesystem creates only the leaf directory, so a fresh
   // checkout with no .data at all fails on the first boot.
   if (dataDir) mkdirSync(dataDir, { recursive: true });
-  const client = new PGlite(dataDir);
-  const db = drizzlePglite(client, { schema });
-  await applySchema(db);
+  return drizzlePglite(new PGlite(dataDir), { schema });
+}
+
+async function open(): Promise<Db> {
+  const db = await connect();
+
+  // Embedded Postgres has no deploy step to hang a migration off, and an
+  // in-memory instance starts empty every time, so the convenience is applied
+  // here and only here. A managed Postgres is migrated by `npm run migrate`.
+  const url = env().DATABASE_URL;
+  if (!url || url.startsWith("pglite:")) await migrate(db);
+
   return db;
 }
 
 export function getDb(): Promise<Db> {
-  cache.ready ??= connect().then((db) => {
+  cache.ready ??= open().then((db) => {
     cache.db = db;
     return db;
   });
@@ -120,8 +136,29 @@ export function getDb(): Promise<Db> {
 export async function createTestDb(): Promise<Db> {
   const { PGlite } = await import("@electric-sql/pglite");
   const db = drizzlePglite(new PGlite(), { schema });
-  await applySchema(db);
+  await migrate(db);
   return db;
+}
+
+/**
+ * Has every migration on disk been applied? The health endpoint asks this, so
+ * an instance that started against a database one migration behind says so
+ * instead of failing on whichever query needs the new column.
+ */
+export async function pendingMigrations(db: Db): Promise<string[]> {
+  const result = await db.execute(sql.raw(`SELECT name FROM _migrations`)).catch(() => null);
+  if (!result) return migrationNames();
+
+  const rows = (result as unknown as { rows?: Array<{ name: string }> }).rows ?? [];
+  const applied = new Set(rows.map((row) => row.name));
+  return migrationNames().filter((name) => !applied.has(name));
+}
+
+function migrationNames(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((file) => file.endsWith(".sql"))
+    .sort()
+    .map((file) => file.replace(/\.sql$/, ""));
 }
 
 /**

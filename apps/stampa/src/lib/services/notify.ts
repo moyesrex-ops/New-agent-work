@@ -14,13 +14,14 @@ import { getDb } from "../db/client";
 import { invitations, notifications } from "../db/schema";
 import { newId } from "../ids";
 import { copy } from "../copy";
+import { env } from "../env";
 import { formatKobo, kobo } from "../money";
 import { sendWithFallback } from "../messaging";
 import type { TransmitResult } from "./invoices";
 
 /** Absolute, because a deep link inside a WhatsApp message cannot be relative. */
 export function appUrl(path: string): string {
-  const base = process.env.APP_URL ?? "http://localhost:3000";
+  const base = env().APP_URL ?? "http://localhost:3000";
   return `${base.replace(/\/$/, "")}${path}`;
 }
 
