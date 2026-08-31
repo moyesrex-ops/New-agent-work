@@ -16,7 +16,10 @@
     "typecheck": "tsc --noEmit",
     "seed": "tsx --env-file=.env.local scripts/seed.mts",
     "migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.mts",
-    "verify": "npm run tokens:check && npm run env:check && npm run typecheck && npm run lint && npm run test"
+    "verify": "npm run tokens:check && npm run env:check && npm run assets:check && npm run typecheck && npm run lint && npm run test",
+    "walk": "tsx --env-file-if-exists=.env.local scripts/walk.mts",
+    "assets": "node scripts/build-public-assets.mjs",
+    "assets:check": "node scripts/build-public-assets.mjs --check"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
@@ -40,6 +43,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
+    "playwright-core": "^1.62.1",
     "tsx": "^4.23.13",
     "typescript": "^5",
     "vitest": "^4.1.11"

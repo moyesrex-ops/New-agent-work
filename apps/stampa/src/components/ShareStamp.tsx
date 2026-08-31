@@ -47,16 +47,19 @@ export function ShareStamp({
 
       {state === "shared" ? <p className={shell.free}>{copy.stamped.shared}</p> : null}
 
-      <div className={shell.row}>
-        <a href={pdfHref} className={shell.note} download>
+      {/* Quieter than the WhatsApp button but still a target a thumb can hit.
+          The supplier reaching for one of these is the one WhatsApp failed,
+          which is the worst moment to make them aim. */}
+      <div className={shell.shareFallbacks}>
+        <a href={pdfHref} className={shell.shareFallback} download>
           {copy.stamped.download}
         </a>
-        <a href={smsHref} className={shell.note} onClick={record}>
-          Send by SMS
+        <a href={smsHref} className={shell.shareFallback} onClick={record}>
+          {copy.stamped.sms}
         </a>
         <button
           type="button"
-          className={shell.note}
+          className={shell.shareFallback}
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(text);
@@ -67,7 +70,7 @@ export function ShareStamp({
             }
           }}
         >
-          {state === "copied" ? "Copied" : "Copy"}
+          {state === "copied" ? copy.stamped.copied : copy.stamped.copyLink}
         </button>
       </div>
     </div>

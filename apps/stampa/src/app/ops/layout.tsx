@@ -28,7 +28,7 @@ export default async function OperatorLayout({ children }: { children: React.Rea
 
       <div className={shell.console}>
         <header className={shell.consoleHeader}>
-          <Link href="/ops" aria-label="Operator console" style={{ textDecoration: "none" }}>
+          <Link href="/ops" aria-label="Operator console" className={shell.consoleHome}>
             <Mark size={24} />
           </Link>
           {signedIn ? (

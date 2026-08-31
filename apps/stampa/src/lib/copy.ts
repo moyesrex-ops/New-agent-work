@@ -66,6 +66,7 @@ export const copy = {
     sentTo: (phone: string) => `Sent to ${phone}.`,
     change: "Change",
     label: "6-digit code",
+    cta: "Continue",
     resendPrompt: "Did not arrive?",
     resend: "Resend",
     resendIn: (seconds: number) => `Resend in ${seconds}s`,
@@ -160,6 +161,9 @@ export const copy = {
     disclaimer: TRUST.notOurNumber,
     share: "Send on WhatsApp",
     download: "Download PDF",
+    sms: "Send by SMS",
+    copyLink: "Copy",
+    copied: "Copied",
     shared: "Sent to your customer",
     qrFailed: "Read the reference number below to check it.",
     shareText: (params: { number: string; supplier: string; amount: string; irn: string }) =>
@@ -327,6 +331,13 @@ export const copy = {
     suspend: "Suspend",
     dismiss: "Dismiss",
     auditHeading: "Audit log",
+  },
+
+  // ---- Navigation and chrome ----
+  nav: {
+    help: "Help",
+    home: "Home",
+    signOut: "Sign out",
   },
 
   // ---- Status chips. Six only (Phase 15.1). ----

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { BRAND } from "@/lib/copy";
+import { BRAND, copy } from "@/lib/copy";
 import shell from "@/components/shell.module.css";
 
 /**
@@ -14,15 +14,15 @@ export default function SupplierLayout({ children }: { children: React.ReactNode
     <div className={shell.page}>
       <OfflineBanner />
       <div className={shell.supplier}>
-        <header className={shell.header}>
-          <Link href="/s" aria-label="Stampa home" style={{ textDecoration: "none" }}>
-            <Wordmark size={26} />
-          </Link>
-          <span className={shell.headerSpacer} />
-          <Link href="/s/help" className={shell.note}>
-            Help
-          </Link>
-        </header>
+          <header className={shell.header}>
+            <Link href="/s" aria-label="Stampa home" className={shell.headerHome}>
+              <Wordmark size={26} />
+            </Link>
+            <span className={shell.headerSpacer} />
+            <Link href="/s/help" className={shell.headerLink}>
+              {copy.nav.help}
+            </Link>
+          </header>
         <main className={shell.main}>{children}</main>
         <footer className={shell.note} style={{ paddingBottom: "var(--space-6)" }}>
           {BRAND.name} · {BRAND.supportPhone} · {BRAND.supportHours}

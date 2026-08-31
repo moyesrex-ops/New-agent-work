@@ -30,8 +30,10 @@
 }
 
 /* Console density: 40px, per Phase 15.2. */
+/* Console density. A mouse is more accurate than a thumb, and the table
+   beside it is denser too (visual finish spec). */
 .compact {
-  min-height: var(--space-10);
+  min-height: var(--target-console);
   font-size: var(--font-size-label);
   padding-inline: var(--space-4);
 }

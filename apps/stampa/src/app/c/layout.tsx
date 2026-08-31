@@ -19,7 +19,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
     <div className={shell.page}>
       <div className={shell.console}>
         <header className={shell.consoleHeader}>
-          <Link href="/c" aria-label="Stampa console" style={{ textDecoration: "none" }}>
+          <Link href="/c" aria-label="Stampa console" className={shell.consoleHome}>
             <Wordmark size={22} />
           </Link>
           {/* No navigation before sign-in: a sign-in page with menu items

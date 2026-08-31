@@ -82,6 +82,7 @@
   /* target */
   --target-min: 48px;
   --target-primary: 56px;
+  --target-console: 40px;
 
   /* motion */
   --motion-duration-state: 150ms;

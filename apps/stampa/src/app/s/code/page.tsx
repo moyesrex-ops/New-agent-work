@@ -42,7 +42,7 @@ export default async function CodeEntry({
         />
         <div className={shell.actionBar}>
           <Button type="submit" block>
-            Continue
+            {copy.otp.cta}
           </Button>
         </div>
       </form>
@@ -55,8 +55,10 @@ export default async function CodeEntry({
           </Button>
         </form>
         {/* Voice fallback at 60s is ticket A-02; the number is answered by a
-            human either way, which is the part that matters at this step. */}
-        <a href={`tel:${BRAND.supportPhone}`} className={shell.note}>
+            human either way, which is the part that matters at this step.
+            Sized as a tap target, not a footnote — the supplier reaching for
+            it is the one the SMS never arrived for. */}
+        <a href={`tel:${BRAND.supportPhone}`} className={shell.headerLink}>
           {copy.otp.voice}
         </a>
       </div>

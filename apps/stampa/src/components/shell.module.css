@@ -27,6 +27,43 @@
   margin-left: auto;
 }
 
+/*
+ * Everything in the header is a tap target before it is a link. 44px is the
+ * floor from the Phase 14.7 accessibility rules, and the header is where it is
+ * easiest to forget: an 18px "Help" link reads fine on a monitor and is a
+ * coin-flip for a thumb on a bus.
+ */
+.headerLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-2);
+  margin-inline: calc(var(--space-2) * -1);
+  color: var(--color-ink-700);
+  font-size: var(--font-size-label);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.headerLink:hover {
+  color: var(--color-ink-900);
+}
+
+/* The mark itself. No underline, and the same floor as everything beside it. */
+.headerHome {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  text-decoration: none;
+}
+
+.consoleHome {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-console);
+  text-decoration: none;
+}
+
 .main {
   flex: 1;
   padding-bottom: var(--space-8);
@@ -114,7 +151,19 @@
 }
 
 /* Read-only display row, used on Confirm business. */
+/*
+ * Label above value, not beside it.
+ *
+ * Both children are spans, so without this they render as one run of text and
+ * the review screen reads "ToAgbara Foods Plc". Stacking also survives the
+ * long case — a registered name like "Nigerian Bottling Company Limited
+ * (Coca-Cola Hellenic)" has the full 360px to wrap into instead of whatever a
+ * label leaves it.
+ */
 .displayRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
   padding-block: var(--space-3);
   border-bottom: var(--stroke-hairline) solid var(--color-ink-100);
 }
@@ -167,7 +216,12 @@
   flex-wrap: wrap;
 }
 
+/* 40px is the console floor from the visual finish spec. Denser than the
+   supplier app's 48px on purpose: a mouse is more accurate than a thumb. */
 .navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-console);
   color: var(--color-ink-700);
   text-decoration: none;
   font-size: var(--font-size-label);
@@ -231,12 +285,52 @@
 }
 
 /* A whole-row target, so the checkbox is not the only thing you can hit. */
+/* The whole row is the target, not the box. A default checkbox is 13px, which
+   is a miss waiting to happen when the consequence is inviting the wrong
+   supplier — or not inviting the right one. */
 .checkRow {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   min-height: var(--target-min);
   cursor: pointer;
+}
+
+.checkRow input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--color-stamp-700);
+}
+
+/* Share fallbacks (S9). Three equal targets on one row at 360px, wrapping
+   rather than shrinking below the 48px floor on anything narrower. */
+.shareFallbacks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.shareFallback {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-3);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-raised);
+  color: var(--color-ink-700);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.shareFallback:hover {
+  color: var(--color-ink-900);
+  border-color: var(--color-ink-300);
 }
 
 .inlineForm {
@@ -248,7 +342,7 @@
 
 /* Console search. A plain GET form, so a filtered list is a shareable URL. */
 .searchInput {
-  min-height: var(--space-10);
+  min-height: var(--target-console);
   padding: var(--space-2) var(--space-3);
   background: var(--color-paper-raised);
   border: var(--stroke-hairline) solid var(--color-ink-100);
@@ -259,7 +353,7 @@
 }
 
 .searchButton {
-  min-height: var(--space-10);
+  min-height: var(--target-console);
   padding-inline: var(--space-4);
   border: var(--stroke-hairline) solid var(--color-ink-100);
   border-radius: var(--radius-sm);
@@ -280,7 +374,7 @@
 .findInput {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: var(--space-12);
+  min-height: var(--target-min);
   padding: var(--space-3) var(--space-4);
   background: var(--color-paper-sunken);
   border: var(--stroke-hairline) solid var(--color-ink-100);
@@ -295,7 +389,7 @@
 
 .findButton {
   flex: 0 0 auto;
-  min-height: var(--space-12);
+  min-height: var(--target-min);
   padding-inline: var(--space-4);
   border: var(--stroke-hairline) solid var(--color-ink-100);
   border-radius: var(--radius-sm);

@@ -29,7 +29,19 @@ export const metadata: Metadata = {
   title: "Stampa",
   description: "Get the NRS reference number your customer needs, in about ninety seconds.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/brand/favicon.svg", apple: "/brand/app-icon.svg" },
+  icons: {
+    icon: [
+      // The simplified glyph below 32px. The perforated mark loses its
+      // perforations at that size and reads as a smudge (Phase 9).
+      { url: "/brand/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: { url: "/brand/apple-touch-icon.png", sizes: "180x180" },
+  },
+  applicationName: "Stampa",
+  appleWebApp: { capable: true, title: "Stampa", statusBarStyle: "default" },
+  // A supplier's invoice list has no business in a search index.
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {

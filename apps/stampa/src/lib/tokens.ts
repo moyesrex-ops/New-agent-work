@@ -69,6 +69,7 @@ export const tokens = {
   "stroke-icon": "1.75px",
   "target-min": "48px",
   "target-primary": "56px",
+  "target-console": "40px",
   "motion-duration-state": "150ms",
   "motion-duration-sheet": "200ms",
   "motion-duration-page": "240ms",

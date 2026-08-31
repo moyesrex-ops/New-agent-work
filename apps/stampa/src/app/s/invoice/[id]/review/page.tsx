@@ -3,6 +3,7 @@ import { AmountSummary } from "@/components/AmountSummary";
 import { Button, ButtonLink } from "@/components/Button";
 import { DocumentCard } from "@/components/Surfaces";
 import { copy } from "@/lib/copy";
+import { formatNaira, kobo } from "@/lib/money";
 import { requireSupplier } from "@/lib/auth/require";
 import { getInvoiceForSupplier } from "@/lib/services/invoices";
 import { sendDraft } from "../../../actions";
@@ -39,7 +40,7 @@ export default async function ReviewInvoice({ params }: { params: Promise<{ id: 
             {copy.invoice.quantity} × {copy.invoice.unitPrice}
           </span>
           <span className={shell.displayValue}>
-            {line.quantity} × {(line.unitPriceKobo / 100).toFixed(2)}
+            {line.quantity} × {formatNaira(kobo(line.unitPriceKobo))}
           </span>
         </div>
         <div style={{ marginTop: "var(--space-4)" }}>
