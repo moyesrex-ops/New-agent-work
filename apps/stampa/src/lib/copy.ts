@@ -229,6 +229,22 @@ export const copy = {
     deleted: "Your account is deleted. Thank you for using Stampa.",
   },
 
+  // ---- Notifications (Flow 6). Every one deep-links to the screen that
+  // resolves it. None of them ever says "you have an update". ----
+  notify: {
+    stamped: (params: { number: string; buyer: string; amount: string; irn: string }) =>
+      `Stamped. ${params.number} to ${params.buyer}, ${params.amount}. ${params.irn}.`,
+    rejectedSupplier: (params: { number: string; reason: string }) =>
+      `${params.number} was not stamped. The NRS says ${params.reason}. Open it, fix the amounts and send again. Nothing is lost.`,
+    rejectedBuyer: (params: { number: string; buyer: string }) =>
+      `${params.number} was not stamped. The problem is on ${params.buyer}'s side, not yours. We have told them and we will message you when it is fixed.`,
+    rejectedNeither: (params: { number: string; caseNumber: string }) =>
+      `${params.number} is not stamped yet. The NRS is not responding. We are retrying and we will message you. Case ${params.caseNumber}.`,
+    nudge: (buyer: string) =>
+      `You opened the ${buyer} invoice link but did not finish. It takes about ninety seconds and it is free. Pick up where you left off:`,
+    otp: (code: string) => `${code} is your Stampa code. We will never ask you for it.`,
+  },
+
   // ---- Buyer console ----
   buyer: {
     signInHeading: "Sign in",

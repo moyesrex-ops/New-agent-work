@@ -8,7 +8,7 @@
  *
  * The Drizzle schema is identical across both. Only the driver differs.
  */
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { drizzle as drizzlePg, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
@@ -17,7 +17,7 @@ import * as schema from "./schema";
 
 export type Db = NodePgDatabase<typeof schema> | PgliteDatabase<typeof schema>;
 
-const MIGRATION = resolve(process.cwd(), "drizzle/0000_init.sql");
+const MIGRATIONS_DIR = resolve(process.cwd(), "drizzle");
 
 /**
  * Column-level revocation of write access to the bank fields (ticket A-07).
@@ -39,9 +39,11 @@ $$;
 `;
 
 /**
- * Migrations are recorded so a persistent data directory is not re-created on
- * every boot. Deliberately not drizzle-kit's runner: this has to work
- * identically over PGlite and node-postgres, and it is twenty lines.
+ * Apply every migration that has not run yet, in filename order.
+ *
+ * Deliberately not drizzle-kit's runner: this has to work identically over
+ * PGlite and node-postgres, and it is thirty lines. Applied names are recorded
+ * so a persistent data directory is not rebuilt on every boot.
  */
 async function applySchema(db: Db): Promise<void> {
   await db.execute(
@@ -50,20 +52,32 @@ async function applySchema(db: Db): Promise<void> {
     ),
   );
 
-  const applied = await db.execute(sql.raw(`SELECT name FROM _migrations`));
-  const rows = (applied as unknown as { rows?: Array<{ name: string }> }).rows ?? [];
-  if (rows.some((row) => row.name === "0000_init")) return;
+  const result = await db.execute(sql.raw(`SELECT name FROM _migrations`));
+  const rows = (result as unknown as { rows?: Array<{ name: string }> }).rows ?? [];
+  const applied = new Set(rows.map((row) => row.name));
 
-  const statements = readFileSync(MIGRATION, "utf8")
-    .split("--> statement-breakpoint")
-    .map((statement) => statement.trim())
-    .filter(Boolean);
+  const files = readdirSync(MIGRATIONS_DIR)
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
 
-  for (const statement of statements) {
-    await db.execute(sql.raw(statement));
+  for (const file of files) {
+    const name = file.replace(/\.sql$/, "");
+    if (applied.has(name)) continue;
+
+    const statements = readFileSync(resolve(MIGRATIONS_DIR, file), "utf8")
+      .split("--> statement-breakpoint")
+      .map((statement) => statement.trim())
+      .filter(Boolean);
+
+    for (const statement of statements) {
+      await db.execute(sql.raw(statement));
+    }
+    await db.execute(sql`INSERT INTO _migrations (name) VALUES (${name})`);
   }
+
+  // Idempotent, and cheap. Re-asserted on every boot so a manually restored
+  // database cannot come back without the bank-column revocation in place.
   await db.execute(sql.raw(BANK_REVOCATION));
-  await db.execute(sql.raw(`INSERT INTO _migrations (name) VALUES ('0000_init')`));
 }
 
 type Cache = { db: Db | null; ready: Promise<Db> | null };

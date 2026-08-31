@@ -21,7 +21,7 @@ beforeEach(async () => {
 async function currentCode(): Promise<string> {
   const issued = await issueOtp(fixture.db, PHONE);
   if (!issued.ok) throw new Error("expected an issued code");
-  return issued.devCode!;
+  return issued.code;
 }
 
 describe("OTP", () => {

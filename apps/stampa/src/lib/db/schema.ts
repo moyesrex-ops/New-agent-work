@@ -292,6 +292,52 @@ export const otpChallenges = pgTable(
   (table) => [index("otp_phone_idx").on(table.phone, table.createdAt)],
 );
 
+/**
+ * Buyer sign-in (ticket A-04). Single-use, short-lived, hashed at rest for the
+ * same reason session tokens are: a database read must not yield a usable
+ * credential.
+ */
+export const magicLinks = pgTable(
+  "magic_links",
+  {
+    id: id(),
+    email: text("email").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    consumedAt: timestamp("consumed_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("magic_links_token_idx").on(table.tokenHash),
+    index("magic_links_email_idx").on(table.email, table.createdAt),
+  ],
+);
+
+/**
+ * One row per notification we tried to deliver (tickets N-03, N-04).
+ *
+ * The unique index on (template, subject) is the idempotency fence: a supplier
+ * cannot be nudged twice for the same invitation, and an invoice cannot
+ * announce itself stamped twice because a worker retried.
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: id(),
+    subjectType: text("subject_type").notNull(),
+    subjectId: text("subject_id").notNull(),
+    template: text("template").notNull(),
+    /** whatsapp | sms — which one actually carried it. */
+    channel: text("channel"),
+    state: text("state").notNull().default("sent"),
+    problem: text("problem"),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("notifications_once_idx").on(table.template, table.subjectType, table.subjectId),
+  ],
+);
+
 export const sessions = pgTable(
   "sessions",
   {

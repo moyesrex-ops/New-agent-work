@@ -21,6 +21,7 @@ import {
   toUblXml,
   type GatewayInvoice,
 } from "../gateway";
+import { notifyTransmissionOutcome } from "./notify";
 
 export const MAX_ATTEMPTS = 6;
 /** 2s, 8s, 32s, 2m, 8.5m — capped at 15 minutes, jittered. */
@@ -205,6 +206,42 @@ export type TransmitResult =
  * retry a request it never saw a response to.
  */
 export async function transmitInvoice(
+  invoiceId: string,
+  idempotencyKey: string,
+  actor: Actor,
+): Promise<TransmitResult> {
+  const result = await attemptTransmission(invoiceId, idempotencyKey, actor);
+  // Notification failure must never turn a stamped invoice into an error. The
+  // IRN is the tax record; the WhatsApp message is a convenience on top of it.
+  try {
+    await notifyOutcome(invoiceId, result);
+  } catch (error) {
+    console.error("notification failed", error);
+  }
+  return result;
+}
+
+async function notifyOutcome(invoiceId: string, result: TransmitResult): Promise<void> {
+  const db = await getDb();
+  const invoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, invoiceId),
+    with: { supplier: true, organisation: true },
+  });
+  if (!invoice) return;
+
+  await notifyTransmissionOutcome(
+    {
+      invoiceId,
+      invoiceNumber: invoice.invoiceNumber,
+      supplierPhone: invoice.supplier.phone,
+      buyerName: invoice.organisation.legalName,
+      totalKobo: invoice.totalKobo,
+    },
+    result,
+  );
+}
+
+async function attemptTransmission(
   invoiceId: string,
   idempotencyKey: string,
   actor: Actor,

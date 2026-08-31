@@ -15,6 +15,8 @@ import { bindSupplierToInvite, confirmSupplierDetails, openInvite } from "@/lib/
 import { createInvoice, enqueueTransmission, runTransmission } from "@/lib/services/invoices";
 import { track } from "@/lib/analytics";
 import { canDelete, softDeleteAccount } from "@/lib/services/account";
+import { sendOtp } from "@/lib/messaging";
+import { copy } from "@/lib/copy";
 
 const INVITE_COOKIE = "stampa_invite";
 const PHONE_COOKIE = "stampa_pending_phone";
@@ -50,9 +52,7 @@ export async function sendCode(formData: FormData): Promise<void> {
   const store = await cookies();
   store.set(PHONE_COOKIE, phone.value, { httpOnly: true, sameSite: "lax", path: "/" });
 
-  // Local development has no SMS provider, so the code is surfaced in the
-  // server log rather than invented on screen. Never reachable in production.
-  if (issued.devCode) console.info(`[dev] OTP for ${phone.value}: ${issued.devCode}`);
+  await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
 
   redirect("/s/code");
 }
@@ -65,7 +65,7 @@ export async function resendCode(): Promise<void> {
   const db = await getDb();
   const issued = await issueOtp(db, phone.value, "sms");
   if (!issued.ok) fail("/s/code", "rate_limited");
-  if (issued.devCode) console.info(`[dev] OTP for ${phone.value}: ${issued.devCode}`);
+  await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
   redirect("/s/code");
 }
 

@@ -37,7 +37,8 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export type IssueResult =
-  | { ok: true; challengeId: string; expiresAt: Date; devCode?: string }
+  /** `code` is the plaintext, for the adapter only. It is never persisted. */
+  | { ok: true; challengeId: string; expiresAt: Date; code: string }
   | { ok: false; error: "rate_limited"; retryAfterMs: number };
 
 export type VerifyResult =
@@ -80,13 +81,7 @@ export async function issueOtp(
     createdAt: now,
   });
 
-  return {
-    ok: true,
-    challengeId,
-    expiresAt,
-    // Local development has no SMS provider. Never populated in production.
-    devCode: process.env.NODE_ENV === "production" ? undefined : code,
-  };
+  return { ok: true, challengeId, expiresAt, code };
 }
 
 /**
