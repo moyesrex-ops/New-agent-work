@@ -135,10 +135,18 @@ The user is on 3G in a workshop. This is the section that decides whether the
 product is usable.
 
 - **Offline outbox.** Drafts and completed invoices persist to IndexedDB before any network call. A service worker retries transmission with exponential backoff and jitter.
+
+  > **Not built in P0, corrected 2026-08-31 during Phase 21.** There is no service worker and no IndexedDB queue. What exists is an offline *banner* driven by `navigator.onLine`, plus server-side retry with exponential backoff and jitter, which is where the retry logic actually lives.
+  >
+  > The reasoning for leaving it: a correct offline outbox on top of Server Actions is a client-side draft store, a replay path that provably cannot double-transmit, and a conflict story for a draft edited in two places. That is real work, not a flag, and the thing it protects against is already half-covered — **once an invoice reaches the server it completes without the client**, per "server-side resumption" below. The uncovered case is composing while offline, and the honest v1 position is that this is not supported and the banner says so.
+  >
+  > Tracked as **D-06** in `company/qa/03-execution-and-defects.md`. It is the largest single gap between this document and the build.
 - **Idempotency everywhere.** Every transmission carries a client-generated key. The server deduplicates on it. **A duplicate invoice transmitted to the tax authority is a serious defect**, and this is the mechanism that prevents it.
 - **Server-side resumption.** The transmission is a server-side job keyed to the invoice. Once submitted, the client can close, crash or lose power — the transmission completes and the WhatsApp notification arrives.
 - **Optimistic, honest UI.** Saved locally means "Saved". Sent to the server means "Sending". Only an IRN means "Stamped". The three are never conflated.
 - **Cache posture.** App shell and tokens cached on first load. Invoice list is stale-while-revalidate with a visible last-updated time. Amounts are never served from cache without that timestamp.
+
+  > **Partly built, corrected 2026-08-31.** Static assets are cached by the browser on ordinary HTTP caching; there is no service worker, so there is no app-shell cache surviving a cold start. The invoice list is server-rendered per request and revalidated on write rather than served stale, so the last-updated timestamp the rule protects against is moot: **no amount is ever served from a cache.** The rule's intent holds; the mechanism named here does not exist. Same root cause as the outbox above.
 - **Payload budget.** 180KB JS and 40KB CSS on the critical path. Fonts are not render-blocking. No images above the fold.
 
 ## 16.9 ARCHITECTURE REVIEW

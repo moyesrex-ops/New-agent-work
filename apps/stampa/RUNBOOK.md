@@ -132,6 +132,17 @@ resolved with a decision and a reason, both audited.
 
 ---
 
+## Scheduled jobs
+
+**`npm run purge`, daily.** When a supplier deletes their account we audit a
+promise that their identifying fields will be gone in thirty days. This is the
+job that keeps it. If it stops running, nothing visibly breaks and the promise
+quietly becomes false — so check it the way you would check a backup.
+
+It prints how many accounts it purged. Zero is the normal answer.
+
+---
+
 ## Deployment notes
 
 - **Migrations are an explicit step.** `npm run migrate` before the new build serves traffic. PGlite applies them automatically in development; production does not, deliberately.
