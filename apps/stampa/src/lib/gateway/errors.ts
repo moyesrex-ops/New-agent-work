@@ -145,6 +145,12 @@ export function toGatewayError(
   return new GatewayError(code, mapping.fault, mapping.retryable, mapping.reason, offendingValue);
 }
 
+/** Operator-facing text for a stored code. Never shown to a supplier. */
+export function describeCode(rawCode: string): string {
+  const code = resolveCode(rawCode);
+  return ERROR_MAP[code]?.reason ?? "an error code we have not mapped yet";
+}
+
 /**
  * A short, stable case number for the "neither" copy variant. Derived from the
  * transmission id so support and the supplier are always looking at the same

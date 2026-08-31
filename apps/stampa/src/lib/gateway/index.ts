@@ -6,7 +6,7 @@ import { FakeGateway } from "./fake";
 import type { EInvoiceGateway } from "./types";
 
 export * from "./types";
-export { toGatewayError, caseNumber, ERROR_MAP } from "./errors";
+export { toGatewayError, caseNumber, describeCode, ERROR_MAP } from "./errors";
 export { toUblXml } from "./ubl";
 export { FakeGateway, FAKE_TRIGGERS, deterministicIrn } from "./fake";
 

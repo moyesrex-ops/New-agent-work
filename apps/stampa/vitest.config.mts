@@ -3,7 +3,13 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
-    alias: { "@": resolve(import.meta.dirname, "./src") },
+    alias: {
+      "@": resolve(import.meta.dirname, "./src"),
+      // `server-only` is a build-time guard supplied by Next, not a runtime
+      // package. Under Vitest it resolves to nothing, which is correct: the
+      // tests are the server.
+      "server-only": resolve(import.meta.dirname, "./src/tests/support/server-only.ts"),
+    },
   },
   test: {
     environment: "node",

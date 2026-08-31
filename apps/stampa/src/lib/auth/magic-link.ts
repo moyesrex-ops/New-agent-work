@@ -78,7 +78,14 @@ export async function issueMagicLink(
 ): Promise<IssuedLink> {
   const user = await db.query.buyerUsers.findFirst({ where: eq(buyerUsers.email, email) });
   if (!user) return null;
+  return createMagicLink(db, email, now);
+}
 
+export async function createMagicLink(
+  db: Db,
+  email: string,
+  now: Date = new Date(),
+): Promise<{ token: string; expiresAt: Date }> {
   const token = randomToken();
   const expiresAt = new Date(now.getTime() + LINK_TTL_MS);
 
@@ -93,20 +100,16 @@ export async function issueMagicLink(
   return { token, expiresAt };
 }
 
-export type ConsumeResult =
-  | { ok: true; userId: string; organisationId: string }
-  | { ok: false; error: "invalid" | "expired" | "used" };
+export type LinkFailure = "invalid" | "expired" | "used";
 
 /** Single use. A link forwarded on to a colleague is dead, which is the point. */
-export async function consumeMagicLink(
+export async function redeemMagicLink(
   db: Db,
   token: string,
   now: Date = new Date(),
-): Promise<ConsumeResult> {
-  const tokenHash = hashToken(token);
-
+): Promise<{ ok: true; email: string } | { ok: false; error: LinkFailure }> {
   const link = await db.query.magicLinks.findFirst({
-    where: eq(magicLinks.tokenHash, tokenHash),
+    where: eq(magicLinks.tokenHash, hashToken(token)),
   });
   if (!link) return { ok: false, error: "invalid" };
   if (link.consumedAt) return { ok: false, error: "used" };
@@ -117,11 +120,30 @@ export async function consumeMagicLink(
   const claimed = await db
     .update(magicLinks)
     .set({ consumedAt: now })
-    .where(and(eq(magicLinks.id, link.id), isNull(magicLinks.consumedAt), gt(magicLinks.expiresAt, now)))
+    .where(
+      and(eq(magicLinks.id, link.id), isNull(magicLinks.consumedAt), gt(magicLinks.expiresAt, now)),
+    )
     .returning();
   if (!claimed.length) return { ok: false, error: "used" };
 
-  const user = await db.query.buyerUsers.findFirst({ where: eq(buyerUsers.email, link.email) });
+  return { ok: true, email: link.email };
+}
+
+export type ConsumeResult =
+  | { ok: true; userId: string; organisationId: string }
+  | { ok: false; error: LinkFailure };
+
+export async function consumeMagicLink(
+  db: Db,
+  token: string,
+  now: Date = new Date(),
+): Promise<ConsumeResult> {
+  const redeemed = await redeemMagicLink(db, token, now);
+  if (!redeemed.ok) return redeemed;
+
+  const user = await db.query.buyerUsers.findFirst({
+    where: eq(buyerUsers.email, redeemed.email),
+  });
   if (!user) return { ok: false, error: "invalid" };
 
   return { ok: true, userId: user.id, organisationId: user.organisationId };
