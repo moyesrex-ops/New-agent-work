@@ -5,6 +5,18 @@
  * value below this line is a review blocker (Phase 19, item 11).
  */
 
+/*
+ * next/font self-hosts Archivo and IBM Plex Mono and exposes them as CSS
+ * variables. Prepending them to the token stacks keeps tokens.json as the
+ * source of truth for the intended stack while using the local copies.
+ */
+html {
+  --font-family-sans: var(--font-archivo), Archivo, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-family-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+}
+
 *,
 *::before,
 *::after {

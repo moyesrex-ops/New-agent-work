@@ -31,17 +31,16 @@ export const NORTH_STAR: AnalyticsEventName = "supplier_invoice_irn_issued";
 export type AnalyticsProperties = Record<string, string | number | boolean | null>;
 
 /**
- * Property keys that must never appear. Amounts are recorded as buckets and
- * invoice descriptions are commercially sensitive, so neither is permitted
- * even by accident.
+ * Keys that name an identifier. Banned for string values only: a boolean
+ * derived from one, such as `phoneMismatch: true`, cannot carry the number
+ * itself, and forbidding it would push useful funnel signal out of the system
+ * for no privacy gain.
  */
-const BANNED_KEYS = [
+const IDENTIFIER_KEYS = [
   "phone",
   "msisdn",
   "tin",
   "description",
-  "amount",
-  "total",
   "email",
   "name",
   "address",
@@ -49,17 +48,31 @@ const BANNED_KEYS = [
   "irn",
 ];
 
+/**
+ * Keys that name money. Banned for numeric values, because amounts are
+ * recorded as buckets (Architecture §16.10) and a raw figure here would make
+ * the analytics table a record of what every supplier charges.
+ */
+const MONETARY_KEYS = ["amount", "total", "subtotal", "vat", "price", "spend", "kobo", "naira"];
+
 const PHONE_SHAPE = /(\+?234\d{9,10}|\b0[789][01]\d{8}\b)/;
 const TIN_SHAPE = /\b\d{8}-\d{4}\b/;
 
 export function assertNoPii(properties: AnalyticsProperties): void {
   for (const [key, value] of Object.entries(properties)) {
     const lower = key.toLowerCase();
-    if (BANNED_KEYS.some((banned) => lower.includes(banned))) {
-      throw new Error(`Analytics property "${key}" looks like PII and is not allowed`);
+
+    if (typeof value === "string") {
+      if (IDENTIFIER_KEYS.some((banned) => lower.includes(banned))) {
+        throw new Error(`Analytics property "${key}" looks like PII and is not allowed`);
+      }
+      if (PHONE_SHAPE.test(value) || TIN_SHAPE.test(value)) {
+        throw new Error(`Analytics property "${key}" contains a phone number or TIN`);
+      }
     }
-    if (typeof value === "string" && (PHONE_SHAPE.test(value) || TIN_SHAPE.test(value))) {
-      throw new Error(`Analytics property "${key}" contains a phone number or TIN`);
+
+    if (typeof value === "number" && MONETARY_KEYS.some((banned) => lower.includes(banned))) {
+      throw new Error(`Analytics property "${key}" looks like an amount. Use amountBucket()`);
     }
   }
 }

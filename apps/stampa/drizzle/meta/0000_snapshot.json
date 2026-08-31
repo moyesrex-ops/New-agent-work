@@ -1,5 +1,5 @@
 {
-  "id": "af39c88d-8845-4281-a318-c148adaed193",
+  "id": "899f49ce-3994-46a5-87de-238347abf88c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1022,6 +1022,12 @@
         "bank_last4": {
           "name": "bank_last4",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "annual_spend_kobo": {
+          "name": "annual_spend_kobo",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         },

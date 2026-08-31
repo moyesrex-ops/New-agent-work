@@ -130,7 +130,10 @@ function wholeToWords(value: number): string {
   for (const [scale, name] of SCALES) {
     if (value >= scale) {
       const rest = value % scale;
-      return `${wholeToWords(Math.floor(value / scale))} ${name}${rest ? ` ${wholeToWords(rest)}` : ""}`;
+      // English inserts "and" before a final group below one hundred:
+      // "one million eight hundred and fifty thousand and seventy-five".
+      const joiner = rest === 0 ? "" : rest < 100 ? " and " : " ";
+      return `${wholeToWords(Math.floor(value / scale))} ${name}${joiner}${rest ? wholeToWords(rest) : ""}`;
     }
   }
   return UNITS[0];

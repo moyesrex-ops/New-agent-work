@@ -91,4 +91,14 @@ export async function createTestDb(): Promise<Db> {
   return db;
 }
 
+/**
+ * Point `getDb()` at a test database. Services take no db argument by design —
+ * threading one through every call site would be noise in application code to
+ * serve the tests. This is the seam instead.
+ */
+export function useDbForTesting(db: Db): void {
+  cache.db = db;
+  cache.ready = Promise.resolve(db);
+}
+
 export { schema };

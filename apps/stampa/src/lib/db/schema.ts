@@ -103,6 +103,12 @@ export const supplierLinks = pgTable(
     bankName: text("bank_name"),
     /** Last four digits only. Full account numbers were cut in the review. */
     bankLast4: text("bank_last4"),
+    /**
+     * Annual spend in kobo, when the buyer's export carried it. Nullable on
+     * purpose: the exposure report must be able to say out loud whether the
+     * figure came from their data or from our stated assumption.
+     */
+    annualSpendKobo: bigint("annual_spend_kobo", { mode: "number" }),
     status: text("status").notNull().default("invited"),
     invitedAt: timestamp("invited_at", { withTimezone: true }),
     openedAt: timestamp("opened_at", { withTimezone: true }),
@@ -322,6 +328,17 @@ export const invoicesRelations = relations(invoices, ({ one, many }) => ({
 
 export const invoiceLinesRelations = relations(invoiceLines, ({ one }) => ({
   invoice: one(invoices, { fields: [invoiceLines.invoiceId], references: [invoices.id] }),
+}));
+
+export const transmissionsRelations = relations(transmissions, ({ one }) => ({
+  invoice: one(invoices, { fields: [transmissions.invoiceId], references: [invoices.id] }),
+}));
+
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  supplierLink: one(supplierLinks, {
+    fields: [invitations.supplierLinkId],
+    references: [supplierLinks.id],
+  }),
 }));
 
 export const supplierLinksRelations = relations(supplierLinks, ({ one, many }) => ({

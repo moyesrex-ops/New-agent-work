@@ -126,6 +126,7 @@ CREATE TABLE "supplier_links" (
 	"category" text,
 	"bank_name" text,
 	"bank_last4" text,
+	"annual_spend_kobo" bigint,
 	"status" text DEFAULT 'invited' NOT NULL,
 	"invited_at" timestamp with time zone,
 	"opened_at" timestamp with time zone,
