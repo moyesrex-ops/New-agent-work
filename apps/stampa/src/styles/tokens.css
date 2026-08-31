@@ -1,0 +1,97 @@
+/* Generated from design-tokens/tokens.json. Do not edit. */
+:root {
+  /* color */
+  --color-paper: #FBF9F4;
+  --color-paper-raised: #FFFFFF;
+  --color-paper-sunken: #F3F0E9;
+  --color-ink-100: #E3DED4;
+  --color-ink-300: #9A94A5;
+  --color-ink-500: #6B6675;
+  --color-ink-700: #3A3543;
+  --color-ink-900: #14121A;
+  --color-stamp-100: #EDE7F6;
+  --color-stamp-700: #4C2A85;
+  --color-stamp-900: #33195E;
+  --color-success-100: #E3F0EA;
+  --color-success-700: #17604A;
+  --color-warning-100: #FBF0DC;
+  --color-warning-700: #8A5A00;
+  --color-danger-100: #FBE6E6;
+  --color-danger-700: #A32020;
+  --color-focus: #4C2A85;
+
+  /* font */
+  --font-family-sans: Archivo, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-family-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-size-display: 32px;
+  --font-size-title: 24px;
+  --font-size-heading: 20px;
+  --font-size-body-lg: 18px;
+  --font-size-body: 16px;
+  --font-size-label: 14px;
+  --font-size-caption: 13px;
+  --font-size-micro: 11px;
+  --font-size-mono: 14px;
+  --font-size-mono-lg: 20px;
+  --font-lineHeight-display: 38px;
+  --font-lineHeight-title: 30px;
+  --font-lineHeight-heading: 26px;
+  --font-lineHeight-body-lg: 26px;
+  --font-lineHeight-body: 24px;
+  --font-lineHeight-label: 20px;
+  --font-lineHeight-caption: 18px;
+  --font-lineHeight-micro: 14px;
+  --font-lineHeight-mono: 20px;
+  --font-lineHeight-mono-lg: 26px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-tracking-micro: 0.8px;
+  --font-tracking-wordmark: -0.034em;
+
+  /* space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-gutter: 20px;
+  --space-gutter-console: 32px;
+
+  /* radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* elevation */
+  --elevation-flat: none;
+  --elevation-raised: 0 1px 2px rgba(20,18,26,0.06), 0 0 0 1px #E3DED4;
+  --elevation-overlay: 0 8px 24px rgba(20,18,26,0.12);
+
+  /* stroke */
+  --stroke-hairline: 1px;
+  --stroke-rule: 1.5px;
+  --stroke-icon: 1.75px;
+
+  /* target */
+  --target-min: 48px;
+  --target-primary: 56px;
+
+  /* motion */
+  --motion-duration-state: 150ms;
+  --motion-duration-sheet: 200ms;
+  --motion-duration-page: 240ms;
+  --motion-duration-stamp: 220ms;
+  --motion-easing: cubic-bezier(.2,0,0,1);
+
+  /* layout */
+  --layout-consoleMax: 1200px;
+  --layout-baseline: 4px;
+
+}

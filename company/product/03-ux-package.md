@@ -253,7 +253,7 @@ Complete, in brand voice, no placeholder text anywhere.
 > **New invoice**
 > To — Agbara Foods Plc  *(locked)*
 > What did you supply? `[ Aluminium railings ]`
-> Quantity `[ 42 ]`   Price each `[ 40,976.19 ]`
+> Quantity `[ 50 ]`   Price each `[ 34,420.00 ]`
 > Subtotal 1,721,000.00 · VAT 7.5% 129,075.00
 > **Total NGN 1,850,075.00**
 > `[ Review ]`
