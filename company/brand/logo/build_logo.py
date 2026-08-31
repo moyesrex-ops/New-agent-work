@@ -142,11 +142,16 @@ def main():
     v_gap = mh * 0.20
     stack_w = max(mh, wm_w)
     stack_h = mh + v_gap + CAP + DESC
-    body = (
-        f'<g transform="translate({(stack_w - mh) / 2:.2f} 0)">{mark(INK, ident="ls")}</g>'
-        f'<g fill="{INK}" transform="translate({(stack_w - wm_w) / 2:.2f} {mh + v_gap + CAP:.1f})">{wm}</g>'
-    )
-    assets["stampa-lockup-stacked.svg"] = svg(round(stack_w), round(stack_h), body)
+    for label, colour in (("", INK), ("-reversed", PAPER)):
+        body = (
+            f'<g transform="translate({(stack_w - mh) / 2:.2f} 0)">'
+            f'{mark(colour, ident="ls" + label)}</g>'
+            f'<g fill="{colour}" transform="translate({(stack_w - wm_w) / 2:.2f} '
+            f'{mh + v_gap + CAP:.1f})">{wm}</g>'
+        )
+        assets[f"stampa-lockup-stacked{label}.svg"] = svg(
+            round(stack_w), round(stack_h), body
+        )
 
     # 6. App icon, full bleed on violet, 1024 master.
     scale = 1024 / 120 * 0.84
