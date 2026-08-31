@@ -6,7 +6,7 @@
  * part rather than the plumbing.
  */
 import { createHash } from "node:crypto";
-import { and, desc, eq, isNull, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, exists, ilike, isNull, lte, or, sql } from "drizzle-orm";
 import { getDb, type Db } from "../db/client";
 import { invoiceLines, invoices, organisations, suppliers, transmissions } from "../db/schema";
 import { computeInvoiceTotals, STANDARD_VAT_BASIS_POINTS } from "../vat";
@@ -424,14 +424,84 @@ export async function runDueTransmissions(limit = 20): Promise<number> {
   return processed;
 }
 
-export async function listInvoicesForSupplier(supplierId: string) {
+/**
+ * Turn a typed term into a LIKE pattern that means what the user typed.
+ *
+ * Parameterisation stops injection; it does not stop `%` from being a wildcard
+ * inside the parameter. Without this, a supplier searching for "50%" gets his
+ * whole history back, which reads as a broken search rather than a security
+ * question — and a lone `_` would match every invoice he has ever sent.
+ */
+function likeContains(term: string): string {
+  return `%${term.replace(/[\\%_]/g, (character) => `\\${character}`)}%`;
+}
+
+/**
+ * The home list, optionally filtered (ticket T-04).
+ *
+ * Search runs in SQL rather than over a fetched page, because the supplier who
+ * needs it is the one with four hundred invoices, and that is exactly the one
+ * for whom filtering the first hundred would return nothing.
+ *
+ * Four columns, chosen from how a supplier actually re-finds an invoice: the
+ * number on his copy, the reference number his customer quoted back at him,
+ * the thing he supplied, and who he supplied it to.
+ */
+export async function listInvoicesForSupplier(supplierId: string, term = "") {
   const db = await getDb();
-  return db.query.invoices.findMany({
-    where: eq(invoices.supplierId, supplierId),
-    with: { organisation: true },
-    orderBy: desc(invoices.createdAt),
-    limit: 100,
-  });
+  const query = term.trim();
+  const pattern = likeContains(query);
+
+  // A join rather than the relational query builder, deliberately: the builder
+  // rewrites embedded SQL against its own alias, so the correlated EXISTS on
+  // invoice_lines below comes out referring to the wrong table.
+  const scope = eq(invoices.supplierId, supplierId);
+  const where = query
+    ? and(
+        scope,
+        or(
+          ilike(invoices.invoiceNumber, pattern),
+          ilike(invoices.irn, pattern),
+          ilike(organisations.legalName, pattern),
+          exists(
+            db
+              .select({ one: sql`1` })
+              .from(invoiceLines)
+              .where(
+                and(
+                  eq(invoiceLines.invoiceId, invoices.id),
+                  ilike(invoiceLines.description, pattern),
+                ),
+              ),
+          ),
+        ),
+      )
+    : scope;
+
+  return db
+    .select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      status: invoices.status,
+      totalKobo: invoices.totalKobo,
+      irn: invoices.irn,
+      createdAt: invoices.createdAt,
+      organisation: { legalName: organisations.legalName },
+    })
+    .from(invoices)
+    .innerJoin(organisations, eq(organisations.id, invoices.organisationId))
+    .where(where)
+    .orderBy(desc(invoices.createdAt))
+    .limit(100);
+}
+
+export async function countInvoicesForSupplier(supplierId: string): Promise<number> {
+  const db = await getDb();
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(invoices)
+    .where(eq(invoices.supplierId, supplierId));
+  return row?.n ?? 0;
 }
 
 export async function getInvoiceForSupplier(invoiceId: string, supplierId: string) {

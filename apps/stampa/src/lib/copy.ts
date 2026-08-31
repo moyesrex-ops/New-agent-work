@@ -100,6 +100,16 @@ export const copy = {
     emptyHeading: "No invoices yet.",
     emptyBody: "Your first one takes about ninety seconds.",
     cached: (when: string) => `Showing your saved list from ${when}.`,
+    search: {
+      label: "Find an invoice",
+      placeholder: "Customer, number or item",
+      submit: "Find",
+      clear: "Show all",
+      /** Said out loud on the phone by support, so it names the count first. */
+      found: (count: number) => (count === 1 ? "1 invoice found." : `${count} invoices found.`),
+      emptyHeading: "Nothing matches that.",
+      emptyBody: "Check the spelling, or show all your invoices.",
+    },
   },
 
   // ---- S6 / S7 New invoice ----

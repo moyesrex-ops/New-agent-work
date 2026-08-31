@@ -269,6 +269,42 @@
   color: var(--color-ink-900);
 }
 
+/* Supplier search (S5). Same GET-form idea as the console, sized for a thumb:
+   48px targets, and the input takes the whole row so the placeholder is not
+   truncated on a 320px screen. */
+.findRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.findInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--space-12);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-paper-sunken);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  color: var(--color-ink-900);
+}
+
+.findInput::placeholder {
+  color: var(--color-ink-500);
+}
+
+.findButton {
+  flex: 0 0 auto;
+  min-height: var(--space-12);
+  padding-inline: var(--space-4);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-raised);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink-900);
+}
+
 .sectionTitle {
   font-size: var(--font-size-heading);
   line-height: var(--font-lineHeight-heading);

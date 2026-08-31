@@ -8,11 +8,21 @@
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
-import { analyticsEvents, auditEvents, invoices, transmissions } from "@/lib/db/schema";
+import {
+  analyticsEvents,
+  auditEvents,
+  invoices,
+  organisations,
+  supplierLinks,
+  suppliers,
+  transmissions,
+} from "@/lib/db/schema";
 import { formatKobo, kobo } from "@/lib/money";
+import { newId } from "@/lib/ids";
 import { FAKE_TRIGGERS } from "@/lib/gateway";
 import {
   backoffMs,
+  countInvoicesForSupplier,
   createInvoice,
   getInvoiceForSupplier,
   listInvoicesForSupplier,
@@ -261,5 +271,120 @@ describe("reading invoices back", () => {
     const list = await listInvoicesForSupplier(fixture.supplierId);
     expect(list).toHaveLength(25);
     expect(list[0].invoiceNumber).toBe("INV-0025");
+  });
+});
+
+describe("Given a supplier with a long history, When they search it (T-04)", () => {
+  /** A second buyer, so "search by customer" is a real discrimination. */
+  async function secondBuyer(): Promise<string> {
+    const organisationId = newId("org");
+    await fixture.db.insert(organisations).values({
+      id: organisationId,
+      legalName: "Lafarge Africa Plc",
+      tin: "20991122-0001",
+      address: "27 Gerrard Road, Ikoyi, Lagos",
+      inviteSlug: "LAF",
+    });
+    await fixture.db.insert(supplierLinks).values({
+      id: newId("lnk"),
+      supplierId: fixture.supplierId,
+      organisationId,
+      status: "live",
+    });
+    return organisationId;
+  }
+
+  it("Then it matches the invoice number", async () => {
+    await draft("Aluminium railings");
+    await draft("Cement bags");
+
+    const found = await listInvoicesForSupplier(fixture.supplierId, "INV-0002");
+    expect(found).toHaveLength(1);
+    expect(found[0].invoiceNumber).toBe("INV-0002");
+  });
+
+  it("Then it matches what was supplied, because that is what he remembers", async () => {
+    await draft("Aluminium railings");
+    await draft("Cement bags");
+
+    const found = await listInvoicesForSupplier(fixture.supplierId, "cement");
+    expect(found).toHaveLength(1);
+    expect(found[0].invoiceNumber).toBe("INV-0002");
+  });
+
+  it("Then it matches the customer's name", async () => {
+    await draft("Aluminium railings");
+    const organisationId = await secondBuyer();
+    await createInvoice(
+      {
+        supplierId: fixture.supplierId,
+        organisationId,
+        description: "Scaffold hire",
+        quantity: 1,
+        unitPriceKobo: kobo(500_000),
+      },
+      actor,
+    );
+
+    const found = await listInvoicesForSupplier(fixture.supplierId, "lafarge");
+    expect(found).toHaveLength(1);
+    expect(found[0].organisation.legalName).toBe("Lafarge Africa Plc");
+  });
+
+  it("Then it matches the IRN, which is what a customer quotes back at him", async () => {
+    const invoice = await draft();
+    const result = await transmitInvoice(invoice.id, "key-search", actor);
+    expect(result.state).toBe("stamped");
+
+    const irn = result.state === "stamped" ? result.irn : "";
+    const found = await listInvoicesForSupplier(fixture.supplierId, irn.slice(-8));
+    expect(found).toHaveLength(1);
+    expect(found[0].id).toBe(invoice.id);
+  });
+
+  it("Then it ignores case and surrounding whitespace", async () => {
+    await draft("Aluminium railings");
+    expect(await listInvoicesForSupplier(fixture.supplierId, "  ALUMINIUM  ")).toHaveLength(1);
+  });
+
+  it("Then an empty term is not a filter", async () => {
+    await draft("Aluminium railings");
+    await draft("Cement bags");
+    expect(await listInvoicesForSupplier(fixture.supplierId, "   ")).toHaveLength(2);
+  });
+
+  it("Then a term matching nothing returns nothing rather than everything", async () => {
+    await draft("Aluminium railings");
+    expect(await listInvoicesForSupplier(fixture.supplierId, "helicopter")).toEqual([]);
+  });
+
+  it("Then a wildcard typed by the user is matched literally, not as SQL", async () => {
+    await draft("Aluminium railings");
+    expect(await listInvoicesForSupplier(fixture.supplierId, "%")).toEqual([]);
+    expect(await listInvoicesForSupplier(fixture.supplierId, "_")).toEqual([]);
+  });
+
+  it("Then it never reaches another supplier's invoices", async () => {
+    await draft("Aluminium railings");
+
+    const otherId = newId("sup");
+    await fixture.db.insert(suppliers).values({
+      id: otherId,
+      businessName: "Someone Else Ltd",
+      phone: "+2348030000009",
+    });
+
+    expect(await listInvoicesForSupplier(otherId, "aluminium")).toEqual([]);
+  });
+
+  it("Then searching a history of four hundred still finds the one", async () => {
+    for (let i = 0; i < 400; i += 1) await draft(`Item ${i}`, 1, 1000);
+    await draft("Aluminium railings", 1, 1000);
+
+    // The point of the ticket: the match is past the hundred-row page, so a
+    // client-side filter over the first page would find nothing here.
+    const found = await listInvoicesForSupplier(fixture.supplierId, "railings");
+    expect(found).toHaveLength(1);
+    expect(await countInvoicesForSupplier(fixture.supplierId)).toBe(401);
   });
 });
