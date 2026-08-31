@@ -11,7 +11,12 @@ import { requireSupplier } from "@/lib/auth/require";
 import { authorise } from "@/lib/auth/policy";
 import { parsePhone } from "@/lib/phone";
 import { parseAmountToKobo } from "@/lib/money";
-import { bindSupplierToInvite, confirmSupplierDetails, openInvite } from "@/lib/services/onboarding";
+import {
+  InviteAlreadyBoundError,
+  bindSupplierToInvite,
+  confirmSupplierDetails,
+  openInvite,
+} from "@/lib/services/onboarding";
 import { createInvoice, enqueueTransmission, runTransmission } from "@/lib/services/invoices";
 import { track } from "@/lib/analytics";
 import { canDelete, softDeleteAccount } from "@/lib/services/account";
@@ -82,7 +87,18 @@ export async function checkCode(formData: FormData): Promise<void> {
   let supplierId: string;
 
   if (inviteCode) {
-    ({ supplierId } = await bindSupplierToInvite(inviteCode, phone.value));
+    let bound: { supplierId: string };
+    try {
+      bound = await bindSupplierToInvite(inviteCode, phone.value);
+    } catch (error) {
+      if (!(error instanceof InviteAlreadyBoundError)) throw error;
+      // Drop the cookie: holding a link this number cannot use would send them
+      // round the same loop on every retry.
+      store.delete(INVITE_COOKIE);
+      store.delete(PHONE_COOKIE);
+      fail("/s/start", "invite_taken");
+    }
+    supplierId = bound.supplierId;
   } else {
     const existing = await db.query.suppliers.findFirst({
       where: (suppliers, { eq }) => eq(suppliers.phone, phone.value),

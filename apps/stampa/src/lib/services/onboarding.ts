@@ -91,6 +91,14 @@ export async function openInvite(code: string, now = new Date()): Promise<Invite
  * and the mismatch is the buyer's data problem to reconcile — flagged to them,
  * not thrown at the person trying to get paid (Flow 1 failure table).
  */
+/** A second, different number tried to claim an invitation that is already taken. */
+export class InviteAlreadyBoundError extends Error {
+  constructor() {
+    super("This invitation is already bound to another number");
+    this.name = "InviteAlreadyBoundError";
+  }
+}
+
 export async function bindSupplierToInvite(
   code: string,
   verifiedPhone: E164,
@@ -109,6 +117,15 @@ export async function bindSupplierToInvite(
 
   const expected = parsePhone(link.supplier.phone);
   const phoneMismatch = expected.ok && expected.value !== verifiedPhone;
+
+  // An invite that has already been claimed cannot be claimed again by a
+  // different number. These links travel by WhatsApp forward, which is the
+  // whole distribution mechanic, so without this the second person to open a
+  // forwarded link takes over the first person's account: `mergeSupplierPhone`
+  // would happily repoint the supplier record at whoever verified last.
+  if (invitation.boundAt && phoneMismatch) {
+    throw new InviteAlreadyBoundError();
+  }
 
   const supplierId = await mergeSupplierPhone(db, link.supplierId, verifiedPhone);
 

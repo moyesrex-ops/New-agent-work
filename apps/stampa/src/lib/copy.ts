@@ -72,6 +72,12 @@ export const copy = {
       wrong_length: "A Nigerian mobile number has 11 digits.",
       not_a_mobile: "That does not look like a mobile number.",
       rate_limited: "Too many codes requested. Wait fifteen minutes, or call us.",
+      no_account: "We do not have an account for this number yet. Ask your customer to invite you.",
+      /**
+       * The invite link was forwarded and somebody else finished the signup.
+       * Never says who: the second person is not entitled to know the first.
+       */
+      invite_taken: `This invitation is already in use by another number. Call us on ${BRAND.supportPhone}.`,
     },
   },
 

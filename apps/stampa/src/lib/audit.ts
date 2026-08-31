@@ -42,7 +42,8 @@ export type AuditAction =
   | "operator.transmission_retried"
   | "operator.flag_resolved"
   | "role.changed"
-  | "account.deleted";
+  | "account.deleted"
+  | "account.purged";
 
 /** Operator writes are meaningless in an audit log without a stated reason. */
 const REASON_REQUIRED: ReadonlySet<AuditAction> = new Set([

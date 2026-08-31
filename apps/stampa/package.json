@@ -21,7 +21,8 @@
     "walk": "tsx --env-file-if-exists=.env.local scripts/walk.mts",
     "assets": "node scripts/build-public-assets.mjs",
     "assets:check": "node scripts/build-public-assets.mjs --check",
-    "budget": "tsx --env-file-if-exists=.env.local scripts/budget.mts"
+    "budget": "tsx --env-file-if-exists=.env.local scripts/budget.mts",
+    "purge": "tsx --env-file-if-exists=.env.local scripts/purge.mts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

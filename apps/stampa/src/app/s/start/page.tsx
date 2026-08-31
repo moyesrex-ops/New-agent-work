@@ -9,10 +9,7 @@ import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
 
-const ERRORS: Record<string, string> = {
-  ...copy.phone.errors,
-  no_account: "We do not have an account for this number yet. Ask your customer to invite you.",
-};
+const ERRORS: Record<string, string> = copy.phone.errors;
 
 /** S2 — Phone entry. Two fields stand between suspicion and a first invoice. */
 export default async function PhoneEntry({

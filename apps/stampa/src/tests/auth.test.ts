@@ -8,7 +8,12 @@ import { eq } from "drizzle-orm";
 import { otpChallenges, suppliers } from "@/lib/db/schema";
 import { issueOtp, MAX_ISSUES_PER_WINDOW, MAX_VERIFY_ATTEMPTS, verifyOtp } from "@/lib/auth/otp";
 import { parsePhone, type E164 } from "@/lib/phone";
-import { bindSupplierToInvite, confirmSupplierDetails, openInvite } from "@/lib/services/onboarding";
+import {
+  InviteAlreadyBoundError,
+  bindSupplierToInvite,
+  confirmSupplierDetails,
+  openInvite,
+} from "@/lib/services/onboarding";
 import { makeFixture, type Fixture } from "./support/db";
 
 const PHONE = "+2348030000001" as E164;
@@ -133,6 +138,39 @@ describe("binding a verified phone", () => {
 
     const rows = await fixture.db.select().from(suppliers).where(eq(suppliers.phone, PHONE));
     expect(rows).toHaveLength(1);
+  });
+
+  // AT-02. Invites travel by WhatsApp forward, which is the distribution
+  // mechanic, so a forwarded link reaching the wrong person is not an exotic
+  // case — it is Tuesday. Before this was enforced, the second number to
+  // verify silently took over the first supplier's account and their history.
+  describe("once an invitation has been claimed", () => {
+    const STRANGER = "+2348037777777" as E164;
+
+    beforeEach(async () => {
+      await bindSupplierToInvite(fixture.code, PHONE);
+    });
+
+    it("refuses a different number rather than handing over the account", async () => {
+      await expect(bindSupplierToInvite(fixture.code, STRANGER)).rejects.toBeInstanceOf(
+        InviteAlreadyBoundError,
+      );
+    });
+
+    it("leaves the supplier still reachable on the number that claimed it", async () => {
+      await bindSupplierToInvite(fixture.code, STRANGER).catch(() => undefined);
+
+      const [supplier] = await fixture.db
+        .select({ phone: suppliers.phone })
+        .from(suppliers)
+        .where(eq(suppliers.id, fixture.supplierId));
+      expect(supplier.phone).toBe(PHONE);
+    });
+
+    it("still lets the rightful number back in, so a re-verify is not a lockout", async () => {
+      const again = await bindSupplierToInvite(fixture.code, PHONE);
+      expect(again.supplierId).toBe(fixture.supplierId);
+    });
   });
 });
 

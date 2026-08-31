@@ -76,6 +76,12 @@ export const suppliers = pgTable(
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
     suspendedAt: timestamp("suspended_at", { withTimezone: true }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    /**
+     * When the thirty-day window closed and the identifying fields on this row
+     * were overwritten. The row itself stays: stamped invoices are tax records
+     * and a foreign key has to resolve to something.
+     */
+    purgedAt: timestamp("purged_at", { withTimezone: true }),
     createdAt: createdAt(),
   },
   (table) => [uniqueIndex("suppliers_phone_idx").on(table.phone)],
