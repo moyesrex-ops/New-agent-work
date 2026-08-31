@@ -20,7 +20,8 @@
     "verify": "npm run tokens:check && npm run env:check && npm run assets:check && npm run copy:check && npm run typecheck && npm run lint && npm run test",
     "walk": "tsx --env-file-if-exists=.env.local scripts/walk.mts",
     "assets": "node scripts/build-public-assets.mjs",
-    "assets:check": "node scripts/build-public-assets.mjs --check"
+    "assets:check": "node scripts/build-public-assets.mjs --check",
+    "budget": "tsx --env-file-if-exists=.env.local scripts/budget.mts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

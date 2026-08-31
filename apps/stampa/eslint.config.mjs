@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     // server. Compiled output is not source and must not reach the linter.
     ".next-walk/**",
     ".walk/**",
+    ".next-budget/**",
+    ".budget/**",
     ".data/**",
   ]),
 ]);
