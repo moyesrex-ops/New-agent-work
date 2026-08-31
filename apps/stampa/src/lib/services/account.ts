@@ -11,6 +11,7 @@ import { invoices, suppliers, supplierLinks, sessions, transmissions } from "../
 import { writeAudit } from "../audit";
 import { formatKobo, kobo } from "../money";
 import { formatDateTime } from "../copy";
+import { toCsv } from "../csv";
 
 /** CSV of everything, offered before deletion and at any time. */
 export async function exportInvoicesCsv(supplierId: string): Promise<string> {
@@ -34,10 +35,9 @@ export async function exportInvoicesCsv(supplierId: string): Promise<string> {
     "Stamped at",
   ];
 
-  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
-
-  const lines = rows.map((row) =>
-    [
+  return toCsv(
+    header,
+    rows.map((row) => [
       row.invoiceNumber,
       row.organisation.legalName,
       row.lines.map((line) => line.description).join("; "),
@@ -49,12 +49,8 @@ export async function exportInvoicesCsv(supplierId: string): Promise<string> {
       row.status,
       row.irn ?? "",
       row.stampedAt ? formatDateTime(row.stampedAt) : "",
-    ]
-      .map((cell) => escape(String(cell)))
-      .join(","),
+    ]),
   );
-
-  return [header.map(escape).join(","), ...lines].join("\n");
 }
 
 export type DeletionCheck = { allowed: true } | { allowed: false; reason: "pending_transmission" };

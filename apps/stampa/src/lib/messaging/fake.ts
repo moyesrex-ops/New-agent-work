@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Messenger, OutboundMessage, SendResult, Channel } from "./types";
+import type { Channel, Email, Mailer, Messenger, OutboundMessage, SendResult } from "./types";
 
 /**
  * Deterministic messenger for development and tests.
@@ -37,5 +37,14 @@ export class FakeMessenger implements Messenger {
 
   clear(): void {
     this.sent.length = 0;
+  }
+}
+
+export class FakeMailer implements Mailer {
+  readonly sent: Email[] = [];
+
+  async send(email: Email): Promise<{ ok: boolean }> {
+    this.sent.push(email);
+    return { ok: true };
   }
 }

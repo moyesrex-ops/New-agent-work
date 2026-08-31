@@ -22,6 +22,8 @@ export type AnalyticsEventName =
   | "invoice_rejected"
   | "stamp_shared"
   | "supplier_added_second_buyer"
+  | "buyer_signed_in"
+  | "buyer_vendor_master_imported"
   | "buyer_exposure_computed"
   | "buyer_invites_sent"
   | "buyer_export_downloaded";

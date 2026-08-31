@@ -11,8 +11,12 @@ import { invitations, invoices, organisations, supplierLinks, suppliers } from "
 import { inviteCode, newId } from "../ids";
 import { writeAudit, type Actor } from "../audit";
 import { track } from "../analytics";
-import { addKobo, applyBasisPoints, kobo, ZERO, type Kobo } from "../money";
+import { addKobo, applyBasisPoints, formatKobo, kobo, ZERO, type Kobo } from "../money";
 import { STANDARD_VAT_BASIS_POINTS } from "../vat";
+import { copy, formatDateTime } from "../copy";
+import { toCsv } from "../csv";
+import { sendWithFallback } from "../messaging";
+import { appUrl } from "./notify";
 import { createInvitationFor } from "./onboarding";
 import type { ParsedVendor } from "./vendor-master";
 
@@ -281,23 +285,32 @@ export async function sendInvitations(
 
   for (const link of links) {
     const code = inviteCode(organisation.inviteSlug);
-    try {
-      await createInvitationFor(link.id, code, "whatsapp");
-      await writeAudit(db, {
-        actor,
-        action: "invitation.sent",
-        subjectType: "supplier_link",
-        subjectId: link.id,
-        after: { channel: "whatsapp" },
-      });
-      outcomes.push({ linkId: link.id, sent: true, code });
-    } catch {
-      outcomes.push({
-        linkId: link.id,
-        sent: false,
-        problem: "we could not reach this number",
-      });
-    }
+    const url = appUrl(`/s/i/${code}`);
+
+    // The invitation record is written first. A supplier who receives the
+    // message on a flaky delivery report and taps it must find a live link.
+    await createInvitationFor(link.id, code, "whatsapp");
+
+    const result = await sendWithFallback({
+      to: link.supplier.phone,
+      template: "buyer_invite",
+      body: copy.buyer.inviteMessage(organisation.legalName, url),
+      link: url,
+    });
+
+    await writeAudit(db, {
+      actor,
+      action: "invitation.sent",
+      subjectType: "supplier_link",
+      subjectId: link.id,
+      after: { channel: result.channel, delivered: result.ok },
+    });
+
+    outcomes.push(
+      result.ok
+        ? { linkId: link.id, sent: true, code }
+        : { linkId: link.id, sent: false, problem: result.problem },
+    );
   }
 
   await track(db, "buyer_invites_sent", actor, {
@@ -307,9 +320,109 @@ export async function sendInvitations(
   return outcomes;
 }
 
+/**
+ * Manual chase from the console (ticket B-06). Distinct from the automatic
+ * day-3 nudge, which is deduplicated: this one is a person deciding to chase a
+ * named vendor, and it is audited under their name.
+ */
+export async function nudgeSupplier(
+  organisationId: string,
+  linkId: string,
+  actor: Actor,
+): Promise<InviteOutcome> {
+  const db = await getDb();
+  const link = await db.query.supplierLinks.findFirst({
+    where: and(eq(supplierLinks.id, linkId), eq(supplierLinks.organisationId, organisationId)),
+    with: { supplier: true, organisation: true, invitations: true },
+  });
+  if (!link) throw new Error("Supplier link not found");
+
+  const latest = link.invitations.at(-1);
+  const code = latest?.code ?? inviteCode(link.organisation.inviteSlug);
+  if (!latest) await createInvitationFor(link.id, code, "whatsapp");
+
+  const url = appUrl(`/s/i/${code}`);
+  const result = await sendWithFallback({
+    to: link.supplier.phone,
+    template: "buyer_nudge",
+    body: copy.buyer.inviteMessage(link.organisation.legalName, url),
+    link: url,
+  });
+
+  await writeAudit(db, {
+    actor,
+    action: "invitation.nudged",
+    subjectType: "supplier_link",
+    subjectId: link.id,
+    after: { channel: result.channel, delivered: result.ok },
+  });
+
+  return result.ok
+    ? { linkId: link.id, sent: true, code }
+    : { linkId: link.id, sent: false, problem: result.problem };
+}
+
 export async function getOrganisation(organisationId: string) {
   const db = await getDb();
   return db.query.organisations.findFirst({ where: eq(organisations.id, organisationId) });
+}
+
+/** One vendor, everything the AP clerk needs before they pick up the phone. */
+export async function getSupplierLink(organisationId: string, linkId: string) {
+  const db = await getDb();
+  const link = await db.query.supplierLinks.findFirst({
+    where: and(eq(supplierLinks.id, linkId), eq(supplierLinks.organisationId, organisationId)),
+    with: { supplier: true, invitations: true, organisation: true },
+  });
+  if (!link) return null;
+
+  const rows = await db.query.invoices.findMany({
+    where: and(
+      eq(invoices.supplierId, link.supplierId),
+      eq(invoices.organisationId, organisationId),
+    ),
+    orderBy: desc(invoices.createdAt),
+    limit: 50,
+  });
+
+  return { link, invoices: rows };
+}
+
+/**
+ * CSV of every stamped invoice from this buyer's suppliers, for the VAT return
+ * (ticket B-07). The IRN is the column that makes the row claimable, so it is
+ * not optional and not last.
+ */
+export async function exportInboundCsv(organisationId: string): Promise<string> {
+  const db = await getDb();
+  const rows = await db.query.invoices.findMany({
+    where: and(eq(invoices.organisationId, organisationId), eq(invoices.status, "stamped")),
+    with: { supplier: true },
+    orderBy: desc(invoices.stampedAt),
+  });
+
+  return toCsv(
+    [
+      "NRS reference",
+      "Invoice number",
+      "Supplier",
+      "Supplier TIN",
+      "Subtotal",
+      "VAT",
+      "Total",
+      "Stamped at",
+    ],
+    rows.map((row) => [
+      row.irn ?? "",
+      row.invoiceNumber,
+      row.supplier.businessName,
+      row.supplier.tin ?? "",
+      formatKobo(kobo(row.subtotalKobo)),
+      formatKobo(kobo(row.vatKobo)),
+      formatKobo(kobo(row.totalKobo)),
+      row.stampedAt ? formatDateTime(row.stampedAt) : "",
+    ]),
+  );
 }
 
 export async function findInvitationCode(linkId: string): Promise<string | null> {

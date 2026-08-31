@@ -31,3 +31,13 @@ export interface Messenger {
   readonly channel: Channel;
   send(message: OutboundMessage): Promise<SendResult>;
 }
+
+export type Email = { to: string; subject: string; body: string };
+
+/**
+ * Email exists for exactly one job in v1 — the buyer's sign-in link. Suppliers
+ * have no email column at all, by design (Architecture §16.5).
+ */
+export interface Mailer {
+  send(email: Email): Promise<{ ok: boolean; problem?: string }>;
+}

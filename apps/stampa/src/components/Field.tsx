@@ -95,6 +95,63 @@ export function AmountField({ name, label, hint, error, ...input }: FieldProps) 
   );
 }
 
+export type SelectOption = { value: string; label: string };
+
+/** Console only. Native `<select>`; see the note in ui.module.css. */
+export function SelectField({
+  name,
+  label,
+  hint,
+  error,
+  options,
+  ...select
+}: Omit<ComponentProps<"select">, "id" | "className" | "name"> & {
+  name: string;
+  label: string;
+  hint?: ReactNode;
+  error?: string;
+  options: SelectOption[];
+}) {
+  return (
+    <FieldShell name={name} label={label} hint={hint} error={error}>
+      {({ id, describedBy, invalid }) => (
+        <select
+          {...select}
+          id={id}
+          name={name}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
+          className={styles.select}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )}
+    </FieldShell>
+  );
+}
+
+export function FileField({ name, label, hint, error, ...input }: FieldProps) {
+  return (
+    <FieldShell name={name} label={label} hint={hint} error={error}>
+      {({ id, describedBy, invalid }) => (
+        <input
+          {...input}
+          type="file"
+          id={id}
+          name={name}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
+          className={styles.file}
+        />
+      )}
+    </FieldShell>
+  );
+}
+
 export function OtpField({ name, label, hint, error, ...input }: FieldProps) {
   return (
     <FieldShell name={name} label={label} hint={hint} error={error}>

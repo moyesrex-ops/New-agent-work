@@ -1,20 +1,26 @@
-import { FakeMessenger } from "./fake";
-import type { Channel, Messenger, OutboundMessage, SendResult } from "./types";
+import { FakeMailer, FakeMessenger } from "./fake";
+import type { Channel, Email, Mailer, Messenger, OutboundMessage, SendResult } from "./types";
 
-export type { Channel, Messenger, OutboundMessage, SendResult } from "./types";
-export { FakeMessenger } from "./fake";
+export type { Channel, Email, Mailer, Messenger, OutboundMessage, SendResult } from "./types";
+export { FakeMailer, FakeMessenger } from "./fake";
 
 let whatsapp: Messenger | null = null;
 let sms: Messenger | null = null;
+let mailer: Mailer | null = null;
 
 /**
  * Live adapters are configured in production. Until credentials exist the app
  * runs on the fakes, which is stated on screen wherever a message is promised
  * rather than hidden — the same rule the gateway follows.
  */
-export function setMessengers(next: { whatsapp?: Messenger; sms?: Messenger }): void {
+export function setMessengers(next: {
+  whatsapp?: Messenger;
+  sms?: Messenger;
+  mailer?: Mailer;
+}): void {
   if (next.whatsapp) whatsapp = next.whatsapp;
   if (next.sms) sms = next.sms;
+  if (next.mailer) mailer = next.mailer;
 }
 
 function messengers(): { whatsapp: Messenger; sms: Messenger } {
@@ -52,6 +58,12 @@ export async function sendOtp(to: string, code: string, body: string): Promise<S
   const message: OutboundMessage = { to, template: "otp", body };
   const first = await text.send(message);
   return first.ok ? first : wa.send(message);
+}
+
+export async function sendEmail(email: Email): Promise<{ ok: boolean; problem?: string }> {
+  mailer ??= new FakeMailer();
+  if (process.env.NODE_ENV !== "production") console.info(`[dev] email to ${email.to}: ${email.body}`);
+  return mailer.send(email);
 }
 
 export function channelsInUse(): Channel[] {
