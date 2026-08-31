@@ -14,7 +14,7 @@
  *   npm run walk           headless, exits non-zero on any problem
  *   npm run walk -- --keep leaves the browser data for inspection
  */
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { appendFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
@@ -152,6 +152,11 @@ const TARGET_FLOOR: { phone: number; laptop: number } = { phone: 48, laptop: 40 
 async function audit(page: Page, where: string, floor = TARGET_FLOOR.phone): Promise<void> {
   await scaleText(page);
   const found = await page.evaluate((minimum) => {
+    // The transpiler wraps named functions in a keepNames helper that only
+    // exists in Node. This body runs in the page, so supply a no-op.
+    const scope = globalThis as unknown as { __name?: (fn: unknown) => unknown };
+    scope.__name ??= (fn: unknown) => fn;
+
     const out: string[] = [];
 
     // One h1, and it is not empty. A screen with no heading is a screen a
@@ -239,11 +244,150 @@ async function audit(page: Page, where: string, floor = TARGET_FLOOR.phone): Pro
       }
     }
 
+    // Text that does not meet WCAG AA against what is actually behind it.
+    // Computed from rendered colours rather than from the token table, because
+    // the token table cannot see which surface a component was dropped onto.
+    const parse = (value: string): [number, number, number, number] | null => {
+      const parts = value.match(/[\d.]+/g);
+      if (!parts || parts.length < 3) return null;
+      return [Number(parts[0]), Number(parts[1]), Number(parts[2]), parts[3] ? Number(parts[3]) : 1];
+    };
+
+    const channel = (value: number): number => {
+      const ratio = value / 255;
+      return ratio <= 0.03928 ? ratio / 12.92 : ((ratio + 0.055) / 1.055) ** 2.4;
+    };
+
+    const luminance = (rgb: [number, number, number]): number =>
+      0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
+
+    /** The colour actually painted behind an element, compositing any alpha. */
+    const behind = (node: HTMLElement): [number, number, number] => {
+      let layer: HTMLElement | null = node;
+      let result: [number, number, number] = [255, 255, 255];
+      const stack: [number, number, number, number][] = [];
+      while (layer) {
+        const style = getComputedStyle(layer);
+        // A gradient is not a flat colour; keep walking to whatever it fades
+        // into rather than guessing a midpoint.
+        if (style.backgroundImage === "none") {
+          const colour = parse(style.backgroundColor);
+          if (colour && colour[3] > 0) {
+            stack.push(colour);
+            if (colour[3] === 1) break;
+          }
+        }
+        layer = layer.parentElement;
+      }
+      for (const [r, g, b, a] of stack.reverse()) {
+        result = [
+          a * r + (1 - a) * result[0],
+          a * g + (1 - a) * result[1],
+          a * b + (1 - a) * result[2],
+        ];
+      }
+      return result;
+    };
+
+    for (const node of document.querySelectorAll<HTMLElement>("body *")) {
+      const text = [...node.childNodes]
+        .filter((child) => child.nodeType === Node.TEXT_NODE)
+        .map((child) => child.textContent ?? "")
+        .join("")
+        .trim();
+      if (!text) continue;
+
+      const style = getComputedStyle(node);
+      if (style.visibility === "hidden" || style.display === "none") continue;
+      if (Number(style.opacity) === 0) continue;
+      const box = node.getBoundingClientRect();
+      if (box.width === 0 || box.height === 0) continue;
+
+      const foreground = parse(style.color);
+      if (!foreground) continue;
+      const background = behind(node);
+      const front: [number, number, number] = [
+        foreground[3] * foreground[0] + (1 - foreground[3]) * background[0],
+        foreground[3] * foreground[1] + (1 - foreground[3]) * background[1],
+        foreground[3] * foreground[2] + (1 - foreground[3]) * background[2],
+      ];
+
+      const light = luminance(front);
+      const dark = luminance(background);
+      const ratio =
+        (Math.max(light, dark) + 0.05) / (Math.min(light, dark) + 0.05);
+
+      const size = parseFloat(style.fontSize);
+      const bold = Number(style.fontWeight) >= 700;
+      const large = size >= 24 || (size >= 18.66 && bold);
+      const required = large ? 3 : 4.5;
+
+      if (ratio + 0.01 < required) {
+        out.push(
+          `contrast ${ratio.toFixed(2)}:1 < ${required}: "${text.slice(0, 24)}" (${style.color} on rgb(${background.map(Math.round).join(", ")}))`,
+        );
+      }
+    }
+
     return out;
   }, floor);
 
   for (const problem of found) fail(where, problem);
   if (!found.length) pass(where);
+}
+
+/**
+ * Tab through a screen the way somebody who cannot use a mouse has to. Checks
+ * that every stop draws a focus ring, that the ring is on screen, and that the
+ * order does not trap or stall.
+ */
+async function keyboard(page: Page, where: string, steps = 30): Promise<void> {
+  const problems: string[] = [];
+  const order: string[] = [];
+  await page.evaluate("document.activeElement && document.activeElement.blur()");
+
+  for (let step = 0; step < steps; step += 1) {
+    await page.keyboard.press("Tab");
+    const stop = await page.evaluate(() => {
+      const node = document.activeElement as HTMLElement | null;
+      if (!node || node === document.body || node === document.documentElement) return null;
+      // The dev-tools overlay is a tab stop in development and ships in no
+      // build a user ever sees.
+      if (node.tagName.toLowerCase() === "nextjs-portal") return { skip: true } as const;
+      const style = getComputedStyle(node);
+      const box = node.getBoundingClientRect();
+      return {
+        label:
+          node.getAttribute("aria-label") ||
+          node.textContent?.trim().slice(0, 30) ||
+          node.getAttribute("name") ||
+          node.tagName.toLowerCase(),
+        ring: style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0,
+        onScreen:
+          box.width > 0 &&
+          box.height > 0 &&
+          box.bottom > 0 &&
+          box.top < window.innerHeight &&
+          box.right > 0 &&
+          box.left < window.innerWidth,
+      };
+    });
+
+    // Focus left the document for the browser chrome; the cycle is complete.
+    if (!stop) break;
+    if ("skip" in stop) continue;
+    if (!stop.ring) problems.push(`no focus ring on "${stop.label}"`);
+    if (!stop.onScreen) problems.push(`focus is off screen on "${stop.label}"`);
+    if (order.length && order[order.length - 1] === stop.label && order.length > 1) {
+      problems.push(`focus stuck on "${stop.label}"`);
+      break;
+    }
+    order.push(stop.label);
+  }
+
+  if (!order.length) problems.push("nothing is reachable by keyboard");
+  for (const problem of problems) fail(where, problem);
+  if (!problems.length) pass(`${where} by keyboard, ${order.length} stops`);
 }
 
 async function visit(page: Page, path: string, name: string, floor?: number): Promise<void> {
@@ -363,6 +507,7 @@ async function supplier(browser: Browser): Promise<void> {
   await go(page, "/s/new");
   await audit(page, where);
   await shot(page, "s6-new");
+  await keyboard(page, where);
 
   await page.getByLabel(/what did you supply/i).fill("Roofing sheets, 0.55mm");
   await page.getByLabel(/quantity/i).fill("120");
@@ -551,6 +696,7 @@ async function buyer(browser: Browser): Promise<void> {
   ] as const) {
     where = name;
     await visit(page, path, name, TARGET_FLOOR.laptop);
+    if (name === "b6-suppliers") await keyboard(page, where);
   }
 
   // B5 is the screenshot that gets forwarded to a Financial Controller, so it
@@ -620,6 +766,7 @@ async function operator(browser: Browser): Promise<void> {
   ] as const) {
     where = name;
     await visit(page, path, name, TARGET_FLOOR.laptop);
+    if (name === "o3-failures") await keyboard(page, where);
   }
 
   await context.close();
@@ -635,6 +782,16 @@ function run(command: string, args: string[], env: Record<string, string>): Prom
 async function startServer(): Promise<ChildProcess> {
   rmSync(DATA, { recursive: true, force: true });
   writeFileSync(LOG, "");
+
+  // A walk that was interrupted mid-run (piping this output into `head` is
+  // enough) leaves its server holding the port. Reclaim it rather than failing
+  // the next run with an EADDRINUSE that looks like an app defect.
+  try {
+    execFileSync("sh", ["-c", `lsof -ti tcp:${PORT} | xargs -r kill -9`], { stdio: "ignore" });
+    await new Promise((done) => setTimeout(done, 500));
+  } catch {
+    // No lsof, or nothing was listening. Either way the bind below decides.
+  }
 
   const env = {
     NEXT_DIST_DIR: ".next-walk",
