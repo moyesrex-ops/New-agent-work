@@ -8,6 +8,7 @@
  * An unmapped code does not fall silent: it becomes a "neither" fault with a
  * case number and raises an operator alert (Architecture §16.7).
  */
+import { formatNaira, kobo } from "../money";
 import { GatewayError, type GatewayFault } from "./types";
 
 type Mapping = {
@@ -15,6 +16,14 @@ type Mapping = {
   retryable: boolean;
   /** Written for a supplier reading it on a phone, not for an engineer. */
   reason: string;
+  /**
+   * How to render the value the NRS objected to.
+   *
+   * Money arrives from the wire as an integer number of kobo, which is the
+   * right thing to store and the wrong thing to print: a supplier told their
+   * VAT figure is "1020000" learns nothing and distrusts everything.
+   */
+  valueKind?: "money" | "text";
 };
 
 /**
@@ -28,11 +37,13 @@ export const ERROR_MAP: Record<string, Mapping> = {
     fault: "supplier",
     retryable: false,
     reason: "the VAT total does not match the line items",
+    valueKind: "money",
   },
   LINE_TOTAL_MISMATCH: {
     fault: "supplier",
     retryable: false,
     reason: "the invoice total does not match the line items",
+    valueKind: "money",
   },
   DUPLICATE_INVOICE_NUMBER: {
     fault: "supplier",
@@ -149,6 +160,22 @@ export function toGatewayError(
 export function describeCode(rawCode: string): string {
   const code = resolveCode(rawCode);
   return ERROR_MAP[code]?.reason ?? "an error code we have not mapped yet";
+}
+
+/**
+ * The value the NRS objected to, in the form the supplier recognises it.
+ *
+ * Anything we cannot confidently interpret is passed through untouched. A TIN
+ * or an invoice number is already readable; guessing at a format we do not
+ * understand would be worse than printing what arrived.
+ */
+export function formatOffendingValue(rawCode: string, value: string): string {
+  const kind = ERROR_MAP[resolveCode(rawCode)]?.valueKind;
+  if (kind !== "money") return value;
+
+  const asKobo = Number(value);
+  if (!Number.isSafeInteger(asKobo)) return value;
+  return formatNaira(kobo(asKobo));
 }
 
 /**

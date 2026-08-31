@@ -28,8 +28,8 @@ export default async function InviteLanding({ params }: { params: Promise<{ code
         why={copy.invite.invalidBody}
         reassurance={copy.invite.doubt}
         action={
-          <a href={`tel:${BRAND.supportPhone}`} className={shell.note}>
-            Call {BRAND.supportPhone}
+          <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>
+            {copy.callUs(BRAND.supportPhone)}
           </a>
         }
       />
@@ -44,8 +44,8 @@ export default async function InviteLanding({ params }: { params: Promise<{ code
         why={copy.invite.expiredBody}
         reassurance={copy.invite.doubt}
         action={
-          <a href={`tel:${BRAND.supportPhone}`} className={shell.note}>
-            Call {BRAND.supportPhone}
+          <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>
+            {copy.callUs(BRAND.supportPhone)}
           </a>
         }
       />
@@ -56,7 +56,7 @@ export default async function InviteLanding({ params }: { params: Promise<{ code
 
   return (
     <div className={shell.stack}>
-      <DocumentCard label={`Invitation from ${invite.buyerName}`}>
+      <DocumentCard label={copy.invite.cardLabel(invite.buyerName)}>
         <h1 className={shell.display}>{copy.invite.heading(invite.buyerName)}</h1>
         <p className={shell.lede} style={{ marginTop: "var(--space-4)" }}>
           {copy.invite.body(invite.buyerName)}

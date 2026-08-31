@@ -26,7 +26,7 @@ export default async function ReviewInvoice({ params }: { params: Promise<{ id: 
       <h1 className={shell.title}>{copy.invoice.reviewHeading}</h1>
       <p className={shell.lede}>{copy.invoice.reviewBody}</p>
 
-      <DocumentCard label={`Invoice ${invoice.invoiceNumber}`}>
+      <DocumentCard label={copy.a11y.reviewCard(invoice.invoiceNumber)}>
         <div className={shell.displayRow}>
           <span className={shell.displayLabel}>{copy.invoice.to}</span>
           <span className={shell.displayValue}>{invoice.organisation.legalName}</span>

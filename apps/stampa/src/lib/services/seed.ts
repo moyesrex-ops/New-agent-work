@@ -22,13 +22,29 @@ import {
 import { newId } from "../ids";
 import { kobo } from "../money";
 import { FAKE_TRIGGERS } from "../gateway";
-import { createInvoice, transmitInvoice } from "./invoices";
+import { MAX_ATTEMPTS, createInvoice, transmitInvoice } from "./invoices";
 
 export const DEMO_BUYER = {
   name: "Agbara Foods Plc",
   slug: "AGB",
   tin: "20334455-0001",
   email: "tax.manager@agbarafoods.com",
+} as const;
+
+/**
+ * A second customer, and the only reason it exists is that its TIN is the one
+ * the fake gateway rejects.
+ *
+ * Without it the buyer-fault branch of S10 — the screen that tells a supplier
+ * the problem is not theirs and that we have already told their customer — has
+ * no way to be rendered by anyone, in a browser or otherwise. It has no buyer
+ * user, so it never appears in the console; a supplier invoicing two customers
+ * is the ordinary case anyway.
+ */
+const SECOND_BUYER = {
+  name: "Lekki Beverages Ltd",
+  slug: "LKB",
+  tin: `${FAKE_TRIGGERS.buyerTinRejected}-0001`,
 } as const;
 
 /** Every seeded invite lands on a predictable code so QA can bookmark it. */
@@ -190,6 +206,34 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
 
   const [packaging, steel] = liveSupplierIds;
 
+  const secondBuyerId = newId("org");
+  await db.insert(organisations).values({
+    id: secondBuyerId,
+    legalName: SECOND_BUYER.name,
+    rcNumber: "RC 771204",
+    tin: SECOND_BUYER.tin,
+    address: "7 Admiralty Way, Lekki Phase 1, Lagos",
+    inviteSlug: SECOND_BUYER.slug,
+    plan: "pilot",
+  });
+
+  if (packaging) {
+    await db.insert(supplierLinks).values({
+      id: newId("lnk"),
+      supplierId: packaging,
+      organisationId: secondBuyerId,
+      vendorCode: "V-2001",
+      category: "Supplies",
+      bankName: "GTBank",
+      bankLast4: "1122",
+      annualSpendKobo: 6_400_000_00,
+      status: "live",
+      invitedAt: daysAgo(now, 30),
+      openedAt: daysAgo(now, 30),
+      activatedAt: daysAgo(now, 30),
+    });
+  }
+
   // A history worth looking at. Enough rows that the S5 search box earns its
   // place, spread over months so the list is not one undifferentiated block of
   // today, and three different failures so the operator queue has real groups.
@@ -207,11 +251,18 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
       ["Carton liners, kraft", 3000, 320_00, 4],
     ]);
 
-    // Retryable, nobody's fault. Sits in the failure queue awaiting a retry.
-    await failed(organisationId, packaging, now, `Pallet delivery ${FAKE_TRIGGERS.nrsDown}`, 10, 45_000_00, 2);
-    // A code we have never seen. This is the group an operator has to triage
-    // by hand, and the demo is dishonest without one.
-    await failed(organisationId, packaging, now, `Bale twine ${FAKE_TRIGGERS.unmappedCode}`, 40, 3_400_00, 1);
+    // One of each fault, all on the same supplier, so all three S10 variants
+    // can be reached from a single sign-in — by the browser walk and by anyone
+    // reviewing the copy.
+    //
+    // The NRS outage is seeded twice on purpose. Retried to exhaustion it is
+    // the only way to reach the "nobody's fault" rejection; left on its first
+    // attempt it is what the operator queue looks like while a retry is still
+    // pending. Both states exist in production and both need looking at.
+    await failed(organisationId, packaging, now, `Pallet delivery ${FAKE_TRIGGERS.nrsDown}`, 10, 45_000_00, 2, "exhaust");
+    await failed(organisationId, packaging, now, `Crate liners ${FAKE_TRIGGERS.nrsDown}`, 60, 1_900_00, 1);
+    await failed(organisationId, packaging, now, `Bale twine ${FAKE_TRIGGERS.supplierFault}`, 40, 3_400_00, 1);
+    await failed(secondBuyerId, packaging, now, "Bottle crates, stackable", 300, 2_150_00, 1);
   }
 
   if (steel) {
@@ -221,8 +272,9 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
       ["Steel fittings, assorted", 640, 4_250_00, 17],
     ]);
 
-    // Supplier-fixable: the S10 "what to fix" screen needs a live example.
-    await failed(organisationId, steel, now, `Rebar 16mm ${FAKE_TRIGGERS.supplierFault}`, 220, 8_900_00, 3);
+    // A code we have never seen. This is the group an operator has to triage
+    // by hand, and the demo is dishonest without one.
+    await failed(organisationId, steel, now, `Rebar 16mm ${FAKE_TRIGGERS.unmappedCode}`, 220, 8_900_00, 3);
   }
 
   return { inviteCode: DEMO_INVITE_CODE, organisationId };
@@ -272,13 +324,23 @@ async function failed(
   quantity: number,
   unitPrice: number,
   age: number,
+  retries: "once" | "exhaust" = "once",
 ): Promise<void> {
   const actor = { type: "supplier" as const, id: supplierId };
   const invoice = await createInvoice(
     { supplierId, organisationId, description, quantity, unitPriceKobo: kobo(unitPrice) },
     actor,
   );
-  await transmitInvoice(invoice.id, `seed-${invoice.id}`, actor);
+
+  // The same idempotency key each time, which is what makes this a retry of
+  // one transmission rather than several transmissions of one invoice.
+  const key = `seed-${invoice.id}`;
+  const attempts = retries === "exhaust" ? MAX_ATTEMPTS : 1;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const result = await transmitInvoice(invoice.id, key, actor);
+    if (result.state !== "rejected" || !result.willRetry) break;
+  }
+
   await backdate(invoice.id, daysAgo(now, age));
 }
 

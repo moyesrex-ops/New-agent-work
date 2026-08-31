@@ -26,6 +26,7 @@ import {
   createInvoice,
   getInvoiceForSupplier,
   listInvoicesForSupplier,
+  MAX_ATTEMPTS,
   runDueTransmissions,
   transmitInvoice,
 } from "@/lib/services/invoices";
@@ -193,6 +194,35 @@ describe("Given the NRS rejects, When the supplier is told", () => {
     // something that is still being retried.
     const [row] = await fixture.db.select().from(invoices).where(eq(invoices.id, invoice.id));
     expect(row.status).toBe("queued");
+  });
+
+  it("Then an exhausted outage stops promising a retry that is not coming", async () => {
+    const invoice = await draft(`Pallet delivery ${FAKE_TRIGGERS.nrsDown}`);
+
+    // Same idempotency key each time, so this is one transmission retried
+    // rather than several transmissions of the same invoice.
+    let last = await transmitInvoice(invoice.id, "key-exhaust", actor);
+    for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt += 1) {
+      last = await transmitInvoice(invoice.id, "key-exhaust", actor);
+    }
+
+    expect(last.state).toBe("rejected");
+    if (last.state !== "rejected") return;
+    expect(last.willRetry).toBe(false);
+
+    const [row] = await fixture.db.select().from(invoices).where(eq(invoices.id, invoice.id));
+    expect(row.status).toBe("rejected");
+
+    // The screen branches on this. A booked next attempt is the difference
+    // between "we are retrying" and "call us with this case number", and
+    // telling a supplier to wait for a message nobody will send is worse than
+    // asking them to make a phone call.
+    const [transmission] = await fixture.db
+      .select()
+      .from(transmissions)
+      .where(eq(transmissions.invoiceId, invoice.id));
+    expect(transmission.nextAttemptAt).toBeNull();
+    expect(transmission.attempt).toBe(MAX_ATTEMPTS);
   });
 
   it("Then an unmapped code is flagged for the operator instead of falling silent", async () => {

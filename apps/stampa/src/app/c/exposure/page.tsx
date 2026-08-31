@@ -34,10 +34,14 @@ export default async function ExposureReport() {
 
   if (!suppliers.length) {
     return (
-      <EmptyState
-        heading={copy.buyer.overviewEmpty}
-        action={<ButtonLink href="/c/upload">{copy.buyer.uploadCta}</ButtonLink>}
-      />
+      <>
+        <h1 className={shell.title}>{copy.buyer.exposureClearLabel}</h1>
+        <EmptyState
+          heading={copy.buyer.overviewEmpty}
+          body={copy.buyer.overviewEmptyBody}
+          action={<ButtonLink href="/c/upload">{copy.buyer.uploadCta}</ButtonLink>}
+        />
+      </>
     );
   }
 

@@ -7,7 +7,12 @@ import { ShareStamp } from "@/components/ShareStamp";
 import { StampBlock } from "@/components/StampBlock";
 import { copy, formatDateTime, BRAND, TRUST } from "@/lib/copy";
 import { formatNaira, kobo, koboToWords } from "@/lib/money";
-import { caseNumber, ERROR_MAP, isSimulatedGateway } from "@/lib/gateway";
+import {
+  caseNumber,
+  ERROR_MAP,
+  formatOffendingValue,
+  isSimulatedGateway,
+} from "@/lib/gateway";
 import { qrSvg } from "@/lib/qr";
 import { requireSupplier } from "@/lib/auth/require";
 import { getInvoiceForSupplier } from "@/lib/services/invoices";
@@ -74,7 +79,7 @@ async function Stamped({ invoice }: { invoice: Invoice }) {
       {isSimulatedGateway() ? <Banner tone="warning">{copy.stamped.simulated}</Banner> : null}
 
       <DocumentCard
-        label={`Stamped, invoice ${invoice.invoiceNumber}, ${koboToWords(kobo(invoice.totalKobo))}`}
+        label={copy.a11y.stampedCard(invoice.invoiceNumber, koboToWords(kobo(invoice.totalKobo)))}
       >
         <StampBlock
           irn={invoice.irn ?? ""}
@@ -134,7 +139,10 @@ function NotStamped({ invoice }: { invoice: Invoice }) {
   const mapping = invoice.failureCode ? ERROR_MAP[invoice.failureCode] : undefined;
   const reason = mapping?.reason ?? "the NRS returned something we have not seen before";
   const transmission = invoice.transmissions.at(-1);
-  const offending = transmission?.offendingValue ?? undefined;
+  const offending =
+    transmission?.offendingValue && invoice.failureCode
+      ? formatOffendingValue(invoice.failureCode, transmission.offendingValue)
+      : (transmission?.offendingValue ?? undefined);
   const buyerName = invoice.organisation.legalName;
 
   if (invoice.failureFault === "supplier") {
@@ -146,7 +154,13 @@ function NotStamped({ invoice }: { invoice: Invoice }) {
         offendingValue={offending}
         next={copy.notStamped.supplier.next}
         reassurance={copy.notStamped.saved}
-        action={<ButtonLink href="/s/new">{copy.notStamped.supplier.cta}</ButtonLink>}
+        // Carries the rejected invoice forward, so "edit" means edit rather
+        // than "type all of that again".
+        action={
+          <ButtonLink href={`/s/new?from=${invoice.id}`}>
+            {copy.notStamped.supplier.cta}
+          </ButtonLink>
+        }
       />
     );
   }
@@ -166,12 +180,24 @@ function NotStamped({ invoice }: { invoice: Invoice }) {
     );
   }
 
+  // A retryable failure leaves the invoice queued with a next attempt booked.
+  // Once the attempts are spent the row is rejected and nothing else will
+  // happen to it on its own, so the screen stops saying that it will.
+  const stillRetrying = Boolean(transmission?.nextAttemptAt);
+  const reference = caseNumber(transmission?.id ?? invoice.id);
+
   return (
     <ErrorState
       status="rejected"
-      what={copy.notStamped.neither.heading}
+      what={
+        stillRetrying ? copy.notStamped.neither.heading : copy.notStamped.neither.finalHeading
+      }
       why={copy.notStamped.neither.why(reason)}
-      next={copy.notStamped.neither.next(caseNumber(transmission?.id ?? invoice.id))}
+      next={
+        stillRetrying
+          ? copy.notStamped.neither.next(reference)
+          : copy.notStamped.neither.exhausted(reference)
+      }
       reassurance={copy.notStamped.saved}
       action={
         <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>

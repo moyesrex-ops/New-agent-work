@@ -80,9 +80,27 @@ for (const file of GOVERNED.flatMap((dir) => walk(resolve(root, dir)))) {
     problems.push(`${where}: literal in JSX — "${text.trim()}"`);
   }
 
+  // Prose either side of an interpolation: >Call {phone}< and >{rate} is added
+  // for you.<. The rule above cannot see these, and they are the ones most
+  // likely to be written by hand, because the variable makes the line feel
+  // dynamic enough not to belong in a catalogue.
+  for (const [, text] of source.matchAll(/>\s*([A-Z][a-z]{2,}(?:\s+[a-z]+)*)\s+\{/g)) {
+    problems.push(`${where}: literal before an expression — "${text.trim()} {…}"`);
+  }
+  // The closing tag is required: without it `}` followed by `export type Foo<T>`
+  // reads as a sentence.
+  for (const [, text] of source.matchAll(/\}[ \t]*([a-z][A-Za-z ,.'’\n\t-]{8,}?)<\//g)) {
+    if (text.trim().split(/\s+/).length < 3) continue;
+    problems.push(`${where}: literal after an expression — "{…} ${text.trim()}"`);
+  }
+
   // Strings passed to props that render: label, heading, body, placeholder…
-  const RENDERED = /\b(label|heading|body|placeholder|caption|title|hint|header|next|what|why|reassurance)=["']([A-Z][^"']{3,})["']/g;
-  for (const [, prop, text] of source.matchAll(RENDERED)) {
+  const RENDERED =
+    /\b(label|heading|body|placeholder|caption|title|hint|header|next|what|why|reassurance)=(?:["']([A-Z][^"']{3,})["']|\{`([^`]{4,})`\})/g;
+  for (const [, prop, quoted, templated] of source.matchAll(RENDERED)) {
+    const text = quoted ?? templated;
+    // A template that is nothing but an interpolation is a value, not copy.
+    if (!quoted && !/[A-Za-z]{3,}/.test(text.replace(/\$\{[^}]*\}/g, ""))) continue;
     problems.push(`${where}: literal in ${prop} — "${text}"`);
   }
 }

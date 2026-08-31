@@ -1,3 +1,4 @@
+import { ButtonLink } from "@/components/Button";
 import { Card } from "@/components/Surfaces";
 import { copy, BRAND, TRUST } from "@/lib/copy";
 import shell from "@/components/shell.module.css";
@@ -23,14 +24,23 @@ export default async function Help() {
         <p className={shell.note} style={{ marginTop: "var(--space-2)" }}>
           {open ? copy.help.reply : copy.help.closed}
         </p>
-        <p style={{ marginTop: "var(--space-4)" }}>
-          <a href={`tel:${BRAND.supportPhone}`}>Call {BRAND.supportPhone}</a>
-        </p>
-        <p style={{ marginTop: "var(--space-2)" }}>
-          <a href="https://wa.me/2347000782672" target="_blank" rel="noreferrer">
+        {/* The two things this screen exists to do, sized accordingly. A
+            supplier reaching help is usually already frustrated, and a
+            text-sized link is one more thing to aim at. */}
+        <div className={shell.buttonStack} style={{ marginTop: "var(--space-4)" }}>
+          <ButtonLink href={`tel:${BRAND.supportPhone}`} block>
+            {copy.callUs(BRAND.supportPhone)}
+          </ButtonLink>
+          <ButtonLink
+            href={BRAND.supportWhatsApp}
+            variant="secondary"
+            block
+            target="_blank"
+            rel="noreferrer"
+          >
             {copy.help.whatsapp}
-          </a>
-        </p>
+          </ButtonLink>
+        </div>
       </Card>
 
       {/* Mechanism 9. Repeated here and on first open, monthly thereafter. */}

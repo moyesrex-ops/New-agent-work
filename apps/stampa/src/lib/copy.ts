@@ -16,8 +16,19 @@ export const BRAND = {
   name: "Stampa",
   supportPhone: "0700-STAMPA",
   supportHours: "8am–8pm",
+  supportWhatsApp: "https://wa.me/2347000782672",
   verifyHost: "nrs.gov.ng",
 } as const;
+
+/**
+ * Gateway reasons are written to follow "The NRS says …", so they start
+ * lower-case. Two of the three S10 variants use them as a sentence of their
+ * own, which is how "the NRS does not recognise Lekki Beverages Ltd's TIN."
+ * shipped with a lower-case T.
+ */
+function sentence(text: string): string {
+  return text ? `${text[0].toUpperCase()}${text.slice(1)}` : text;
+}
 
 /** Repeated verbatim across screens. These three carry the trust script. */
 export const TRUST = {
@@ -28,8 +39,12 @@ export const TRUST = {
 } as const;
 
 export const copy = {
+  /** The escape hatch, repeated on every dead end. */
+  callUs: (phone: string) => `Call ${phone}`,
+
   // ---- S1 Invite landing ----
   invite: {
+    cardLabel: (buyer: string) => `Invitation from ${buyer}`,
     heading: (buyer: string) => `${buyer} asked you to send your invoices through Stampa.`,
     body: (buyer: string) =>
       `From July 2026 ${buyer} can only pay invoices that carry a government reference number. Stampa gets that number for you.`,
@@ -125,6 +140,7 @@ export const copy = {
     unitPrice: "Price each",
     subtotal: "Subtotal",
     vat: (percent: string) => `VAT ${percent}%`,
+    vatAdded: (percent: string) => `VAT ${percent}% is added for you. You never type it.`,
     total: "Total",
     review: "Review",
     reviewHeading: "Check before you send",
@@ -183,16 +199,26 @@ export const copy = {
     },
     buyer: {
       heading: "Not stamped.",
-      why: (reason: string, buyer: string) => `${reason.replace("your customer's", `${buyer}'s`)}.`,
+      why: (reason: string, buyer: string) =>
+        `${sentence(reason.replace("your customer's", `${buyer}'s`))}.`,
       next: "This is on your customer's side, not yours. We have told them. We will message you as soon as it is fixed.",
       cta: "Tell me when it is fixed",
       acknowledged: "We will message you when your customer fixes it.",
     },
     neither: {
       heading: "Not stamped yet.",
-      why: (reason: string) => `${reason[0].toUpperCase()}${reason.slice(1)}. This one is with them, not with you.`,
+      finalHeading: "Not stamped.",
+      why: (reason: string) => `${sentence(reason)}. This one is with them, not with you.`,
       next: (caseNumber: string) =>
         `We are retrying automatically and we will message you. Case ${caseNumber}.`,
+      /**
+       * Said only once the retries are spent. The screen must stop promising a
+       * retry that is not coming — a supplier who waits on a message that
+       * never arrives has been lied to, which is worse than being asked to
+       * make a phone call.
+       */
+      exhausted: (caseNumber: string) =>
+        `We tried six times and stopped. Call us with case ${caseNumber} and we will send it by hand.`,
       cta: "Call us",
     },
     saved: TRUST.saved,
@@ -507,6 +533,16 @@ export const copy = {
     supplierHome: `${BRAND.name} home`,
     consoleHome: `${BRAND.name} console`,
     filterByStatus: "Filter by status",
+    /** Read before the stamp card, so the amount is announced as an amount. */
+    stampedCard: (number: string, amountInWords: string) =>
+      `Stamped, invoice ${number}, ${amountInWords}`,
+    reviewCard: (number: string) => `Invoice ${number}`,
+  },
+
+  // ---- Shared table chrome ----
+  table: {
+    truncated: (visible: number, total: number) =>
+      `Showing ${visible} of ${total}. Narrow the filter to see the rest.`,
   },
 
   // ---- Status chips. Six only (Phase 15.1). ----

@@ -106,7 +106,13 @@ export function ListRow({
 
 /* ---------- EmptyState ---------- */
 
-/** No illustration, ever (Phase 15.1). */
+/**
+ * No illustration, ever (Phase 15.1).
+ *
+ * The heading is an h2, not an h1: an empty state is a section of a screen
+ * that already has a title. The two places it is the whole screen supply their
+ * own h1, and the browser walk fails any page that ends up with none.
+ */
 export function EmptyState({
   heading,
   body,
@@ -118,7 +124,7 @@ export function EmptyState({
 }) {
   return (
     <div className={styles.emptyState}>
-      <p className={styles.emptyHeading}>{heading}</p>
+      <h2 className={styles.emptyHeading}>{heading}</h2>
       {body ? <p className={styles.emptyBody}>{body}</p> : null}
       {action}
     </div>
@@ -131,6 +137,10 @@ export function EmptyState({
  * What / why / next, then the reassurance line. `action` is required, so an
  * error screen with no way forward will not compile. That is ticket F-04's
  * "a dead end will not compile".
+ *
+ * `what` is the h1. An error state is always the entire screen, and a
+ * rejection with no heading leaves a screen-reader user with a status chip and
+ * three paragraphs of prose to orient in.
  */
 export function ErrorState({
   status,
@@ -152,7 +162,7 @@ export function ErrorState({
   return (
     <div className={styles.errorState} role="alert">
       <StatusChip status={status} />
-      <p className={styles.errorWhat}>{what}</p>
+      <h1 className={styles.errorWhat}>{what}</h1>
       <p className={styles.errorWhy}>
         {why}
         {offendingValue ? (
@@ -273,7 +283,7 @@ export function DataTable<Row>({
       </table>
       {rows.length > visible.length ? (
         <p className={styles.tableCaption}>
-          Showing {visible.length} of {rows.length}. Narrow the filter to see the rest.
+          {copy.table.truncated(visible.length, rows.length)}
         </p>
       ) : null}
     </div>

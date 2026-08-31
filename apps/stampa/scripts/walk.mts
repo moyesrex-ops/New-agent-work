@@ -71,11 +71,19 @@ function watch(page: Page, label: () => string): void {
     // React's dev-only "Download the React DevTools" and Next's HMR chatter
     // are not defects.
     if (/DevTools|Fast Refresh|hydrat.*extension/i.test(text)) return;
+    // "Failed to load resource: 404" names nothing. The response listener
+    // below reports the same failure with the URL attached, and it knows which
+    // ones are Turbopack probing for a hot update.
+    if (/^Failed to load resource/.test(text)) return;
     fail(label(), `console error: ${text.slice(0, 200)}`);
   });
   page.on("response", (response) => {
-    if (!response.request().isNavigationRequest()) return;
-    if (response.status() >= 400) fail(label(), `HTTP ${response.status()} on ${response.url()}`);
+    if (response.status() < 400) return;
+    const url = response.url();
+    // Turbopack's HMR probe 404s by design between rebuilds.
+    if (/\/_next\/static\/(chunks\/)?.*\.hot-update\./.test(url)) return;
+    const kind = response.request().isNavigationRequest() ? "page" : "resource";
+    fail(label(), `HTTP ${response.status()} on ${kind} ${url.replace(BASE, "")}`);
   });
 }
 
@@ -237,6 +245,16 @@ async function visit(page: Page, path: string, name: string, floor?: number): Pr
   await shot(page, name);
 }
 
+/** Phone, code, in. The OTP is read back out of the dev messenger's log line. */
+async function signIn(page: Page, phone: string, lands: RegExp): Promise<void> {
+  await go(page, "/s/start");
+  await page.getByLabel(/phone number/i).fill(phone);
+  await submit(page, /send code/i, /\/s\/code/);
+  const code = await waitForLog(/\[dev\] OTP for [^:]+: (\d{6})/g, "an OTP");
+  await page.getByLabel(/6-digit code/i).fill(code);
+  await submit(page, /continue/i, lands);
+}
+
 async function supplier(browser: Browser): Promise<void> {
   console.log("\nSupplier app, 360x740");
   const context = await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2 });
@@ -338,10 +356,131 @@ async function supplier(browser: Browser): Promise<void> {
 
   for (const [path, name] of [
     ["/s/account", "s14-account"],
+    ["/s/account/delete", "s15-delete"],
     ["/s/help", "s13-help"],
   ] as const) {
     where = name;
     await visit(page, path, name);
+  }
+
+  // A code that was never issued. This is where a supplier lands when someone
+  // mistypes a link read off a WhatsApp forward, and it has to be a dead end
+  // with a phone number on it rather than a framework 404.
+  where = "S1 invite, invalid code";
+  await visit(page, "/s/i/AGB-0000", "s1-invite-invalid");
+  if (!(await page.getByText(/not active/i).count())) {
+    fail(where, "an unknown invite code does not say the link is not active");
+  }
+  if (!(await page.locator('a[href^="tel:"]').count())) {
+    fail(where, "a dead-end invite screen offers no phone number");
+  }
+
+  await context.close();
+}
+
+/**
+ * The three ways an invoice fails, walked as the supplier who owns them.
+ *
+ * S10 is the screen the whole trust argument rests on: a supplier who thinks a
+ * rejection means they did something wrong, or that their money is gone, does
+ * not come back. All three variants are seeded onto one supplier so one
+ * sign-in reaches them, and the assertions are set-wise rather than
+ * positional, because list order is a function of seeded timestamps.
+ */
+async function failures(browser: Browser): Promise<void> {
+  console.log("\nRejections, 360x740");
+  const context = await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2 });
+  const page = await context.newPage();
+  let where = "rejections";
+  watch(page, () => where);
+
+  // A supplier already onboarded, with months of history behind them.
+  await signIn(page, "08030000002", /\/s(\?|$)/);
+
+  where = "S5 home, full history";
+  await audit(page, where);
+  await shot(page, "s5-home-history");
+
+  const rejected = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLAnchorElement>('a[href^="/s/invoice/"]')]
+      .filter((row) => /not stamped/i.test(row.textContent ?? ""))
+      .map((row) => row.getAttribute("href") ?? ""),
+  );
+
+  if (rejected.length !== 3) {
+    fail(where, `expected 3 rejected invoices in the seeded history, found ${rejected.length}`);
+  }
+
+  // Each variant says a different thing, and saying the wrong one to the wrong
+  // supplier is the failure mode: telling someone to fix an invoice that is
+  // not theirs to fix, or telling them to wait when they could fix it now.
+  const VARIANTS = [
+    ["supplier fault", /check the amounts, then send again/i],
+    ["buyer fault", /on your customer's side, not yours/i],
+    ["nobody's fault", /case \d{4}/i],
+  ] as const;
+  const seen = new Set<string>();
+
+  for (const [index, href] of rejected.entries()) {
+    where = `S10 rejection ${index + 1}`;
+    await go(page, href);
+    await audit(page, where);
+    await shot(page, `s10-rejected-${index + 1}`);
+
+    for (const [name, pattern] of VARIANTS) {
+      if (await page.getByText(pattern).count()) seen.add(name);
+    }
+
+    // Whatever the cause, the invoice is not lost. This line is the one thing
+    // all three variants must carry.
+    if (!(await page.getByText(/your invoice is saved/i).count())) {
+      fail(where, "a rejection screen does not say the invoice is saved");
+    }
+  }
+
+  for (const [name] of VARIANTS) {
+    if (!seen.has(name)) fail("S10 rejections", `the "${name}" variant was never rendered`);
+  }
+
+  // Recovery. The supplier-fixable rejection is the only one with something to
+  // do, and "Edit invoice" has to mean edit: arriving at an empty form after
+  // being told the NRS said no is how a supplier decides the product is more
+  // trouble than the buyer's threat.
+  where = "S10 recovery";
+  await go(page, "/s");
+  const fixable = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLAnchorElement>('a[href^="/s/invoice/"]')]
+      .filter((row) => /not stamped/i.test(row.textContent ?? ""))
+      .map((row) => row.getAttribute("href") ?? ""),
+  );
+
+  for (const href of fixable) {
+    await go(page, href);
+    if (!(await page.getByRole("link", { name: /edit invoice/i }).count())) continue;
+
+    await page.getByRole("link", { name: /edit invoice/i }).first().click();
+    await page.waitForURL(/\/s\/new\?from=/, { timeout: 20_000 });
+    await audit(page, where);
+    await shot(page, "s6-new-prefilled");
+
+    const description = await page.getByLabel(/what did you supply/i).inputValue();
+    const price = await page.getByLabel(/price each/i).inputValue();
+    if (!description.trim()) fail(where, "the description was not carried over from the rejection");
+    if (!price.trim() || price === "0.00") {
+      fail(where, "the price was not carried over from the rejection");
+    }
+    break;
+  }
+
+  // Raw kobo must never reach a supplier. A VAT mismatch arrives from the
+  // gateway as an integer and 1020000 is not a number anybody recognises as
+  // their own VAT figure.
+  where = "S10 offending value";
+  for (const href of rejected) {
+    await go(page, href);
+    const raw = await page.locator("body").innerText();
+    const bare = raw.match(/\n\s*(\d{6,})\s*\n/);
+    if (bare) fail(where, `an unformatted number is on screen: ${bare[1]}`);
   }
 
   await context.close();
@@ -368,6 +507,7 @@ async function buyer(browser: Browser): Promise<void> {
 
   for (const [path, name] of [
     ["/c", "b2-overview"],
+    ["/c/exposure", "b5-exposure"],
     ["/c/suppliers", "b6-suppliers"],
     ["/c/suppliers?status=live", "b6-suppliers-live"],
     ["/c/suppliers?q=emeka", "b6-suppliers-search"],
@@ -378,6 +518,19 @@ async function buyer(browser: Browser): Promise<void> {
   ] as const) {
     where = name;
     await visit(page, path, name, TARGET_FLOOR.laptop);
+  }
+
+  // B5 is the screenshot that gets forwarded to a Financial Controller, so it
+  // carries two obligations the other console screens do not: the money is
+  // formatted the way money is formatted everywhere else, and the number is
+  // sourced on the same page rather than asserted.
+  where = "B5 exposure report";
+  await go(page, "/c/exposure");
+  if (!(await page.getByText(/^NGN [\d,]+\.\d{2}$/).count())) {
+    fail(where, "the headline figure is not rendered as a formatted naira amount");
+  }
+  if (!(await page.getByText(/based on \d+ vendors uploaded on/i).count())) {
+    fail(where, "the exposure figure has no method line — it cannot be sourced");
   }
 
   where = "B6 supplier detail";
@@ -500,6 +653,7 @@ async function main(): Promise<void> {
 
   try {
     await supplier(browser);
+    await failures(browser);
     await buyer(browser);
     await operator(browser);
   } finally {

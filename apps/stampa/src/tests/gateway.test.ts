@@ -6,6 +6,7 @@ import {
   deterministicIrn,
   FakeGateway,
   FAKE_TRIGGERS,
+  formatOffendingValue,
   GatewayError,
   toGatewayError,
   toUblXml,
@@ -190,5 +191,24 @@ describe("UBL mapping", () => {
     const xml = toUblXml(exempt);
     expect(xml).toContain("<cbc:ID>E</cbc:ID>");
     expect(xml).toContain("<cbc:Percent>0.00</cbc:Percent>");
+  });
+});
+
+describe("Given a rejection carries the value the NRS objected to", () => {
+  it("Then a money value is rendered as money, not as raw kobo", () => {
+    // The wire carries an integer number of kobo. Printing it verbatim told a
+    // supplier their VAT figure was "1020000", which is not a number anyone
+    // recognises as their own.
+    expect(formatOffendingValue("VAT_TOTAL_MISMATCH", "1020000")).toBe("NGN 10,200.00");
+    expect(formatOffendingValue("NG-VAT-001", "1020000")).toBe("NGN 10,200.00");
+    expect(formatOffendingValue("LINE_TOTAL_MISMATCH", "0")).toBe("NGN 0.00");
+  });
+
+  it("Then a value we cannot interpret is passed through untouched", () => {
+    // A TIN is already readable. Guessing at a format we do not understand
+    // would be worse than printing what arrived.
+    expect(formatOffendingValue("BUYER_TIN_INVALID", "10229384-0001")).toBe("10229384-0001");
+    expect(formatOffendingValue("UNKNOWN_CODE", "1020000")).toBe("1020000");
+    expect(formatOffendingValue("VAT_TOTAL_MISMATCH", "not-a-number")).toBe("not-a-number");
   });
 });
