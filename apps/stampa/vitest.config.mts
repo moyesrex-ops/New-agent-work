@@ -13,7 +13,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/tests/**/*.test.ts"],
+    include: ["src/tests/**/*.test.ts", "src/tests/**/*.test.tsx"],
     // PGlite boots a WebAssembly Postgres per suite; the default 5s is tight
     // on a cold cache and produces flakes that are not defects.
     testTimeout: 30_000,

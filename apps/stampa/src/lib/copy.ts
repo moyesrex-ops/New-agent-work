@@ -557,6 +557,8 @@ export const copy = {
     stampedCard: (number: string, amountInWords: string) =>
       `Stamped, invoice ${number}, ${amountInWords}`,
     reviewCard: (number: string) => `Invoice ${number}`,
+    /** Announced while a route's skeleton is on screen. */
+    loading: "Loading",
   },
 
   // ---- Shared table chrome ----

@@ -150,6 +150,12 @@ async function waitForLog(pattern: RegExp, what: string): Promise<string> {
 const TARGET_FLOOR: { phone: number; laptop: number } = { phone: 48, laptop: 40 };
 
 async function audit(page: Page, where: string, floor = TARGET_FLOOR.phone): Promise<void> {
+  // Route skeletons are content-shaped and deliberately have no heading, so
+  // auditing one reports every screen as headingless. Wait for the real thing.
+  await page
+    .locator('[aria-busy="true"]')
+    .waitFor({ state: "detached", timeout: 15_000 })
+    .catch(() => undefined);
   await scaleText(page);
   const found = await page.evaluate((minimum) => {
     // The transpiler wraps named functions in a keepNames helper that only
@@ -489,6 +495,43 @@ async function supplier(browser: Browser): Promise<void> {
   await go(page, "/s");
   await audit(page, where);
   await shot(page, "s5-home");
+
+  // A slow route has to say something. Hold the server response and check the
+  // skeleton takes the screen, because the alternative on a bad network is a
+  // tap that appears to have done nothing.
+  // A cold open on a bad connection is the real case: 200kbps down, 400ms of
+  // latency, which is a weak 3G cell in Agbara. The server streams the shell
+  // and the route skeleton first, so the supplier sees the shape of the screen
+  // instead of a white page. A client-side tap between screens deliberately
+  // does not do this — React holds the screen the supplier is already reading
+  // rather than blanking it — so this check has to be a fresh load.
+  where = "S6 new invoice, weak 3G";
+  const session = await page.context().newCDPSession(page);
+  await session.send("Network.emulateNetworkConditions", {
+    offline: false,
+    latency: 400,
+    downloadThroughput: (200 * 1024) / 8,
+    uploadThroughput: (100 * 1024) / 8,
+  });
+  await page.goto(`${BASE}/s/new`, { waitUntil: "commit" });
+  try {
+    await page.waitForSelector('[aria-busy="true"]', { timeout: 8000 });
+    // Viewport-only and taken immediately: a full-page capture needs a layout
+    // pass, and the rest of the stream arrives during it.
+    step += 1;
+    await page.screenshot({ path: resolve(SHOTS, `${String(step).padStart(2, "0")}-s6-new-loading.png`) });
+    pass(where);
+  } catch {
+    fail(where, "a cold load on a weak connection showed no loading state");
+  }
+  await page.waitForLoadState("load");
+  await session.send("Network.emulateNetworkConditions", {
+    offline: false,
+    latency: 0,
+    downloadThroughput: -1,
+    uploadThroughput: -1,
+  });
+  await go(page, "/s");
 
   where = "S5 home, searched";
   await go(page, "/s?q=cartons");

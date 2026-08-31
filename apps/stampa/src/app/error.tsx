@@ -8,7 +8,7 @@ import shell from "@/components/shell.module.css";
  * Never a stack trace and never "Application error". The user is told whose
  * fault it is (ours), that nothing is lost, and what to do next.
  */
-export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
+export default function RootError({ reset }: { error: Error; reset: () => void }) {
   return (
     <div className={shell.supplier} style={{ paddingTop: "var(--space-12)" }}>
       <h1 className={shell.title}>{copy.errors.serverHeading}</h1>

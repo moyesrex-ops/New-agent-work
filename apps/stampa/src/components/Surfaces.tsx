@@ -191,7 +191,7 @@ export function Skeleton({ height, width = "100%" }: { height: number; width?: s
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div aria-busy="true" aria-live="polite">
-      <span className="visually-hidden">Loading</span>
+      <span className="visually-hidden">{copy.a11y.loading}</span>
       {Array.from({ length: rows }, (_, index) => (
         <div key={index} style={{ padding: "var(--space-4) 0" }}>
           <Skeleton height={16} width="55%" />
