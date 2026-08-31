@@ -14,6 +14,10 @@ and the kill criteria are in `company/06-comparison.md`.
 
 **The build:** `apps/stampa`. It runs. See `apps/stampa/README.md`.
 
+**The gate:** `company/HANDOVER.md` answers the fifteen quality-gate questions,
+lists what must be true before a real supplier touches this, and says what I
+would attack first. Read it second, after the decision.
+
 ---
 
 ## Repository map
@@ -32,6 +36,7 @@ and the kill criteria are in `company/06-comparison.md`.
   /product                            Phases 12-15 — translation, feature pack, UX, visual finish
   /engineering                        Phases 16-19 — architecture, build sequence, review standard
   /qa                                 Phases 18, 21 — test plan, measured performance and accessibility
+  HANDOVER.md                         Phase 22 — the fifteen gate answers, launch blockers, handover
 
 /research                             Regional demand streams behind Phase 1
 /design-tokens                        Locked brand tokens, the source the app builds from
@@ -41,15 +46,14 @@ and the kill criteria are in `company/06-comparison.md`.
 ## Reading order
 
 **Ten minutes.** `company/06-comparison.md` for the decision, then
-`company/brand/03-logo-and-identity.md`, then
-`company/product/02-feature-pack.md`.
+`company/HANDOVER.md` §22.1 for the case against it.
 
 **Deciding whether to fund it.** `company/05-simulations.md` and
 `company/06-comparison.md`. The sensitivity table and the kill criteria are the
 parts worth arguing with.
 
 **Building it.** `company/engineering/` in file order, then `company/qa/`, then
-`apps/stampa/README.md`.
+`apps/stampa/README.md`, then the launch blockers in `company/HANDOVER.md` §22.2.
 
 **Checking whether the claims are real.** `company/qa/02-performance-and-accessibility.md`
 holds measured numbers rather than intentions, and every check that produced
