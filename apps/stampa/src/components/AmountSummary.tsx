@@ -20,11 +20,11 @@ export function AmountSummary({
 }) {
   return (
     <div>
-      <div className={shell.row}>
+      <div className={shell.amountRow}>
         <span className={shell.note}>{copy.invoice.subtotal}</span>
         <span className={shell.mono}>{formatKobo(kobo(subtotalKobo))}</span>
       </div>
-      <div className={shell.row}>
+      <div className={shell.amountRow}>
         <span className={shell.note}>
           {copy.invoice.vat((vatBasisPoints / 100).toFixed(1))}
         </span>

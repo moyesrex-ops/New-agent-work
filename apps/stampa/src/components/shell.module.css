@@ -160,12 +160,26 @@
   font-weight: var(--font-weight-medium);
 }
 
-/* A rule above the total is what makes numbers read as an account. */
-.totalRow {
+/*
+ * A label and a money figure. At 200% text a long total cannot share a line
+ * with its label on a 360px phone, so the figure drops to its own line and
+ * stays right-aligned there rather than running off the edge.
+ */
+.amountRow {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-4);
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+
+.amountRow > :last-child {
+  margin-left: auto;
+}
+
+/* A rule above the total is what makes numbers read as an account. */
+.totalRow {
+  composes: amountRow;
   border-top: var(--stroke-rule) solid var(--color-ink-900);
   margin-top: var(--space-3);
   padding-top: var(--space-3);

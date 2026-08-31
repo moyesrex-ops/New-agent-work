@@ -17,7 +17,7 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { appendFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { chromium, type Browser, type Page } from "playwright-core";
+import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
 
 /**
  * The walk provisions its own world.
@@ -37,6 +37,12 @@ const DATA = resolve(process.cwd(), ".data/walk");
 /** A cheap Android in portrait, and the AP clerk's laptop. */
 const PHONE = { width: 360, height: 740 };
 const LAPTOP = { width: 1366, height: 768 };
+
+/**
+ * Browser text scaling, as a multiple of the 16px default root. WCAG 1.4.4 asks
+ * for 200% without loss of content, so WALK_TEXT_SCALE=2 is the interesting run.
+ */
+const TEXT_SCALE = Number(process.env.WALK_TEXT_SCALE ?? 1);
 
 const problems: string[] = [];
 let step = 0;
@@ -144,6 +150,7 @@ async function waitForLog(pattern: RegExp, what: string): Promise<string> {
 const TARGET_FLOOR: { phone: number; laptop: number } = { phone: 48, laptop: 40 };
 
 async function audit(page: Page, where: string, floor = TARGET_FLOOR.phone): Promise<void> {
+  await scaleText(page);
   const found = await page.evaluate((minimum) => {
     const out: string[] = [];
 
@@ -245,6 +252,32 @@ async function visit(page: Page, path: string, name: string, floor?: number): Pr
   await shot(page, name);
 }
 
+/** A context at one viewport, with the requested browser text scaling applied. */
+async function open(
+  browser: Browser,
+  viewport: { width: number; height: number },
+  deviceScaleFactor?: number,
+): Promise<BrowserContext> {
+  return browser.newContext({ viewport, deviceScaleFactor });
+}
+
+/**
+ * Enlarge the root font the way a browser's text-size setting does. This runs
+ * after hydration, because touching <html> before React attaches makes it
+ * complain about a server/client mismatch that no real user would ever hit.
+ */
+async function scaleText(page: Page): Promise<void> {
+  if (TEXT_SCALE === 1) return;
+  await page.evaluate(`(function () {
+    var id = "walk-text-scale";
+    if (document.getElementById(id)) return;
+    var style = document.createElement("style");
+    style.id = id;
+    style.textContent = "html{font-size:${16 * TEXT_SCALE}px}";
+    document.body.appendChild(style);
+  })();`);
+}
+
 /** Phone, code, in. The OTP is read back out of the dev messenger's log line. */
 async function signIn(page: Page, phone: string, lands: RegExp): Promise<void> {
   await go(page, "/s/start");
@@ -257,7 +290,7 @@ async function signIn(page: Page, phone: string, lands: RegExp): Promise<void> {
 
 async function supplier(browser: Browser): Promise<void> {
   console.log("\nSupplier app, 360x740");
-  const context = await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2 });
+  const context = await open(browser, PHONE, 2);
   const page = await context.newPage();
   let where = "supplier";
   watch(page, () => where);
@@ -389,7 +422,7 @@ async function supplier(browser: Browser): Promise<void> {
  */
 async function failures(browser: Browser): Promise<void> {
   console.log("\nRejections, 360x740");
-  const context = await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2 });
+  const context = await open(browser, PHONE, 2);
   const page = await context.newPage();
   let where = "rejections";
   watch(page, () => where);
@@ -488,7 +521,7 @@ async function failures(browser: Browser): Promise<void> {
 
 async function buyer(browser: Browser): Promise<void> {
   console.log("\nBuyer console, 1366x768");
-  const context = await browser.newContext({ viewport: LAPTOP });
+  const context = await open(browser, LAPTOP);
   const page = await context.newPage();
   let where = "buyer";
   watch(page, () => where);
@@ -558,7 +591,7 @@ async function buyer(browser: Browser): Promise<void> {
 
 async function operator(browser: Browser): Promise<void> {
   console.log("\nOperator console, 1366x768");
-  const context = await browser.newContext({ viewport: LAPTOP });
+  const context = await open(browser, LAPTOP);
   const page = await context.newPage();
   let where = "operator";
   watch(page, () => where);
