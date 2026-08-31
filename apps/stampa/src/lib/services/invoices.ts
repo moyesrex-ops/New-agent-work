@@ -102,6 +102,54 @@ export async function createInvoice(input: NewInvoiceInput, actor: Actor) {
   return { id: invoiceId, invoiceNumber, ...totals };
 }
 
+/**
+ * Queue an invoice for transmission and return immediately.
+ *
+ * The client is told "saved" the moment this returns, which is honest: the
+ * work now belongs to the server. Whether the transmission is finished by the
+ * browser polling or by the retry worker, both go through the same idempotent
+ * path, so closing the app mid-send loses nothing (Architecture §16.8).
+ */
+export async function enqueueTransmission(
+  invoiceId: string,
+  idempotencyKey: string,
+): Promise<void> {
+  const db = await getDb();
+  const payload = await loadGatewayInvoice(db, invoiceId);
+  const requestHash = createHash("sha256").update(toUblXml(payload)).digest("hex");
+
+  await db
+    .insert(transmissions)
+    .values({
+      id: newId("tx"),
+      invoiceId,
+      attempt: 1,
+      idempotencyKey,
+      requestHash,
+      state: "queued",
+      nextAttemptAt: new Date(),
+    })
+    .onConflictDoNothing({ target: transmissions.idempotencyKey });
+
+  await db.update(invoices).set({ status: "queued" }).where(eq(invoices.id, invoiceId));
+}
+
+/**
+ * Finish a queued transmission. Safe to call concurrently with the worker and
+ * with itself — the idempotency key is the fence.
+ */
+export async function runTransmission(invoiceId: string, actor: Actor): Promise<TransmitResult | null> {
+  const db = await getDb();
+  const row = await db.query.transmissions.findFirst({
+    where: eq(transmissions.invoiceId, invoiceId),
+    orderBy: desc(transmissions.createdAt),
+  });
+  if (!row) return null;
+  if (row.state === "stamped" || row.state === "rejected") return null;
+
+  return transmitInvoice(invoiceId, row.idempotencyKey, actor);
+}
+
 export async function loadGatewayInvoice(db: Db, invoiceId: string): Promise<GatewayInvoice> {
   const invoice = await db.query.invoices.findFirst({
     where: eq(invoices.id, invoiceId),
@@ -353,7 +401,7 @@ export async function getInvoiceForSupplier(invoiceId: string, supplierId: strin
   const db = await getDb();
   return db.query.invoices.findFirst({
     where: and(eq(invoices.id, invoiceId), eq(invoices.supplierId, supplierId)),
-    with: { organisation: true, lines: true, transmissions: true },
+    with: { organisation: true, supplier: true, lines: true, transmissions: true },
   });
 }
 

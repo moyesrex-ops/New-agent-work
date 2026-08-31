@@ -8,7 +8,7 @@
  *
  * The Drizzle schema is identical across both. Only the driver differs.
  */
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { drizzle as drizzlePg, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
@@ -38,7 +38,22 @@ END
 $$;
 `;
 
+/**
+ * Migrations are recorded so a persistent data directory is not re-created on
+ * every boot. Deliberately not drizzle-kit's runner: this has to work
+ * identically over PGlite and node-postgres, and it is twenty lines.
+ */
 async function applySchema(db: Db): Promise<void> {
+  await db.execute(
+    sql.raw(
+      `CREATE TABLE IF NOT EXISTS _migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`,
+    ),
+  );
+
+  const applied = await db.execute(sql.raw(`SELECT name FROM _migrations`));
+  const rows = (applied as unknown as { rows?: Array<{ name: string }> }).rows ?? [];
+  if (rows.some((row) => row.name === "0000_init")) return;
+
   const statements = readFileSync(MIGRATION, "utf8")
     .split("--> statement-breakpoint")
     .map((statement) => statement.trim())
@@ -48,6 +63,7 @@ async function applySchema(db: Db): Promise<void> {
     await db.execute(sql.raw(statement));
   }
   await db.execute(sql.raw(BANK_REVOCATION));
+  await db.execute(sql.raw(`INSERT INTO _migrations (name) VALUES ('0000_init')`));
 }
 
 type Cache = { db: Db | null; ready: Promise<Db> | null };
@@ -69,6 +85,9 @@ async function connect(): Promise<Db> {
   // `pglite://./.data/dev` persists to disk; no path means in-memory, which is
   // what the test suite wants.
   const dataDir = url?.replace(/^pglite:\/\//, "") || undefined;
+  // PGlite's node filesystem creates only the leaf directory, so a fresh
+  // checkout with no .data at all fails on the first boot.
+  if (dataDir) mkdirSync(dataDir, { recursive: true });
   const client = new PGlite(dataDir);
   const db = drizzlePglite(client, { schema });
   await applySchema(db);
@@ -96,7 +115,7 @@ export async function createTestDb(): Promise<Db> {
  * threading one through every call site would be noise in application code to
  * serve the tests. This is the seam instead.
  */
-export function useDbForTesting(db: Db): void {
+export function setTestDb(db: Db): void {
   cache.db = db;
   cache.ready = Promise.resolve(db);
 }

@@ -1,0 +1,125 @@
+/**
+ * Export and deletion (tickets T-05, T-06).
+ *
+ * Retention rules are stated in plain language on screen and enforced here:
+ * stamped invoices are tax records and survive, unlinked from the account.
+ * Everything else goes.
+ */
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { getDb } from "../db/client";
+import { invoices, suppliers, supplierLinks, sessions, transmissions } from "../db/schema";
+import { writeAudit } from "../audit";
+import { formatKobo, kobo } from "../money";
+import { formatDateTime } from "../copy";
+
+/** CSV of everything, offered before deletion and at any time. */
+export async function exportInvoicesCsv(supplierId: string): Promise<string> {
+  const db = await getDb();
+  const rows = await db.query.invoices.findMany({
+    where: eq(invoices.supplierId, supplierId),
+    with: { organisation: true, lines: true },
+  });
+
+  const header = [
+    "Invoice number",
+    "Customer",
+    "Description",
+    "Quantity",
+    "Unit price",
+    "Subtotal",
+    "VAT",
+    "Total",
+    "Status",
+    "NRS reference",
+    "Stamped at",
+  ];
+
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+
+  const lines = rows.map((row) =>
+    [
+      row.invoiceNumber,
+      row.organisation.legalName,
+      row.lines.map((line) => line.description).join("; "),
+      row.lines.reduce((sum, line) => sum + line.quantity, 0),
+      formatKobo(kobo(row.lines[0]?.unitPriceKobo ?? 0)),
+      formatKobo(kobo(row.subtotalKobo)),
+      formatKobo(kobo(row.vatKobo)),
+      formatKobo(kobo(row.totalKobo)),
+      row.status,
+      row.irn ?? "",
+      row.stampedAt ? formatDateTime(row.stampedAt) : "",
+    ]
+      .map((cell) => escape(String(cell)))
+      .join(","),
+  );
+
+  return [header.map(escape).join(","), ...lines].join("\n");
+}
+
+export type DeletionCheck = { allowed: true } | { allowed: false; reason: "pending_transmission" };
+
+/**
+ * Deletion is blocked while anything is in flight. Cutting the account loose
+ * mid-transmission would leave a tax record with no owner and a supplier with
+ * no proof.
+ */
+export async function canDelete(supplierId: string): Promise<DeletionCheck> {
+  const db = await getDb();
+  const pending = await db
+    .select({ id: invoices.id })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.supplierId, supplierId),
+        or(eq(invoices.status, "queued"), eq(invoices.status, "sending")),
+      ),
+    )
+    .limit(1);
+
+  return pending.length ? { allowed: false, reason: "pending_transmission" } : { allowed: true };
+}
+
+/**
+ * Soft delete now, hard delete after 30 days. Drafts and contact details go
+ * immediately; stamped invoices are unlinked rather than removed.
+ */
+export async function softDeleteAccount(supplierId: string): Promise<void> {
+  const db = await getDb();
+  const check = await canDelete(supplierId);
+  if (!check.allowed) throw new Error("Cannot delete while a transmission is pending");
+
+  const drafts = await db
+    .select({ id: invoices.id })
+    .from(invoices)
+    .where(and(eq(invoices.supplierId, supplierId), eq(invoices.status, "draft")));
+
+  if (drafts.length) {
+    const ids = drafts.map((row) => row.id);
+    await db.delete(transmissions).where(inArray(transmissions.invoiceId, ids));
+    await db.delete(invoices).where(inArray(invoices.id, ids));
+  }
+
+  await db
+    .update(suppliers)
+    .set({ deletedAt: new Date(), address: "" })
+    .where(eq(suppliers.id, supplierId));
+
+  await db
+    .update(supplierLinks)
+    .set({ status: "deleted" })
+    .where(eq(supplierLinks.supplierId, supplierId));
+
+  await db
+    .update(sessions)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(sessions.subjectId, supplierId), isNull(sessions.revokedAt)));
+
+  await writeAudit(db, {
+    actor: { type: "supplier", id: supplierId },
+    action: "account.deleted",
+    subjectType: "supplier",
+    subjectId: supplierId,
+    after: { draftsRemoved: drafts.length, hardDeleteAfterDays: 30 },
+  });
+}

@@ -1,4 +1,4 @@
-import { createTestDb, useDbForTesting, type Db } from "@/lib/db/client";
+import { createTestDb, setTestDb, type Db } from "@/lib/db/client";
 import { buyerUsers, organisations, supplierLinks, suppliers } from "@/lib/db/schema";
 import { newId } from "@/lib/ids";
 import { createInvitationFor } from "@/lib/services/onboarding";
@@ -18,7 +18,7 @@ export type Fixture = {
  */
 export async function makeFixture(): Promise<Fixture> {
   const db = await createTestDb();
-  useDbForTesting(db);
+  setTestDb(db);
 
   const organisationId = newId("org");
   await db.insert(organisations).values({
