@@ -6,8 +6,7 @@ import { requireBuyer } from "@/lib/auth/require";
 import { copy, formatDateTime } from "@/lib/copy";
 import { formatKobo, kobo } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
-import { maskTin } from "@/lib/tin";
-import { getSupplierLink } from "@/lib/services/buyer";
+import { getSupplierLink, linkChipStatus } from "@/lib/services/buyer";
 import { appUrl } from "@/lib/services/notify";
 import { nudge } from "../../actions";
 import shell from "@/components/shell.module.css";
@@ -37,8 +36,10 @@ export default async function SupplierDetail({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <p className={shell.note}>
-        <Link href="/c/suppliers">{copy.buyer.suppliersHeading}</Link>
+      <p>
+        <Link href="/c/suppliers" className={shell.textLink}>
+          {copy.buyer.detailBack}
+        </Link>
       </p>
       <h1 className={shell.title}>{link.supplier.businessName}</h1>
 
@@ -46,9 +47,9 @@ export default async function SupplierDetail({ params }: { params: Promise<{ id:
         <div className={shell.grid2}>
           <Card>
             <div className={shell.displayRow}>
-              <p className={shell.displayLabel}>Status</p>
+              <p className={shell.displayLabel}>{copy.buyer.detailStatus}</p>
               <p className={shell.displayValue}>
-                <StatusChip status={link.status === "live" ? "live" : link.status === "opened" ? "opened" : "invited"} />
+                <StatusChip status={linkChipStatus(link.status)} />
               </p>
             </div>
             <div className={shell.displayRow}>
@@ -58,7 +59,7 @@ export default async function SupplierDetail({ params }: { params: Promise<{ id:
             <div className={shell.displayRow}>
               <p className={shell.displayLabel}>{copy.buyer.fields.tin}</p>
               <p className={shell.displayValue}>
-                {link.supplier.tin ? maskTin(link.supplier.tin) : copy.buyer.notProvided}
+                {link.supplier.tin ?? copy.buyer.notProvided}
               </p>
             </div>
             <div className={shell.displayRow}>

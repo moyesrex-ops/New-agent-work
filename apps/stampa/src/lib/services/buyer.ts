@@ -143,6 +143,15 @@ export type Exposure = {
   uncheckableVendors: number;
   vatAtRiskKobo: Kobo;
   spendSource: "buyer_data" | "assumption";
+  /**
+   * When the vendor master this was computed from was loaded.
+   *
+   * The report states its own provenance, so the date has to be the real one.
+   * The first version passed `new Date()` into a line that reads "based on 6
+   * vendors uploaded on …", which told a Financial Controller their four-month
+   * old list was uploaded this morning.
+   */
+  vendorsLoadedAt: Date | null;
 };
 
 /**
@@ -204,6 +213,13 @@ export async function computeExposure(organisationId: string, actor: Actor): Pro
     spendSource,
   });
 
+  // The most recent row wins: re-uploading a vendor master is how bank details
+  // change, so the newest import is the one the numbers actually reflect.
+  const loadedAt = links.reduce<Date | null>(
+    (latest, link) => (!latest || link.createdAt > latest ? link.createdAt : latest),
+    null,
+  );
+
   return {
     totalVendors: links.length,
     exposedVendors,
@@ -211,6 +227,7 @@ export async function computeExposure(organisationId: string, actor: Actor): Pro
     uncheckableVendors,
     vatAtRiskKobo,
     spendSource,
+    vendorsLoadedAt: loadedAt,
   };
 }
 
@@ -432,4 +449,19 @@ export async function findInvitationCode(linkId: string): Promise<string | null>
     orderBy: desc(invitations.createdAt),
   });
   return invitation?.code ?? null;
+}
+
+/**
+ * Link status to the chip a buyer sees. Shared by the list and the detail
+ * screen, which had drifted: one showed an un-invited vendor as "Draft" and
+ * the other showed the same row as "Invited".
+ *
+ * "imported" earns its own chip. A vendor sitting in the file who has never
+ * been contacted is the buyer's largest and most actionable group, and neither
+ * "Draft" nor "Invited" is true of them.
+ */
+export function linkChipStatus(status: string): "live" | "opened" | "invited" | "stuck" | "notInvited" {
+  if (status === "live" || status === "opened" || status === "invited") return status;
+  if (status === "deleted") return "stuck";
+  return "notInvited";
 }

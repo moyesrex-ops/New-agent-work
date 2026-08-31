@@ -81,6 +81,19 @@
   background: linear-gradient(to bottom, transparent, var(--color-paper) var(--space-4));
 }
 
+/*
+ * The provenance block under a figure. Four separate claims, so they get four
+ * separate lines with air between them: run together they read as one grey
+ * paragraph nobody finishes.
+ */
+.method {
+  margin-top: var(--space-6);
+}
+
+.method > * + * {
+  margin-top: var(--space-2);
+}
+
 /* Two full-width actions of equal weight, one above the other. */
 .buttonStack {
   display: flex;

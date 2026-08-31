@@ -97,8 +97,8 @@ describe("Given a count is put into a sentence", () => {
     expect(copy.buyer.inviteHeading(3)).toBe("Invite 3 suppliers");
     expect(copy.buyer.inviteSent(1)).toBe("1 invitation sent.");
     expect(copy.buyer.mappingRecovered(1)).toMatch(/^1 TIN /);
-    expect(copy.buyer.exposureRemaining(1)).toMatch(/has not finished/);
-    expect(copy.buyer.exposureRemaining(2)).toMatch(/have not finished/);
+    expect(copy.buyer.exposureRemaining(1, 6)).toMatch(/^1 of your 6 vendors has not finished/);
+    expect(copy.buyer.exposureRemaining(2, 6)).toMatch(/^2 of your 6 vendors have not finished/);
     expect(copy.buyer.mappingMoreProblems(1)).toMatch(/^And 1 more\./);
   });
 });

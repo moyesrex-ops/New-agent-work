@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { ButtonLink } from "@/components/Button";
-import { Banner, DataTable, EmptyState, StatusChip, type Status } from "@/components/Surfaces";
+import { Banner, DataTable, EmptyState, StatusChip } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
 import { copy } from "@/lib/copy";
 import { formatPhone } from "@/lib/phone";
-import { maskTin } from "@/lib/tin";
-import { listSuppliers, type SupplierRow } from "@/lib/services/buyer";
+import { linkChipStatus, listSuppliers, type SupplierRow } from "@/lib/services/buyer";
 import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
@@ -17,13 +16,6 @@ const FILTERS = [
   { value: "invited", label: copy.status.invited },
   { value: "imported", label: copy.buyer.suppliersFilterNotInvited },
 ] as const;
-
-/** Link statuses are a superset of chip statuses; anything unmapped is "invited". */
-function chipStatus(status: string): Status {
-  if (status === "live" || status === "opened" || status === "invited") return status;
-  if (status === "deleted") return "stuck";
-  return "draft";
-}
 
 /** B6 Supplier list. The operational surface. */
 export default async function Suppliers({
@@ -137,12 +129,12 @@ export default async function Suppliers({
             key: "tin",
             header: copy.buyer.suppliersColumns.tin,
             render: (row) =>
-              row.tin ? maskTin(row.tin) : <span className={shell.note}>missing</span>,
+              row.tin ? row.tin : <span className={shell.note}>{copy.buyer.tinMissing}</span>,
           },
           {
             key: "status",
             header: copy.buyer.suppliersColumns.status,
-            render: (row) => <StatusChip status={chipStatus(row.status)} />,
+            render: (row) => <StatusChip status={linkChipStatus(row.status)} />,
           },
           {
             key: "stamped",

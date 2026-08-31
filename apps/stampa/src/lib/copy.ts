@@ -327,6 +327,10 @@ export const copy = {
     exposureSubhead: "Estimated input VAT at risk this quarter",
     exposureMethod: (count: number, date: string) =>
       `Based on ${count} vendors uploaded on ${date} and NRS transmission records.`,
+    /** Said when the vendor master has no import date we can vouch for. */
+    exposureMethodUndated: (count: number) =>
+      `Based on ${count} vendors in your vendor master and NRS transmission records.`,
+    exposureGeneratedAt: (when: string) => `Produced ${when}.`,
     exposureUncheckable: (count: number) =>
       count === 1
         ? "1 vendor could not be checked because their TIN is missing or malformed."
@@ -346,10 +350,14 @@ export const copy = {
     exposureCompliant: "Compliant",
     exposureNotCompliant: "Not compliant",
     exposureUncheckableLabel: "Could not be checked",
-    exposureRemaining: (count: number) =>
+    /**
+     * Names the whole again rather than saying "of them". Beside a headline
+     * about exposed vendors, "3 of them" reads as three of the two.
+     */
+    exposureRemaining: (count: number, total: number) =>
       count === 1
-        ? "1 of them has not finished signing up."
-        : `${count} of them have not finished signing up.`,
+        ? `1 of your ${total} vendors has not finished signing up.`
+        : `${count} of your ${total} vendors have not finished signing up.`,
     suppliersHeading: "Suppliers",
     suppliersEmpty: "No suppliers yet.",
     inviteHeading: (count: number) => (count === 1 ? "Invite 1 supplier" : `Invite ${count} suppliers`),
@@ -419,6 +427,7 @@ export const copy = {
     suppliersNoMatch: "No suppliers match that filter.",
     suppliersClearFilter: "Clear the filter",
     suppliersCaption: "Suppliers and their status",
+    detailStatus: "Status",
     suppliersColumns: {
       vendor: "Vendor",
       code: "Code",
@@ -444,20 +453,31 @@ export const copy = {
     detailNudgeNote: (buyer: string) =>
       `Sends the invitation again in ${buyer}'s name, on WhatsApp with SMS behind it.`,
     notProvided: "Not provided",
+    tinMissing: "missing",
     notYet: "Not yet",
     noneSent: "None sent",
     notInYourFile: "Not in your file",
 
     invoicesCaption: "Stamped invoices received from your suppliers",
     invoicesEmptyBody: "They appear here the moment a supplier's invoice is stamped by the NRS.",
+    /**
+     * The currency lives in the header, not in every cell. A column of twenty
+     * rows each prefixed "NGN" is noise; a column headed "Total (NGN)" is a
+     * financial table. Figures standing alone in prose still carry it.
+     */
     invoicesColumns: {
       reference: "NRS reference",
       invoice: "Invoice",
       supplier: "Supplier",
       supplierTin: "Supplier TIN",
-      total: "Total",
+      vat: "VAT (NGN)",
+      total: "Total (NGN)",
       stamped: "Stamped",
     },
+    invoicesSummary: (count: number, vat: string) =>
+      count === 1
+        ? `1 stamped invoice · input VAT ${vat}`
+        : `${count} stamped invoices · input VAT ${vat}`,
 
     /** Stand-ins for a company whose name we somehow do not have. */
     yourCompany: "Your company",
@@ -553,6 +573,7 @@ export const copy = {
     offline: "Offline",
     draft: "Draft",
     disputed: "Disputed",
+    notInvited: "Not invited",
     invited: "Invited",
     opened: "Opened",
     live: "Live",

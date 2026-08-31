@@ -2,7 +2,6 @@ import { Button, ButtonLink } from "@/components/Button";
 import { Card } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
 import { BRAND, copy } from "@/lib/copy";
-import { maskTin } from "@/lib/tin";
 import { getOrganisation, listSuppliers } from "@/lib/services/buyer";
 import { signOutBuyer } from "../actions";
 import shell from "@/components/shell.module.css";
@@ -40,7 +39,7 @@ export default async function Settings() {
           <div className={shell.displayRow}>
             <p className={shell.displayLabel}>{copy.buyer.fields.tin}</p>
             <p className={shell.displayValue}>
-              {organisation?.tin ? maskTin(organisation.tin) : "—"}
+              {organisation?.tin ?? "—"}
             </p>
           </div>
           <div className={shell.displayRow}>

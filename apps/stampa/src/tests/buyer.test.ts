@@ -82,7 +82,38 @@ describe("exposure", () => {
       exposedVendors: 0,
       uncheckableVendors: 0,
       vatAtRiskKobo: 0,
+      vendorsLoadedAt: null,
     });
+  });
+
+  it("reports when the vendor master was actually loaded, not when it was read", async () => {
+    // The report says "based on N vendors uploaded on <date>". Passing today's
+    // date into that sentence told a Financial Controller their four-month-old
+    // list was uploaded this morning, on the one screen whose entire value is
+    // that every claim on it can be sourced.
+    const uploaded = new Date("2026-05-04T09:00:00Z");
+    await fixture.db
+      .update(supplierLinks)
+      .set({ createdAt: uploaded })
+      .where(eq(supplierLinks.organisationId, fixture.organisationId));
+
+    const exposure = await computeExposure(fixture.organisationId, buyerActor);
+    expect(exposure.vendorsLoadedAt?.toISOString()).toBe(uploaded.toISOString());
+  });
+
+  it("reports the most recent load, because re-uploading is how details change", async () => {
+    const csv = "Vendor Name,Phone,TIN\nLater Ltd,08030000013,20481182-0001\n";
+    await fixture.db
+      .update(supplierLinks)
+      .set({ createdAt: new Date("2026-05-04T09:00:00Z") })
+      .where(eq(supplierLinks.organisationId, fixture.organisationId));
+    await importVendors(fixture.organisationId, ingestVendorMaster(csv).vendors, buyerActor);
+
+    const exposure = await computeExposure(fixture.organisationId, buyerActor);
+    expect(exposure.vendorsLoadedAt?.getUTCFullYear()).toBe(new Date().getUTCFullYear());
+    expect(exposure.vendorsLoadedAt?.getTime()).toBeGreaterThan(
+      new Date("2026-05-04T09:00:00Z").getTime(),
+    );
   });
 });
 

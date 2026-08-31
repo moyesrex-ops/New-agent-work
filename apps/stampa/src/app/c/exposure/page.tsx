@@ -1,17 +1,29 @@
 import { ButtonLink } from "@/components/Button";
 import { Card, DocumentCard, EmptyState } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
-import { copy, formatDate } from "@/lib/copy";
+import { copy, formatDate, formatDateTime } from "@/lib/copy";
 import { formatNaira } from "@/lib/money";
 import {
   ASSUMED_ANNUAL_SPEND_KOBO,
   computeExposure,
+  type Exposure,
   getOrganisation,
   listSuppliers,
 } from "@/lib/services/buyer";
 import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The provenance line. Falls back to an undated form rather than inventing a
+ * date, because a wrong date on a document whose whole job is to be auditable
+ * is worse than no date at all.
+ */
+function method(exposure: Exposure): string {
+  return exposure.vendorsLoadedAt
+    ? copy.buyer.exposureMethod(exposure.totalVendors, formatDate(exposure.vendorsLoadedAt))
+    : copy.buyer.exposureMethodUndated(exposure.totalVendors);
+}
 
 /**
  * B5 Exposure report. The wedge, and the screenshot that gets forwarded to the
@@ -54,7 +66,7 @@ export default async function ExposureReport() {
         <h1 className={shell.title}>{copy.buyer.exposureClear(exposure.totalVendors)}</h1>
         <p className={shell.lede}>{copy.buyer.exposureClearBody}</p>
         <p className={shell.note} style={{ marginTop: "var(--space-4)" }}>
-          {copy.buyer.exposureMethod(exposure.totalVendors, formatDate(new Date()))}
+          {method(exposure)}
         </p>
       </DocumentCard>
     );
@@ -75,10 +87,11 @@ export default async function ExposureReport() {
           {formatNaira(exposure.vatAtRiskKobo)}
         </p>
 
-        <div style={{ marginTop: "var(--space-6)" }}>
-          <p className={shell.note}>
-            {copy.buyer.exposureMethod(exposure.totalVendors, formatDate(new Date()))}
-          </p>
+        {/* Every claim this number rests on, in the document that makes it.
+            A figure a Financial Controller cannot source is a figure they will
+            not forward, and forwarding it is the entire point of the screen. */}
+        <div className={shell.method}>
+          <p className={shell.note}>{method(exposure)}</p>
           {exposure.uncheckableVendors ? (
             <p className={shell.note}>
               {copy.buyer.exposureUncheckable(exposure.uncheckableVendors)}
@@ -90,6 +103,7 @@ export default async function ExposureReport() {
               : copy.buyer.exposureSpendAssumed(formatNaira(ASSUMED_ANNUAL_SPEND_KOBO))}
           </p>
           <p className={shell.note}>{copy.buyer.exposureRate}</p>
+          <p className={shell.note}>{copy.buyer.exposureGeneratedAt(formatDateTime(new Date()))}</p>
         </div>
       </DocumentCard>
 
@@ -117,7 +131,7 @@ export default async function ExposureReport() {
         </ButtonLink>
       </div>
       <p className={shell.note} style={{ marginTop: "var(--space-3)" }}>
-        {copy.buyer.exposureRemaining(invitable.length)}
+        {copy.buyer.exposureRemaining(invitable.length, exposure.totalVendors)}
       </p>
     </>
   );

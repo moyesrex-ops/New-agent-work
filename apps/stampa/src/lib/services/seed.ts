@@ -182,6 +182,11 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
       bankLast4: entry.last4,
       annualSpendKobo: entry.spendKobo,
       status: entry.status,
+      // The vendor master was uploaded before the invitations went out, and
+      // the exposure report states that date out loud. A seed that stamps
+      // every row with "today" hides whether the report is reading the real
+      // one.
+      createdAt: daysAgo(now, 10),
       invitedAt: entry.status === "imported" ? null : daysAgo(now, 9),
       openedAt: entry.status === "opened" || entry.status === "live" ? daysAgo(now, 8) : null,
       activatedAt: entry.status === "live" ? daysAgo(now, 8) : null,
@@ -228,6 +233,7 @@ export async function seed(): Promise<{ inviteCode: string; organisationId: stri
       bankLast4: "1122",
       annualSpendKobo: 6_400_000_00,
       status: "live",
+      createdAt: daysAgo(now, 31),
       invitedAt: daysAgo(now, 30),
       openedAt: daysAgo(now, 30),
       activatedAt: daysAgo(now, 30),

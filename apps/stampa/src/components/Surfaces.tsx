@@ -44,6 +44,7 @@ export type Status =
   | "offline"
   | "draft"
   | "disputed"
+  | "notInvited"
   | "invited"
   | "opened"
   | "live"
@@ -59,6 +60,7 @@ const CHIP_STYLE: Record<Status, string> = {
   stuck: styles.chipRejected,
   offline: styles.chipOffline,
   draft: styles.chipDraft,
+  notInvited: styles.chipDraft,
   disputed: styles.chipDisputed,
 };
 

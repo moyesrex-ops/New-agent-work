@@ -6,7 +6,6 @@ import { Banner, Card, DataTable } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
 import { copy } from "@/lib/copy";
 import { formatKobo, kobo } from "@/lib/money";
-import { maskTin } from "@/lib/tin";
 import { formatPhone } from "@/lib/phone";
 import { readUpload } from "@/lib/services/staging";
 import {
@@ -175,7 +174,7 @@ function Preview({ vendors }: { vendors: ParsedVendor[] }) {
           render: (row) =>
             row.tin ? (
               <>
-                {maskTin(row.tin)}
+                {row.tin}
                 {row.tinRecovered ? <span className={shell.note}> · zero restored</span> : null}
               </>
             ) : (

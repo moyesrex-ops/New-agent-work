@@ -3,7 +3,9 @@ import { Button } from "@/components/Button";
 import { Banner, Card, DataTable, EmptyState, StatusChip } from "@/components/Surfaces";
 import { requireOperator } from "@/lib/auth/require";
 import { copy, formatDateTime } from "@/lib/copy";
+import { formatOffendingValue } from "@/lib/gateway";
 import { failureQueue } from "@/lib/services/operator";
+import { MAX_ATTEMPTS } from "@/lib/services/invoices";
 import { retryAll, retryOne } from "../actions";
 import shell from "@/components/shell.module.css";
 
@@ -55,10 +57,19 @@ export default async function Failures({
               <h2 className={shell.sectionTitle} style={{ marginBottom: 0 }}>
                 {group.code}
               </h2>
-              <StatusChip status={group.fault === "neither" ? "waiting" : "rejected"} />
+              {/* Derived from the rows, not from the fault. A group where the
+                  retries are spent is not waiting on anything. */}
+              <StatusChip
+                status={group.fault === "neither" && !group.stopped ? "waiting" : "rejected"}
+              />
               <span className={shell.note}>
                 {FAULT_LABEL[group.fault] ?? group.fault} · {group.count}
               </span>
+              {group.stopped ? (
+                <span className={shell.note} style={{ color: "var(--color-danger-700)" }}>
+                  {group.stopped} stopped
+                </span>
+              ) : null}
               {group.rows[0].unmappedCode ? (
                 <span className={shell.note} style={{ color: "var(--color-danger-700)" }}>
                   Unmapped — add it to ERROR_MAP
@@ -84,9 +95,26 @@ export default async function Failures({
                 {
                   key: "value",
                   header: "Offending value",
-                  render: (row) => row.offendingValue ?? "—",
+                  render: (row) =>
+                    row.offendingValue ? formatOffendingValue(group.code, row.offendingValue) : "—",
                 },
-                { key: "attempt", header: "Attempt", numeric: true, render: (row) => row.attempt },
+                {
+                  key: "attempt",
+                  header: "Attempt",
+                  numeric: true,
+                  render: (row) => `${row.attempt} of ${MAX_ATTEMPTS}`,
+                },
+                {
+                  key: "next",
+                  header: "Next try",
+                  render: (row) =>
+                    row.nextAttemptAt ? (
+                      formatDateTime(row.nextAttemptAt)
+                    ) : (
+                      // The only rows on this page that need a person.
+                      <span style={{ color: "var(--color-danger-700)" }}>Stopped</span>
+                    ),
+                },
                 {
                   key: "when",
                   header: "First failed",

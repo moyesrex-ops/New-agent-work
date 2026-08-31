@@ -2,8 +2,7 @@ import { ButtonLink } from "@/components/Button";
 import { DataTable, EmptyState } from "@/components/Surfaces";
 import { requireBuyer } from "@/lib/auth/require";
 import { copy, formatDateTime } from "@/lib/copy";
-import { formatKobo, kobo } from "@/lib/money";
-import { maskTin } from "@/lib/tin";
+import { formatKobo, formatNaira, kobo } from "@/lib/money";
 import { listInboundInvoices } from "@/lib/services/invoices";
 import shell from "@/components/shell.module.css";
 
@@ -38,7 +37,7 @@ export default async function InboundInvoices() {
 
       {rows.length ? (
         <p className={shell.note} style={{ marginBottom: "var(--space-5)" }}>
-          {rows.length} stamped invoices · input VAT {formatKobo(kobo(total))}
+          {copy.buyer.invoicesSummary(rows.length, formatNaira(kobo(total)))}
         </p>
       ) : null}
 
@@ -64,11 +63,11 @@ export default async function InboundInvoices() {
           {
             key: "tin",
             header: copy.buyer.invoicesColumns.supplierTin,
-            render: (row) => (row.supplier.tin ? maskTin(row.supplier.tin) : "—"),
+            render: (row) => row.supplier.tin ?? "—",
           },
           {
             key: "vat",
-            header: "VAT",
+            header: copy.buyer.invoicesColumns.vat,
             numeric: true,
             render: (row) => formatKobo(kobo(row.vatKobo)),
           },

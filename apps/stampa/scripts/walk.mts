@@ -535,14 +535,22 @@ async function buyer(browser: Browser): Promise<void> {
 
   where = "B6 supplier detail";
   await go(page, "/c/suppliers");
-  const first = page.locator("table a").first();
-  if (await first.count()) {
+  const first = page.locator('table a[href^="/c/suppliers/"]').first();
+  if (!(await first.count())) {
+    fail(where, "the supplier list has no rows to open");
+  } else {
     await first.click();
+    // Not networkidle: it resolves on the page we came from, which is how the
+    // first version of this audited the list twice and reported the detail
+    // screen as walked.
+    await page.waitForURL(/\/c\/suppliers\/[^/]+$/, { timeout: 20_000 });
     await page.waitForLoadState("networkidle");
     await audit(page, where, TARGET_FLOOR.laptop);
     await shot(page, "b6-supplier-detail");
-  } else {
-    fail(where, "the supplier list has no rows to open");
+
+    if (!(await page.getByRole("link", { name: /back to suppliers/i }).count())) {
+      fail(where, "no way back to the list from a supplier record");
+    }
   }
 
   await context.close();

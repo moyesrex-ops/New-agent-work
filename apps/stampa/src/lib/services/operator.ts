@@ -20,8 +20,8 @@ import {
 import { NORTH_STAR } from "../analytics";
 import { writeAudit } from "../audit";
 import { newId } from "../ids";
-import { parsePhone } from "../phone";
-import { parseTin } from "../tin";
+import { formatPhone, parsePhone } from "../phone";
+import { maskTin, parseTin } from "../tin";
 import { caseNumber, describeCode } from "../gateway";
 import { transmitInvoice } from "./invoices";
 
@@ -80,22 +80,33 @@ export async function metrics(now: Date = new Date()): Promise<Metrics> {
   };
 }
 
+export type FailureRow = {
+  transmissionId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  supplierName: string;
+  caseNumber: string;
+  attempt: number;
+  /**
+   * When the system will try again on its own, or null once the attempts are
+   * spent. This is the whole triage question: a queue that shows a row at
+   * attempt 6 with the same "waiting" chip as a row at attempt 2 is telling an
+   * operator to leave alone the one row that needs them.
+   */
+  nextAttemptAt: Date | null;
+  offendingValue: string | null;
+  unmappedCode: boolean;
+  createdAt: Date;
+};
+
 export type FailureGroup = {
   code: string;
   reason: string;
   fault: string;
   count: number;
-  rows: Array<{
-    transmissionId: string;
-    invoiceId: string;
-    invoiceNumber: string;
-    supplierName: string;
-    caseNumber: string;
-    attempt: number;
-    offendingValue: string | null;
-    unmappedCode: boolean;
-    createdAt: Date;
-  }>;
+  /** Rows nothing further will happen to without a human. */
+  stopped: number;
+  rows: FailureRow[];
 };
 
 /**
@@ -122,10 +133,12 @@ export async function failureQueue(): Promise<FailureGroup[]> {
       reason: describeCode(code),
       fault: row.fault ?? "neither",
       count: 0,
+      stopped: 0,
       rows: [],
     };
 
     group.count += 1;
+    if (!row.nextAttemptAt) group.stopped += 1;
     group.rows.push({
       transmissionId: row.id,
       invoiceId: row.invoiceId,
@@ -133,6 +146,7 @@ export async function failureQueue(): Promise<FailureGroup[]> {
       supplierName: row.invoice.supplier.businessName,
       caseNumber: caseNumber(row.id),
       attempt: row.attempt,
+      nextAttemptAt: row.nextAttemptAt,
       offendingValue: row.offendingValue,
       unmappedCode: row.unmappedCode,
       createdAt: row.createdAt,
@@ -140,10 +154,18 @@ export async function failureQueue(): Promise<FailureGroup[]> {
     groups.set(code, group);
   }
 
-  // Unmapped codes first: those are the ones nobody has looked at yet.
+  // Unmapped codes first: those are the ones nobody has looked at yet. Then
+  // groups holding rows the system has given up on, because those are waiting
+  // on a person and everything else is waiting on a clock.
+  for (const group of groups.values()) {
+    group.rows.sort((a, b) => Number(Boolean(a.nextAttemptAt)) - Number(Boolean(b.nextAttemptAt)));
+  }
+
   return [...groups.values()].sort((a, b) => {
     const unmapped = Number(b.rows[0].unmappedCode) - Number(a.rows[0].unmappedCode);
-    return unmapped !== 0 ? unmapped : b.count - a.count;
+    if (unmapped !== 0) return unmapped;
+    const stopped = b.stopped - a.stopped;
+    return stopped !== 0 ? stopped : b.count - a.count;
   });
 }
 
@@ -222,11 +244,16 @@ export async function lookup(term: string): Promise<LookupHit[]> {
   });
 
   for (const row of supplierRows) {
+    // Searching is unaudited, so a result carries only enough to pick the
+    // right row: the name and the number the caller just read out. The tax
+    // identifier is masked until a reason has been written to the audit log,
+    // which is what opening the record does.
+    const tinPart = row.tin ? ` · ${maskTin(row.tin)}` : " · no TIN";
     hits.push({
       kind: "supplier",
       id: row.id,
       title: row.businessName,
-      detail: `${row.phone}${row.tin ? ` · ${row.tin}` : " · no TIN"}${row.deletedAt ? " · deleted" : ""}`,
+      detail: `${formatPhone(row.phone)}${tinPart}${row.deletedAt ? " · deleted" : ""}`,
     });
   }
 
