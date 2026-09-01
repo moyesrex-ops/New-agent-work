@@ -8,7 +8,7 @@ import site from "@/components/site.module.css";
 import { sendContact } from "./actions";
 
 export const metadata: Metadata = {
-  title: `${copy.contact.heading} — Stampa`,
+  title: copy.contact.heading,
   description: copy.contact.lede,
 };
 

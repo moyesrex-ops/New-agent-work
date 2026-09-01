@@ -4,7 +4,7 @@ import { copy } from "@/lib/copy";
 import site from "@/components/site.module.css";
 
 export const metadata: Metadata = {
-  title: `${copy.legal.termsHeading} — Stampa`,
+  title: copy.legal.termsHeading,
   description: copy.legal.terms[0],
 };
 
