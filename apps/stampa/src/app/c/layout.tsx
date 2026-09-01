@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 import { BRAND, copy } from "@/lib/copy";
 import { currentPrincipal } from "@/lib/auth/session";
-import { DemoBanner } from "@/components/DemoBanner";
 import shell from "@/components/shell.module.css";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Buyer console shell.
@@ -18,14 +22,11 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
 
   return (
     <div className={shell.page}>
-      <DemoBanner />
       <div className={shell.console}>
         <header className={shell.consoleHeader}>
           <Link href="/c" aria-label={copy.a11y.consoleHome} className={shell.consoleHome}>
             <Wordmark size={22} />
           </Link>
-          {/* No navigation before sign-in: a sign-in page with menu items
-              behind it is a set of dead links. */}
           {signedIn ? (
             <nav className={shell.nav} aria-label={copy.nav.console}>
               <Link href="/c" className={shell.navLink}>
@@ -45,7 +46,8 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
         </header>
         <main className={shell.main}>{children}</main>
         <footer className={shell.note} style={{ paddingBottom: "var(--space-6)" }}>
-          {BRAND.name} · {BRAND.supportPhone} · {BRAND.supportHours}
+          {BRAND.name} · <a href={`tel:${BRAND.supportPhoneTel}`}>{BRAND.supportPhone}</a> ·{" "}
+          {BRAND.supportHours}
         </footer>
       </div>
     </div>

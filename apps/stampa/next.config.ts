@@ -18,6 +18,15 @@ const nextConfig: NextConfig = {
    */
   serverExternalPackages: ["@electric-sql/pglite"],
 
+  async headers() {
+    return [
+      {
+        source: "/.well-known/apple-app-site-association",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
+    ];
+  },
+
   /**
    * Off because the generated files describe the framework, not this codebase,
    * and an unread file at the repository root that claims to be instructions

@@ -2,9 +2,9 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import { OtpField } from "@/components/Field";
-import { copy, BRAND } from "@/lib/copy";
+import { copy } from "@/lib/copy";
 import { formatPhone } from "@/lib/phone";
-import { checkCode, resendCode } from "../actions";
+import { checkCode, resendCode, sendVoiceCode } from "../actions";
 import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +18,9 @@ const ERRORS: Record<string, string> = {
 export default async function CodeEntry({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; voice?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, voice } = await searchParams;
   const store = await cookies();
   const phone = store.get("stampa_pending_phone")?.value ?? "";
 
@@ -28,7 +28,7 @@ export default async function CodeEntry({
     <div className={shell.stack}>
       <h1 className={shell.title}>{copy.otp.heading}</h1>
       <p className={shell.lede}>
-        {copy.otp.sentTo(formatPhone(phone))}{" "}
+        {voice ? copy.otp.voiceSent : copy.otp.sentTo(formatPhone(phone))}{" "}
         <Link href="/s/start">{copy.otp.change}</Link>
       </p>
 
@@ -54,13 +54,11 @@ export default async function CodeEntry({
             {copy.otp.resend}
           </Button>
         </form>
-        {/* Voice fallback at 60s is ticket A-02; the number is answered by a
-            human either way, which is the part that matters at this step.
-            Sized as a tap target, not a footnote — the supplier reaching for
-            it is the one the SMS never arrived for. */}
-        <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>
-          {copy.otp.voice}
-        </a>
+        <form action={sendVoiceCode}>
+          <Button type="submit" variant="quiet">
+            {copy.otp.voice}
+          </Button>
+        </form>
       </div>
     </div>
   );

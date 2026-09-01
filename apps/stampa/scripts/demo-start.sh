@@ -1,14 +1,21 @@
 #!/bin/sh
-# Start the public demo. Hugging Face Spaces set PORT=7860 and SPACE_HOST.
+# Production start. Refuses the fake gateway and demo doors.
 set -eu
 
-export NODE_ENV=production
-export STAMPA_DEMO=true
-export STAMPA_GATEWAY=fake
-export STAMPA_FAKE_LATENCY_MS="${STAMPA_FAKE_LATENCY_MS:-0}"
-export STAMPA_OPERATORS="${STAMPA_OPERATORS:-ops@stampa.ng}"
-export OTP_PEPPER="${OTP_PEPPER:-stampa-public-demo-pepper-not-a-secret}"
-export DATABASE_URL="${DATABASE_URL:-pglite:///tmp/stampa-demo}"
+if [ "${STAMPA_GATEWAY:-}" = "fake" ] || [ -z "${STAMPA_GATEWAY:-}" ]; then
+  echo "Production start refuses the fake gateway. Set STAMPA_GATEWAY=partner (or sandbox) and APP_PARTNER_* credentials." >&2
+  exit 1
+fi
+
+if [ -z "${TERMII_API_KEY:-}" ]; then
+  echo "Production start requires TERMII_API_KEY so one-time codes are delivered." >&2
+  exit 1
+fi
+
+if [ -z "${AGENTMAIL_API_KEY:-}" ] && [ -z "${RESEND_API_KEY:-}" ]; then
+  echo "Production start requires AGENTMAIL_API_KEY or RESEND_API_KEY so magic links leave the server." >&2
+  exit 1
+fi
 
 if [ -n "${SPACE_HOST:-}" ]; then
   export APP_URL="https://${SPACE_HOST}"

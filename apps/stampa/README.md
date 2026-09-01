@@ -33,28 +33,39 @@ which is Postgres compiled to WebAssembly running in-process. Production uses
 the same SQL against a managed Postgres, so nothing in the app knows which one
 it is talking to.
 
-### Public demo
+### Public site
 
-Set `STAMPA_DEMO=true` (and, in production, `OTP_PEPPER` and `APP_URL`). The
-root path becomes a door page. Three buttons mint sessions for the seeded
-supplier, buyer, and operator. The fake gateway stays labelled on every stamp.
+`/` is the marketing site: how it works, who pays, questions, and contact.
+Support is **0816 509 6822**, WhatsApp the same number, email
+`stampa-support@agentmail.to`.
 
-Docker, from the repository root:
+Production Docker needs live credentials and refuses the fake gateway:
 
 ```bash
 docker build -t stampa .
-docker run -p 7860:7860 stampa
+docker run -p 7860:7860 \
+  -e STAMPA_GATEWAY=partner \
+  -e APP_PARTNER_BASE_URL=https://partner.example.ng \
+  -e APP_PARTNER_CLIENT_ID=... \
+  -e APP_PARTNER_CLIENT_SECRET=... \
+  -e APP_PARTNER_BUSINESS_ID=... \
+  -e TERMII_API_KEY=... \
+  -e AGENTMAIL_API_KEY=... \
+  -e OTP_PEPPER=... \
+  -e DATABASE_URL=postgres://... \
+  -e APP_URL=https://stampa.ng \
+  stampa
 ```
 
-Then open <http://localhost:7860>. Hugging Face Spaces uses the same image;
-the Space files live in `deploy/huggingface/`.
+Hugging Face Space files live in `deploy/huggingface/`. The Space will not
+boot without those secrets.
 
 ### Signing in locally
 
 There are no passwords anywhere in the product.
 
-- **Supplier** — phone plus a six-digit code. The code is not sent anywhere in development; it is printed to the server log as `[dev] OTP for +234…: 123456`.
-- **Buyer and operator** — magic link by email. The link is printed to the server log the same way.
+- **Supplier** — phone plus a six-digit code. With no Termii key the code is printed to the server log as `[dev] OTP for +234…: 123456`.
+- **Buyer and operator** — magic link by email. The link is printed to the server log the same way when no mailer key is set.
 
 Seeded credentials: supplier `08030000001`, buyer
 `tax.manager@agbarafoods.com`, operator whatever you put in
@@ -69,7 +80,7 @@ Seeded credentials: supplier `08030000001`, buyer
 | `npm run dev` | Development server |
 | `npm run seed` | Fresh demo data: one buyer, six suppliers at every onboarding stage, stamped and rejected invoice history |
 | `npm run migrate` | Apply SQL migrations. Automatic on PGlite, an explicit deploy step in production |
-| `npm run verify` | The gate: tokens, env example, assets, copy discipline, types, lint, 238 tests |
+| `npm run verify` | The gate: tokens, env example, assets, copy discipline, types, lint, 283 tests |
 | `npm run walk` | Drive all 37 screens in a real browser and audit each one |
 | `npm run budget` | Build for production and measure the first-load payload |
 | `npm run tokens` | Regenerate `src/styles/tokens.css` and `tokens.ts` from `design-tokens/tokens.json` |
@@ -111,10 +122,11 @@ apart. The short version:
 | `DATABASE_URL` | `pglite://` locally, `postgres://` in production |
 | `APP_URL` | Absolute origin. Every WhatsApp and SMS deep link is built from it |
 | `OTP_PEPPER` | Peppers one-time codes before hashing. `openssl rand -base64 32` |
-| `STAMPA_DEMO` | `true` turns the instance into a public demo: seeds on boot, door page at `/`, one-click sessions. Never set on a real buyer |
-| `STAMPA_GATEWAY` | `fake`, `sandbox` or `partner` |
+| `STAMPA_GATEWAY` | `fake` locally and in tests. Production must be `sandbox` or `partner` |
 | `STAMPA_OPERATORS` | Comma-separated emails allowed into `/ops`. Empty means nobody, which is the right default |
-| `APP_PARTNER_*` | Accredited partner credentials, read only when the gateway is not `fake` |
+| `APP_PARTNER_*` | Accredited partner credentials, required when the gateway is not `fake` |
+| `TERMII_API_KEY` | Required in production. SMS on the DND route, then WhatsApp, then voice |
+| `AGENTMAIL_API_KEY` | Company inbox `stampa-support@agentmail.to`. `RESEND_API_KEY` is the other mailer |
 
 The app refuses to boot in production if a required variable is missing. That
 is deliberate: a half-configured deployment that starts is worse than one that
@@ -133,8 +145,10 @@ transmit(invoice, idempotencyKey) -> { irn, stampedAt, qrPayload } | GatewayErro
 ```
 
 Three implementations: `fake` (deterministic, used by every test and the walk),
-`sandbox`, and `partner`. Swapping providers — or becoming our own provider
-once accredited — is one module.
+`sandbox`, and `partner`. `PartnerGateway` speaks Interswitch SwitchTax
+(`Token`, `SignInvoice`, `Transmit`, with `postInvoice` if SignInvoice is
+404). Swapping providers — or becoming our own provider once accredited — is
+one module. Production will not boot on `fake`.
 
 `FakeGateway` fails on demand so the failure paths are exercised rather than
 imagined. Put a trigger string in an invoice description and it rejects with
@@ -152,7 +166,7 @@ that is nobody's fault.
 
 These are constraints, not conventions, and the tests enforce them.
 
-- **Bank details are read-only everywhere.** Not editable by the supplier, not editable by the buyer, not editable by us. This closes the payment-diversion attack and it is the reason the walk asserts no bank input exists on any screen.
+- **Bank details change only through an audited vendor-master re-upload.** A database trigger refuses any other UPDATE. The supplier cannot edit them.
 - **No BVN, no NIN, no full account numbers.** Last four digits only.
 - **Uploaded vendor-master files are never written to disk or to the database.** Parsed in memory, mapped, discarded.
 - **Analytics events carry no identifiers.** The scrubber rejects `phone`, `tin`, `email`, `name`, `address` and friends as string values; a boolean derived from one is allowed.

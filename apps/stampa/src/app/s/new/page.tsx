@@ -9,6 +9,7 @@ import { requireSupplier } from "@/lib/auth/require";
 import { getInvoiceForSupplier } from "@/lib/services/invoices";
 import { STANDARD_VAT_BASIS_POINTS } from "@/lib/vat";
 import { createDraft } from "../actions";
+import { InvoiceDraftPersist } from "@/components/InvoiceDraftPersist";
 import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +55,7 @@ export default async function NewInvoice({
       <p className={shell.lede}>{link.organisation.legalName}</p>
 
       <form action={createDraft}>
+        <InvoiceDraftPersist enabled={!line} />
         <Field
           name="description"
           label={copy.invoice.what}

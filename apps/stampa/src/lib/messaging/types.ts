@@ -21,6 +21,8 @@ export type OutboundMessage = {
   body: string;
   /** Deep link appended by the sender, never concatenated into `body`. */
   link?: string;
+  /** Plaintext OTP, for voice and authentication templates only. */
+  code?: string;
 };
 
 export type SendResult =

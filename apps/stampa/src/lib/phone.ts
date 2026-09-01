@@ -79,3 +79,13 @@ export function maskPhone(value: E164 | string): string {
   const nsn = parsed.value.slice(4);
   return `0${nsn.slice(0, 3)} ••• ${nsn.slice(6)}`;
 }
+
+/**
+ * Termii and Meta want 234… with no plus. Empty on junk rather than a
+ * guessed country, so a bad number fails at send instead of reaching Ghana.
+ */
+export function toMsisdn(value: E164 | string): string {
+  const parsed = parsePhone(value);
+  if (!parsed.ok) return digitsOf(value).replace(/^\+/, "");
+  return parsed.value.slice(1);
+}

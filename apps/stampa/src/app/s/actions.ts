@@ -20,7 +20,7 @@ import {
 import { createInvoice, enqueueTransmission, runTransmission } from "@/lib/services/invoices";
 import { track } from "@/lib/analytics";
 import { canDelete, softDeleteAccount } from "@/lib/services/account";
-import { sendOtp } from "@/lib/messaging";
+import { sendOtp, sendVoiceOtp } from "@/lib/messaging";
 import { copy } from "@/lib/copy";
 
 const INVITE_COOKIE = "stampa_invite";
@@ -57,7 +57,8 @@ export async function sendCode(formData: FormData): Promise<void> {
   const store = await cookies();
   store.set(PHONE_COOKIE, phone.value, { httpOnly: true, sameSite: "lax", path: "/" });
 
-  await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
+  const delivered = await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
+  if (!delivered.ok) fail("/s/start", "delivery_failed");
 
   redirect("/s/code");
 }
@@ -70,8 +71,22 @@ export async function resendCode(): Promise<void> {
   const db = await getDb();
   const issued = await issueOtp(db, phone.value, "sms");
   if (!issued.ok) fail("/s/code", "rate_limited");
-  await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
+  const result = await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
+  if (!result.ok) fail("/s/code", "delivery_failed");
   redirect("/s/code");
+}
+
+export async function sendVoiceCode(): Promise<void> {
+  const store = await cookies();
+  const phone = parsePhone(store.get(PHONE_COOKIE)?.value ?? "");
+  if (!phone.ok) redirect("/s/start");
+
+  const db = await getDb();
+  const issued = await issueOtp(db, phone.value, "voice");
+  if (!issued.ok) fail("/s/code", "rate_limited");
+  const result = await sendVoiceOtp(phone.value, issued.code, copy.notify.otp(issued.code));
+  if (!result.ok) fail("/s/code", "delivery_failed");
+  redirect("/s/code?voice=1");
 }
 
 export async function checkCode(formData: FormData): Promise<void> {

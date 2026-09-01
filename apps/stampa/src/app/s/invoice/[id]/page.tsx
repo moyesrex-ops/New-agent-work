@@ -200,7 +200,7 @@ function NotStamped({ invoice }: { invoice: Invoice }) {
       }
       reassurance={copy.notStamped.saved}
       action={
-        <a href={`tel:${BRAND.supportPhone}`} className={shell.textLink}>
+        <a href={`tel:${BRAND.supportPhoneTel}`} className={shell.textLink}>
           {copy.notStamped.neither.cta}
         </a>
       }

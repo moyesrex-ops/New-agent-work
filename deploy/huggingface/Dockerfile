@@ -1,5 +1,5 @@
-# Tiny Hugging Face Space image: clone the public GitHub repo and boot the demo.
-# The Space repository only needs this file and README.md.
+# Hugging Face Space image: clone the public GitHub repo and boot the app.
+# Secrets (gateway, Termii, mailer) must be set on the Space. Fake IRNs are refused.
 FROM node:22-bookworm-slim
 
 RUN apt-get update \
@@ -18,14 +18,12 @@ WORKDIR /src/apps/stampa
 RUN npm ci \
   && npm run build \
   && chmod +x scripts/demo-start.sh \
-  && mkdir -p /tmp/stampa-demo \
-  && chown -R user:user /src /tmp/stampa-demo
+  && mkdir -p /tmp/stampa \
+  && chown -R user:user /src /tmp/stampa
 
 USER user
 ENV HOME=/home/user
 ENV NODE_ENV=production
-ENV STAMPA_DEMO=true
-ENV STAMPA_GATEWAY=fake
 ENV PORT=7860
 EXPOSE 7860
 

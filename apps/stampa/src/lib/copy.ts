@@ -14,9 +14,11 @@
 
 export const BRAND = {
   name: "Stampa",
-  supportPhone: "0700-STAMPA",
-  supportHours: "8am–8pm",
-  supportWhatsApp: "https://wa.me/2347000782672",
+  supportPhone: "0816 509 6822",
+  supportPhoneTel: "+2348165096822",
+  supportHours: "8am–8pm WAT",
+  supportWhatsApp: "https://wa.me/2348165096822",
+  supportEmail: "stampa-support@agentmail.to",
   verifyHost: "nrs.gov.ng",
 } as const;
 
@@ -73,6 +75,7 @@ export const copy = {
       not_a_mobile: "That does not look like a mobile number.",
       rate_limited: "Too many codes requested. Wait fifteen minutes, or call us.",
       no_account: "We do not have an account for this number yet. Ask your customer to invite you.",
+      delivery_failed: "We could not send a code to that number. Try again, or call us.",
       /**
        * The invite link was forwarded and somebody else finished the signup.
        * Never says who: the second person is not entitled to know the first.
@@ -92,11 +95,13 @@ export const copy = {
     resend: "Resend",
     resendIn: (seconds: number) => `Resend in ${seconds}s`,
     voice: "Call me instead",
+    voiceSent: "We are calling you now with the code.",
     errors: {
       wrong_code: "That code is not right. Check the last message.",
       expired: "That code has expired. Ask for a new one.",
       no_challenge: "Ask for a new code.",
       locked_out: `Too many tries. Wait a few minutes, or call us on ${BRAND.supportPhone}.`,
+      delivery_failed: "The code could not be sent. Try again, or ask for a voice call.",
     },
   },
 
@@ -252,6 +257,10 @@ export const copy = {
     heading: "Need help?",
     call: (phone: string, hours: string) => `Call ${phone}, ${hours}.`,
     whatsapp: "Message us on WhatsApp",
+    email: "Email support",
+    faqHeading: "Common questions",
+    installHeading: "Add Stampa to your home screen",
+    installBody: "Open this page in your browser. Then use Add to Home Screen.",
     reply: "We usually reply in a few minutes.",
     freeHeading: "Stampa is free for suppliers.",
     freeBody: TRUST.antiScam,
@@ -557,6 +566,7 @@ export const copy = {
    */
   a11y: {
     supplierHome: `${BRAND.name} home`,
+    siteHome: `${BRAND.name} website`,
     consoleHome: `${BRAND.name} console`,
     filterByStatus: "Filter by status",
     /** Read before the stamp card, so the amount is announced as an amount. */
@@ -588,22 +598,143 @@ export const copy = {
     stuck: "Stuck",
   },
 
-  // ---- Public demo doors (only rendered when STAMPA_DEMO is set) ----
-  demo: {
-    banner: "This is a public demo. Stamps are simulated. Nothing is sent to the NRS.",
-    home: "Back to the demo",
-    heading: "Three doors into Stampa.",
-    lede: "The data is seeded, the stamps are fake, and you do not need a phone number.",
-    supplierCta: "Open as a supplier",
-    supplierHint: "Ify Packaging. Invoices already stamped, plus the three ways a stamp can fail.",
-    buyerCta: "Open as a buyer",
-    buyerHint: "Agbara Foods. The vendor tail, the exposure report, and the invite list.",
-    operatorCta: "Open as an operator",
-    operatorHint: "The failure queue. Every action is logged, including yours.",
-    inviteCta: "Start from the invitation instead",
-    skipCode: "Skip the code, this is a demo",
-    skipSignIn: "Skip this, this is a demo",
-    source: "Decision, brand and code are on GitHub.",
+  // ---- Public marketing site ----
+  site: {
+    title: "Stampa — the NRS number your customer can pay",
+    description:
+      "Get the NRS reference number your customer needs, in about ninety seconds. Free for suppliers.",
+    navHow: "How it works",
+    navFaq: "Questions",
+    navContact: "Contact",
+    navPrivacy: "Privacy",
+    navTerms: "Terms",
+    navSupplier: "Supplier sign-in",
+    navBuyer: "Buyer console",
+    heroKicker: "Nigeria Revenue Service e-invoicing",
+    heroHeading: "The government number your customer can pay.",
+    heroLede:
+      "From July 2026 a buyer can only pay an invoice that carries an NRS reference. Stampa gets that number for you.",
+    heroSupplier: "I was invited",
+    heroBuyer: "I buy from suppliers",
+    howHeading: "Three steps, then a stamp.",
+    how1Title: "Your customer invites you",
+    how1Body: "They send a WhatsApp link with their name on it. You open it on your phone.",
+    how2Title: "You confirm what they already know",
+    how2Body: "Name, TIN and bank details come from their file. Bank details cannot be changed here.",
+    how3Title: "You send the invoice",
+    how3Body: "About ninety seconds. The NRS returns a reference anyone can check.",
+    trustHeading: "Built so a scam cannot hide in it.",
+    priceHeading: "Who pays.",
+    priceBuyerTitle: "Buyers",
+    priceBuyerBody: "You pay by bank transfer. We invoice you. There is no card on file.",
+    priceSupplierTitle: "Suppliers",
+    priceSupplierBody: "Nothing. Not at sign-up. Not later. If someone asks, call us.",
+    faqHeading: "Questions people actually ask.",
+    faqMore: "See every question",
+    contactTeaser: "Talk to a person.",
+    footerLegal: "Stampa. Lagos, Nigeria.",
+    verifyHeading: "Check this number at the NRS.",
+    verifyBody: (irn: string) => `Reference ${irn}. Stampa did not issue this number.`,
+    verifyCta: "Open the NRS check",
+  },
+
+  faq: {
+    heading: "Questions",
+    lede: "Short answers. Call us if yours is not here.",
+    items: [
+      {
+        q: "Is Stampa free for suppliers?",
+        a: "Yes. Your customer pays. You will never be asked to pay to register or to stamp an invoice.",
+      },
+      {
+        q: "Who issues the reference number?",
+        a: "The Nigeria Revenue Service. Anyone can check it at nrs.gov.ng. Stampa did not issue it.",
+      },
+      {
+        q: "What is an IRN?",
+        a: "An Invoice Reference Number. From July 2026 your customer can only pay invoices that carry one.",
+      },
+      {
+        q: "Do I need to download an app?",
+        a: "No. Open the link your customer sent. You can add Stampa to your home screen later.",
+      },
+      {
+        q: "Why can I not change my bank details?",
+        a: "They come from your customer. If they are wrong, tell your customer. This stops payment diversion.",
+      },
+      {
+        q: "What if the code does not arrive?",
+        a: "Wait thirty seconds and tap Resend. After a minute you can ask for a voice call.",
+      },
+      {
+        q: "What if the NRS rejects my invoice?",
+        a: "The screen says whose problem it is. Yours, your customer's, or the NRS being down.",
+      },
+      {
+        q: "Is my data kept in Nigeria?",
+        a: "Yes. Production Postgres runs in Lagos. We do not sell your data.",
+      },
+      {
+        q: "How do I delete my account?",
+        a: "Open Account, then Delete my account. Stamped invoices stay for six years because the law requires it.",
+      },
+      {
+        q: "How do I contact you?",
+        a: `Call ${BRAND.supportPhone}, ${BRAND.supportHours}. WhatsApp the same number. Email ${BRAND.supportEmail}.`,
+      },
+      {
+        q: "Do you charge suppliers later?",
+        a: "No. That is a rule, not a launch promise. Call us if anyone asks you to pay.",
+      },
+      {
+        q: "What phones work?",
+        a: "Any phone with a browser. The supplier app is built for a small Android on a slow network.",
+      },
+      {
+        q: "Can I stamp without an invite?",
+        a: "Not yet. Ask your customer to invite you. Direct sign-up is coming.",
+      },
+      {
+        q: "Where is the Android app?",
+        a: "Install from your browser first. Store listings need a live domain and developer accounts.",
+      },
+    ],
+  },
+
+  contact: {
+    heading: "Contact",
+    lede: "A human answers the phone. Email if you prefer writing.",
+    phoneLabel: "Phone",
+    whatsappLabel: "WhatsApp",
+    emailLabel: "Email",
+    hoursLabel: "Hours",
+    formHeading: "Send a message",
+    name: "Your name",
+    email: "Your email",
+    message: "Message",
+    cta: "Send",
+    sent: "We have the message. We will reply from 8am if we are closed.",
+    empty: "Write a message first.",
+  },
+
+  legal: {
+    privacyHeading: "Privacy",
+    privacy: [
+      "We collect the phone number you sign in with, and the invoice data you send.",
+      "Production data is stored in Lagos. We do not sell it.",
+      "Stamped invoices are tax records. The law requires us to keep them for six years.",
+      "You can download or delete your account from the account screen.",
+      `To ask about your data, call ${BRAND.supportPhone} or email ${BRAND.supportEmail}.`,
+      "Nigeria Data Protection Act 2023 applies. Lagos is the venue.",
+    ],
+    termsHeading: "Terms",
+    terms: [
+      "Stampa transmits invoices to the NRS through an accredited access point.",
+      "Stampa does not issue the reference number. The NRS does.",
+      "Suppliers are never charged.",
+      "Buyers pay under a separate agreement invoiced by email.",
+      "Nigerian law applies. Lagos courts hear disputes.",
+    ],
   },
 
   // ---- Framework-level errors, in brand voice rather than a stack trace ----

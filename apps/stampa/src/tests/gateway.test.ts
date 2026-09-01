@@ -3,12 +3,15 @@ import { kobo } from "@/lib/money";
 import { computeInvoiceTotals } from "@/lib/vat";
 import {
   caseNumber,
+  candidateIrn,
   deterministicIrn,
   FakeGateway,
   FAKE_TRIGGERS,
   formatOffendingValue,
   GatewayError,
+  PartnerGateway,
   toGatewayError,
+  toNrsJson,
   toUblXml,
   type GatewayInvoice,
 } from "@/lib/gateway";
@@ -212,3 +215,118 @@ describe("Given a rejection carries the value the NRS objected to", () => {
     expect(formatOffendingValue("VAT_TOTAL_MISMATCH", "not-a-number")).toBe("not-a-number");
   });
 });
+
+describe("NRS JSON mapping", () => {
+  it("builds the Interswitch IRN candidate from invoice number, service id and date", () => {
+    expect(candidateIrn("INV-0032", "STAMPA", new Date("2026-09-14T09:42:00Z"))).toBe(
+      "INV0032-STAMPA-20260914",
+    );
+  });
+
+  it("sends naira decimals produced from kobo, never a float in storage", () => {
+    const payload = toNrsJson(invoice(), { businessId: "biz-1", serviceId: "STAMPA" });
+    expect(payload.business_id).toBe("biz-1");
+    expect(payload.irn).toBe("INV0032-STAMPA-20260914");
+    expect(payload.legal_monetary_total.payable_amount).toBe(1850075);
+    expect(payload.tax_total[0].tax_amount).toBe(129075);
+    expect(payload.accounting_supplier_party.tin).toBe("20481166-0001");
+  });
+});
+
+describe("PartnerGateway", () => {
+  it("signs via SwitchTax and stores the partner IRN, never inventing one", async () => {
+    const calls: string[] = [];
+    const fetchFn: typeof fetch = async (input, init) => {
+      const url = String(input);
+      calls.push(`${init?.method ?? "GET"} ${url}`);
+      if (url.endsWith("/Api/SwitchTax/Token")) {
+        return new Response(JSON.stringify({ Token: "tok", expires_in: 3600 }), { status: 200 });
+      }
+      if (url.endsWith("/Api/SwitchTax/SignInvoice")) {
+        return new Response(
+          JSON.stringify({
+            Code: 201,
+            data: { IRN: "NRS-REAL-1", QRCodeData: "https://nrs.gov.ng/verify/NRS-REAL-1" },
+          }),
+          { status: 201 },
+        );
+      }
+      if (url.endsWith("/Api/SwitchTax/Transmit")) {
+        return new Response(JSON.stringify({ Code: 200 }), { status: 200 });
+      }
+      return new Response("no", { status: 500 });
+    };
+
+    const gateway = new PartnerGateway({
+      baseUrl: "https://partner.example.ng",
+      clientId: "id",
+      clientSecret: "secret",
+      businessId: "biz-1",
+      serviceId: "STAMPA",
+      fetch: fetchFn,
+      now: () => new Date("2026-09-14T09:42:00Z"),
+    });
+
+    const stamp = await gateway.transmit(invoice(), "key-live");
+    expect(stamp.irn).toBe("NRS-REAL-1");
+    expect(stamp.qrPayload).toContain("nrs.gov.ng");
+    expect(calls.some((line) => line.includes("SignInvoice"))).toBe(true);
+    expect(calls.some((line) => line.includes("Token"))).toBe(true);
+
+    const again = await gateway.transmit(invoice(), "key-live");
+    expect(again.irn).toBe("NRS-REAL-1");
+    expect(calls.filter((line) => line.includes("SignInvoice"))).toHaveLength(1);
+  });
+
+  it("falls back to postInvoice when SignInvoice is not on that partner", async () => {
+    const fetchFn: typeof fetch = async (input) => {
+      const url = String(input);
+      if (url.endsWith("/Api/SwitchTax/Token")) {
+        return new Response(JSON.stringify({ Token: "tok" }), { status: 200 });
+      }
+      if (url.endsWith("/Api/SwitchTax/SignInvoice")) {
+        return new Response("not found", { status: 404 });
+      }
+      if (url.endsWith("/Api/SwitchTax/postInvoice")) {
+        return new Response(JSON.stringify({ data: { IRN: "POST-1" } }), { status: 200 });
+      }
+      if (url.endsWith("/Api/SwitchTax/Transmit")) {
+        return new Response("", { status: 404 });
+      }
+      return new Response("no", { status: 500 });
+    };
+
+    const gateway = new PartnerGateway({
+      baseUrl: "https://digitax.example.ng",
+      clientId: "id",
+      clientSecret: "secret",
+      businessId: "biz-1",
+      serviceId: "STAMPA",
+      fetch: fetchFn,
+    });
+    const stamp = await gateway.transmit(invoice(), "key-post");
+    expect(stamp.irn).toBe("POST-1");
+  });
+
+  it("does not invent an IRN when the partner omits one", async () => {
+    const fetchFn: typeof fetch = async (input) => {
+      const url = String(input);
+      if (url.endsWith("/Api/SwitchTax/Token")) {
+        return new Response(JSON.stringify({ Token: "tok" }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ Code: 200, data: {} }), { status: 200 });
+    };
+    const gateway = new PartnerGateway({
+      baseUrl: "https://partner.example.ng",
+      clientId: "id",
+      clientSecret: "secret",
+      businessId: "biz-1",
+      serviceId: "STAMPA",
+      fetch: fetchFn,
+    });
+    await expect(gateway.transmit(invoice(), "key-empty")).rejects.toMatchObject({
+      code: "NRS_UNAVAILABLE",
+    });
+  });
+});
+

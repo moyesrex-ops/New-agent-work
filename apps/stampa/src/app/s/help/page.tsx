@@ -11,7 +11,7 @@ async function supportIsOpen(): Promise<boolean> {
   return hour >= 8 && hour < 20;
 }
 
-/** S13 — Help. A number a human answers, and the anti-scam line again. */
+/** S13 — Help. A number a human answers, FAQs, and the anti-scam line again. */
 export default async function Help() {
   const open = await supportIsOpen();
 
@@ -24,11 +24,8 @@ export default async function Help() {
         <p className={shell.note} style={{ marginTop: "var(--space-2)" }}>
           {open ? copy.help.reply : copy.help.closed}
         </p>
-        {/* The two things this screen exists to do, sized accordingly. A
-            supplier reaching help is usually already frustrated, and a
-            text-sized link is one more thing to aim at. */}
         <div className={shell.buttonStack} style={{ marginTop: "var(--space-4)" }}>
-          <ButtonLink href={`tel:${BRAND.supportPhone}`} block>
+          <ButtonLink href={`tel:${BRAND.supportPhoneTel}`} block>
             {copy.callUs(BRAND.supportPhone)}
           </ButtonLink>
           <ButtonLink
@@ -40,16 +37,35 @@ export default async function Help() {
           >
             {copy.help.whatsapp}
           </ButtonLink>
+          <ButtonLink href={`mailto:${BRAND.supportEmail}`} variant="quiet" block>
+            {copy.help.email}
+          </ButtonLink>
         </div>
       </Card>
 
-      {/* Mechanism 9. Repeated here and on first open, monthly thereafter. */}
       <Card>
         <p className={shell.free}>{copy.help.freeHeading}</p>
         <p className={shell.note} style={{ marginTop: "var(--space-2)" }}>
           {TRUST.antiScam}
         </p>
       </Card>
+
+      <Card>
+        <h2 className={shell.sectionTitle}>{copy.help.installHeading}</h2>
+        <p className={shell.note}>{copy.help.installBody}</p>
+      </Card>
+
+      <div className={shell.stack}>
+        <h2 className={shell.sectionTitle}>{copy.help.faqHeading}</h2>
+        {copy.faq.items.map((item) => (
+          <Card key={item.q}>
+            <p style={{ fontWeight: "var(--font-weight-semibold)" }}>{item.q}</p>
+            <p className={shell.note} style={{ marginTop: "var(--space-2)" }}>
+              {item.a}
+            </p>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@
  */
 import { env } from "../env";
 import { FakeGateway } from "./fake";
+import { PartnerGateway } from "./partner";
 import type { EInvoiceGateway } from "./types";
 
 export * from "./types";
@@ -15,7 +16,9 @@ export {
   ERROR_MAP,
 } from "./errors";
 export { toUblXml } from "./ubl";
+export { toNrsJson, candidateIrn } from "./nrs-json";
 export { FakeGateway, FAKE_TRIGGERS, deterministicIrn } from "./fake";
+export { PartnerGateway } from "./partner";
 
 export type GatewayMode = "fake" | "sandbox" | "partner";
 
@@ -40,13 +43,8 @@ export function getGateway(): EInvoiceGateway {
   switch (gatewayMode()) {
     case "sandbox":
     case "partner":
-      // PartnerGateway is ticket C-08 and lands in week 4, gated on sandbox
-      // credentials. Failing loudly here is deliberate: silently falling back
-      // to the fake gateway in production would mean issuing invented tax
-      // references to real suppliers.
-      throw new Error(
-        "PartnerGateway is not implemented. Set STAMPA_GATEWAY=fake for local development.",
-      );
+      cached = PartnerGateway.fromEnv();
+      return cached;
     default:
       cached = new FakeGateway({ latencyMs: env().STAMPA_FAKE_LATENCY_MS });
       return cached;

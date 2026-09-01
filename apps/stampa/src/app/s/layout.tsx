@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { DemoBanner } from "@/components/DemoBanner";
 import { BRAND, copy } from "@/lib/copy";
 import shell from "@/components/shell.module.css";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Supplier shell. No hamburger, no tab bar, no nav drawer — four routes and a
@@ -13,7 +17,6 @@ import shell from "@/components/shell.module.css";
 export default function SupplierLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={shell.page}>
-      <DemoBanner />
       <OfflineBanner />
       <div className={shell.supplier}>
           <header className={shell.header}>
@@ -27,7 +30,8 @@ export default function SupplierLayout({ children }: { children: React.ReactNode
           </header>
         <main className={shell.main}>{children}</main>
         <footer className={shell.note} style={{ paddingBottom: "var(--space-6)" }}>
-          {BRAND.name} · {BRAND.supportPhone} · {BRAND.supportHours}
+          {BRAND.name} · <a href={`tel:${BRAND.supportPhoneTel}`}>{BRAND.supportPhone}</a> ·{" "}
+          {BRAND.supportHours}
         </footer>
       </div>
     </div>

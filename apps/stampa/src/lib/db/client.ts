@@ -171,4 +171,15 @@ export function setTestDb(db: Db): void {
   cache.ready = Promise.resolve(db);
 }
 
+/**
+ * The only path allowed to change bank_name / bank_last4. The trigger on
+ * supplier_links refuses any UPDATE that does not run inside this helper.
+ */
+export async function withBankWrite<T>(db: Db, work: (tx: Db) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT set_config('stampa.allow_bank_write', 'on', true)`);
+    return work(tx as unknown as Db);
+  });
+}
+
 export { schema };

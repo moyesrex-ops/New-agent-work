@@ -1,74 +1,97 @@
-import { redirect } from "next/navigation";
-import { connection } from "next/server";
-import Link from "next/link";
-import { Button } from "@/components/Button";
-import { DocumentCard } from "@/components/Surfaces";
-import { Wordmark } from "@/components/Logo";
-import { isDemo } from "@/lib/env";
-import { copy } from "@/lib/copy";
-import { enterDemo } from "./actions";
-import shell from "@/components/shell.module.css";
+import type { Metadata } from "next";
+import { ButtonLink } from "@/components/Button";
+import { Mark } from "@/components/Logo";
+import { SiteShell } from "@/components/SiteChrome";
+import { TRUST, copy } from "@/lib/copy";
+import site from "@/components/site.module.css";
 
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: copy.site.title,
+  description: copy.site.description,
+  robots: { index: true, follow: true },
+};
 
-/**
- * There is no marketing site in P0. A supplier arrives on an invite link and a
- * buyer arrives on the console; anyone else goes to the sign-in that fits the
- * device they are most likely holding.
- *
- * A public demo is the exception: visitors have no invite and no SMS, so the
- * root becomes a door page into the three seeded surfaces.
- */
-export default async function Root() {
-  await connection();
-  if (!isDemo()) redirect("/s");
+export default function Home() {
+  const preview = copy.faq.items.slice(0, 5);
 
   return (
-    <div className={shell.page}>
-      <div className={shell.supplier}>
-        <header className={shell.header}>
-          <span className={shell.headerHome}>
-            <Wordmark size={26} />
-          </span>
-        </header>
-        <main className={shell.main}>
-          <div className={shell.stack}>
-            <h1 className={shell.title}>{copy.demo.heading}</h1>
-            <p className={shell.lede}>{copy.demo.lede}</p>
+    <SiteShell>
+      <section className={site.hero}>
+        <span className={site.heroMark} aria-hidden="true">
+          <Mark size={280} />
+        </span>
+        <p className={site.kicker}>{copy.site.heroKicker}</p>
+        <h1 className={site.display}>{copy.site.heroHeading}</h1>
+        <p className={site.lede}>{copy.site.heroLede}</p>
+        <div className={site.ctaRow}>
+          <ButtonLink href="/s/start">{copy.site.heroSupplier}</ButtonLink>
+          <ButtonLink href="/c/signin" variant="secondary">
+            {copy.site.heroBuyer}
+          </ButtonLink>
+        </div>
+        <p className={site.free}>{TRUST.free}</p>
+      </section>
 
-            <Door door="supplier" cta={copy.demo.supplierCta} hint={copy.demo.supplierHint} />
-            <Door door="buyer" cta={copy.demo.buyerCta} hint={copy.demo.buyerHint} />
-            <Door door="operator" cta={copy.demo.operatorCta} hint={copy.demo.operatorHint} />
+      <section className={site.section} id="how">
+        <h2 className={site.sectionTitle}>{copy.site.howHeading}</h2>
+        <div className={site.steps}>
+          <article className={site.step}>
+            <p className={site.stepIndex}>01</p>
+            <h3 className={site.stepTitle}>{copy.site.how1Title}</h3>
+            <p className={site.stepBody}>{copy.site.how1Body}</p>
+          </article>
+          <article className={site.step}>
+            <p className={site.stepIndex}>02</p>
+            <h3 className={site.stepTitle}>{copy.site.how2Title}</h3>
+            <p className={site.stepBody}>{copy.site.how2Body}</p>
+          </article>
+          <article className={site.step}>
+            <p className={site.stepIndex}>03</p>
+            <h3 className={site.stepTitle}>{copy.site.how3Title}</h3>
+            <p className={site.stepBody}>{copy.site.how3Body}</p>
+          </article>
+        </div>
+      </section>
 
-            <form action={enterDemo}>
-              <input type="hidden" name="door" value="invite" />
-              <Button type="submit" variant="quiet" block>
-                {copy.demo.inviteCta}
-              </Button>
-            </form>
-
-            <p className={shell.note}>
-              <Link href="https://github.com/moyesrex-ops/New-agent-work/pull/1" className={shell.textLink}>
-                {copy.demo.source}
-              </Link>
-            </p>
+      <section className={site.trust}>
+        <div className={site.section}>
+          <h2 className={site.sectionTitle}>{copy.site.trustHeading}</h2>
+          <div className={site.trustList}>
+            <p className={site.trustItem}>{TRUST.free}</p>
+            <p className={site.trustItem}>{TRUST.notOurNumber}</p>
+            <p className={site.trustItem}>{TRUST.antiScam}</p>
           </div>
-        </main>
-      </div>
-    </div>
-  );
-}
+        </div>
+      </section>
 
-function Door({ door, cta, hint }: { door: string; cta: string; hint: string }) {
-  return (
-    <DocumentCard>
-      <p className={shell.lede}>{hint}</p>
-      <form action={enterDemo} style={{ marginTop: "var(--space-4)" }}>
-        <input type="hidden" name="door" value={door} />
-        <Button type="submit" block>
-          {cta}
-        </Button>
-      </form>
-    </DocumentCard>
+      <section className={site.section} id="price">
+        <h2 className={site.sectionTitle}>{copy.site.priceHeading}</h2>
+        <div className={site.priceGrid}>
+          <article className={site.priceCard}>
+            <strong>{copy.site.priceBuyerTitle}</strong>
+            <p>{copy.site.priceBuyerBody}</p>
+          </article>
+          <article className={site.priceCard}>
+            <strong>{copy.site.priceSupplierTitle}</strong>
+            <p>{copy.site.priceSupplierBody}</p>
+          </article>
+        </div>
+      </section>
+
+      <section className={site.section} id="faq">
+        <h2 className={site.sectionTitle}>{copy.site.faqHeading}</h2>
+        <div className={site.faqList}>
+          {preview.map((item) => (
+            <details key={item.q}>
+              <summary>{item.q}</summary>
+              <p>{item.a}</p>
+            </details>
+          ))}
+        </div>
+        <a className={site.more} href="/faq">
+          {copy.site.faqMore}
+        </a>
+      </section>
+    </SiteShell>
   );
 }

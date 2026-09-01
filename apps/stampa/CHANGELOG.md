@@ -6,10 +6,7 @@ each step was for.
 
 ## Unreleased — P0
 
-- **Public demo.** `STAMPA_DEMO=true` seeds on boot, puts a door page at `/`, and
-  mints one-click sessions for the seeded supplier, buyer and operator. Docker
-  image at the repository root; Hugging Face Space files in `deploy/huggingface/`.
-  The fake gateway stays labelled on every stamp.
+- **Production cutover.** Demo doors and one-click fake sessions are gone. `/` is the public site. Production refuses `STAMPA_GATEWAY=fake`, `STAMPA_DEMO`, a missing Termii key, and a missing mailer. OTP goes out on Termii DND, then WhatsApp, then voice. Magic links go out through AgentMail (`stampa-support@agentmail.to`) or Resend. `PartnerGateway` talks to Interswitch SwitchTax. Support is 0816 509 6822. Store listing copy lives in `apps/stampa/stores/`; uploads need developer accounts this environment does not have.
 
 ### Foundations
 

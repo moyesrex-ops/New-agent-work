@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatPhone, isSamePhone, maskPhone, parsePhone } from "@/lib/phone";
+import { formatPhone, isSamePhone, maskPhone, parsePhone, toMsisdn } from "@/lib/phone";
 import { maskTin, parseTin } from "@/lib/tin";
 
 describe("phone", () => {
@@ -51,6 +51,11 @@ describe("phone", () => {
 
   it("returns the input unchanged rather than crashing on junk", () => {
     expect(formatPhone("not a phone")).toBe("not a phone");
+  });
+
+  it("strips the plus for Termii and Meta", () => {
+    expect(toMsisdn("+2348030000000")).toBe("2348030000000");
+    expect(toMsisdn("08030000000")).toBe("2348030000000");
   });
 });
 

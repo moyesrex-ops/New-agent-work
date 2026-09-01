@@ -17,6 +17,15 @@ function production(overrides: Record<string, string> = {}) {
     DATABASE_URL: "postgres://stampa@db.internal:5432/stampa",
     APP_URL: "https://stampa.ng",
     OTP_PEPPER: PEPPER,
+    STAMPA_GATEWAY: "partner",
+    APP_PARTNER_BASE_URL: "https://partner.example.ng",
+    APP_PARTNER_CLIENT_ID: "stampa",
+    APP_PARTNER_CLIENT_SECRET: "s3cret",
+    APP_PARTNER_BUSINESS_ID: "biz-1",
+    APP_PARTNER_SERVICE_ID: "STAMPA",
+    TERMII_API_KEY: "tk_test",
+    AGENTMAIL_API_KEY: "am_test",
+    AGENTMAIL_INBOX_ID: "stampa-support@agentmail.to",
     ...overrides,
   } as NodeJS.ProcessEnv);
 }
@@ -59,6 +68,22 @@ describe("Given production, When a required variable is missing", () => {
   it("Then a fully configured production environment has no problems", () => {
     expect(production().problems).toEqual([]);
   });
+
+  it("Then a missing Termii key is named, because OTP would only exist in a log", () => {
+    expect(named(production({ TERMII_API_KEY: "" }).problems)).toContain("TERMII_API_KEY");
+  });
+
+  it("Then a missing mailer is named", () => {
+    expect(named(production({ AGENTMAIL_API_KEY: "", RESEND_API_KEY: "" }).problems)).toContain(
+      "AGENTMAIL_API_KEY",
+    );
+  });
+
+  it("Then Resend is accepted as the mailer", () => {
+    expect(
+      production({ AGENTMAIL_API_KEY: "", RESEND_API_KEY: "re_test" }).problems,
+    ).toEqual([]);
+  });
 });
 
 describe("Given a malformed value, When the environment is checked", () => {
@@ -90,37 +115,40 @@ describe("Given a malformed value, When the environment is checked", () => {
 
 describe("Given a real gateway is selected, When credentials are absent", () => {
   it("Then boot is blocked rather than the first live invoice", () => {
-    const { problems } = production({ STAMPA_GATEWAY: "partner" });
+    const { problems } = production({
+      APP_PARTNER_BASE_URL: "",
+      APP_PARTNER_CLIENT_ID: "",
+      APP_PARTNER_CLIENT_SECRET: "",
+      APP_PARTNER_BUSINESS_ID: "",
+    });
     expect(named(problems)).toEqual(
       expect.arrayContaining([
         "APP_PARTNER_BASE_URL",
         "APP_PARTNER_CLIENT_ID",
         "APP_PARTNER_CLIENT_SECRET",
+        "APP_PARTNER_BUSINESS_ID",
       ]),
     );
   });
 
   it("Then the sandbox is held to the same standard as the partner", () => {
-    const { problems } = production({ STAMPA_GATEWAY: "sandbox" });
+    const { problems } = production({
+      STAMPA_GATEWAY: "sandbox",
+      APP_PARTNER_CLIENT_SECRET: "",
+    });
     expect(named(problems)).toContain("APP_PARTNER_CLIENT_SECRET");
   });
 
   it("Then a complete partner configuration passes", () => {
-    const { problems } = production({
-      STAMPA_GATEWAY: "partner",
-      APP_PARTNER_BASE_URL: "https://partner.example.ng",
-      APP_PARTNER_CLIENT_ID: "stampa",
-      APP_PARTNER_CLIENT_SECRET: "s3cret",
-    });
-    expect(problems).toEqual([]);
+    expect(production().problems).toEqual([]);
   });
 
-  it("Then the fake gateway needs no partner credentials", () => {
-    expect(production({ STAMPA_GATEWAY: "fake" }).problems).toEqual([]);
+  it("Then the fake gateway is refused in production", () => {
+    expect(named(production({ STAMPA_GATEWAY: "fake" }).problems)).toContain("STAMPA_GATEWAY");
   });
 
-  it("Then a demo flag is optional and does not block boot", () => {
-    expect(production({ STAMPA_DEMO: "true" }).problems).toEqual([]);
+  it("Then a demo flag is refused in production", () => {
+    expect(named(production({ STAMPA_DEMO: "true" }).problems)).toContain("STAMPA_DEMO");
   });
 });
 

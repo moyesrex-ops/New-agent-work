@@ -152,10 +152,17 @@ describe("Given the copy deck forbids a paraphrase", () => {
   });
 });
 
-describe("Given the public demo copy", () => {
-  it("Then the banner says the stamps are simulated and not sent to the NRS", () => {
-    expect(copy.demo.banner).toMatch(/simulated/i);
-    expect(copy.demo.banner).toMatch(/NRS/);
-    expect(copy.demo.lede).toMatch(/do not need a phone number/i);
+describe("Given the public site copy", () => {
+  it("Then the support number is the live customer line", () => {
+    expect(BRAND.supportPhone).toBe("0816 509 6822");
+    expect(BRAND.supportPhoneTel).toBe("+2348165096822");
+    expect(BRAND.supportWhatsApp).toBe("https://wa.me/2348165096822");
+    expect(BRAND.supportEmail).toBe("stampa-support@agentmail.to");
+  });
+
+  it("Then the FAQ names a number a human answers", () => {
+    const contact = copy.faq.items.find((item) => item.q.includes("contact"));
+    expect(contact?.a).toContain(BRAND.supportPhone);
+    expect(contact?.a).toContain(BRAND.supportEmail);
   });
 });

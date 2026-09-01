@@ -6,7 +6,7 @@
  * traceable to something the buyer gave us.
  */
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { getDb } from "../db/client";
+import { getDb, withBankWrite } from "../db/client";
 import { invitations, invoices, organisations, supplierLinks, suppliers } from "../db/schema";
 import { inviteCode, newId } from "../ids";
 import { writeAudit, type Actor } from "../audit";
@@ -108,16 +108,18 @@ export async function importVendors(
         status: "imported",
       });
     } else {
-      await db
-        .update(supplierLinks)
-        .set({
-          vendorCode: vendor.vendorCode ?? existingLink.vendorCode,
-          category: vendor.category ?? existingLink.category,
-          bankName: vendor.bankName,
-          bankLast4: vendor.bankLast4,
-          annualSpendKobo: vendor.annualSpendKobo ?? existingLink.annualSpendKobo,
-        })
-        .where(eq(supplierLinks.id, existingLink.id));
+      await withBankWrite(db, async (tx) => {
+        await tx
+          .update(supplierLinks)
+          .set({
+            vendorCode: vendor.vendorCode ?? existingLink.vendorCode,
+            category: vendor.category ?? existingLink.category,
+            bankName: vendor.bankName,
+            bankLast4: vendor.bankLast4,
+            annualSpendKobo: vendor.annualSpendKobo ?? existingLink.annualSpendKobo,
+          })
+          .where(eq(supplierLinks.id, existingLink.id));
+      });
 
       if (bankChanged) {
         summary.bankChanges += 1;

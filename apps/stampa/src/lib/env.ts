@@ -14,6 +14,9 @@
  * fine locally because PGlite has a sane default; a missing OTP_PEPPER in
  * production is not, because the failure is silent and the consequence is
  * unpeppered one-time codes.
+ *
+ * Production refuses the fake gateway, demo doors, and log-printed OTPs.
+ * Local development still runs on fakes so a clone can boot without secrets.
  */
 import { z } from "zod";
 
@@ -62,7 +65,7 @@ const SPEC = {
   STAMPA_DEMO: {
     group: "Application",
     comment:
-      "When true, this instance is a public demo: it seeds itself, shows a door\npage at /, and offers one-click sessions. Never set this on a real buyer.",
+      "Legacy flag. Production refuses it. Local tests may still set it to exercise\nthe disabled-door guard. Never set this on a real buyer.",
     example: "",
     schema: z.string().optional(),
   },
@@ -70,7 +73,7 @@ const SPEC = {
   STAMPA_GATEWAY: {
     group: "E-invoicing gateway",
     comment:
-      "Which transmission path is live: fake | sandbox | partner.\n`fake` issues simulated references, and every surface that shows a stamp\nsays so out loud. sandbox and partner require the credentials below.",
+      "Which transmission path is live: fake | sandbox | partner.\n`fake` is local and tests only. Production must be sandbox or partner and\nrequires the credentials below. Silently falling back to invented IRNs is\nrefused at boot.",
     example: "fake",
     schema: z.enum(["fake", "sandbox", "partner"]).default("fake"),
   },
@@ -86,21 +89,34 @@ const SPEC = {
   APP_PARTNER_BASE_URL: {
     group: "E-invoicing gateway",
     comment:
-      "Accredited APP/SI partner (Architecture 16.7). Read only when\nSTAMPA_GATEWAY is sandbox or partner; leave blank on the fake gateway.",
-    example: "",
+      "Accredited APP/SI partner base URL (Interswitch SwitchTax or equivalent).\nRequired when STAMPA_GATEWAY is sandbox or partner.",
+    example: "https://sandbox-api.interswitchng.com",
     schema: z.union([z.literal(""), z.url()]).optional(),
   },
   APP_PARTNER_CLIENT_ID: {
     group: "E-invoicing gateway",
-    comment: "",
+    comment: "OAuth client id for POST /Api/SwitchTax/Token.",
     example: "",
     schema: z.string().optional(),
   },
   APP_PARTNER_CLIENT_SECRET: {
     group: "E-invoicing gateway",
-    comment: "",
+    comment: "OAuth client secret for POST /Api/SwitchTax/Token.",
     example: "",
     schema: z.string().optional(),
+  },
+  APP_PARTNER_BUSINESS_ID: {
+    group: "E-invoicing gateway",
+    comment:
+      "NRS/APP business_id sent on SignInvoice. Issued by the accredited partner\nwhen the buyer or Stampa is enrolled.",
+    example: "",
+    schema: z.string().optional(),
+  },
+  APP_PARTNER_SERVICE_ID: {
+    group: "E-invoicing gateway",
+    comment: "Service id used in the IRN candidate InvoiceNo-ServiceId-YYYYMMDD.",
+    example: "STAMPA",
+    schema: z.string().default("STAMPA"),
   },
 
   OTP_PEPPER: {
@@ -122,6 +138,79 @@ const SPEC = {
     example: "",
     schema: emailList,
   },
+
+  TERMII_API_KEY: {
+    group: "Messaging",
+    comment:
+      "Termii API key. Production OTP is SMS on the DND route, then WhatsApp,\nthen voice. Without this key, codes would only exist in a server log.",
+    example: "",
+    schema: z.string().optional(),
+  },
+  TERMII_SENDER_ID: {
+    group: "Messaging",
+    comment:
+      "Approved Termii sender id. Talert and SecureOTP are the stock OTP ids.\nA custom Stampa id needs Termii approval first.",
+    example: "Talert",
+    schema: z.string().default("Talert"),
+  },
+  TERMII_BASE_URL: {
+    group: "Messaging",
+    comment: "Termii API origin. Default is the Nigerian cluster.",
+    example: "https://api.ng.termii.com",
+    schema: z.url().default("https://api.ng.termii.com"),
+  },
+
+  WHATSAPP_TOKEN: {
+    group: "Messaging",
+    comment:
+      "Optional Meta Cloud API token. Used when Termii WhatsApp is not available.\nOTP templates must be pre-approved by Meta.",
+    example: "",
+    schema: z.string().optional(),
+  },
+  WHATSAPP_PHONE_NUMBER_ID: {
+    group: "Messaging",
+    comment: "Meta Cloud API phone-number id, required with WHATSAPP_TOKEN.",
+    example: "",
+    schema: z.string().optional(),
+  },
+  WHATSAPP_OTP_TEMPLATE: {
+    group: "Messaging",
+    comment: "Approved WhatsApp authentication template name. Empty sends a session text.",
+    example: "",
+    schema: z.string().optional(),
+  },
+
+  AGENTMAIL_API_KEY: {
+    group: "Messaging",
+    comment:
+      "AgentMail API key. Sends buyer and operator magic links from the company\ninbox stampa-support@agentmail.to.",
+    example: "",
+    schema: z.string().optional(),
+  },
+  AGENTMAIL_INBOX_ID: {
+    group: "Messaging",
+    comment: "AgentMail inbox id, usually the address itself.",
+    example: "stampa-support@agentmail.to",
+    schema: z.string().default("stampa-support@agentmail.to"),
+  },
+  RESEND_API_KEY: {
+    group: "Messaging",
+    comment: "Optional Resend key, used when AgentMail is not configured.",
+    example: "",
+    schema: z.string().optional(),
+  },
+  MAIL_FROM: {
+    group: "Messaging",
+    comment: "From header for Resend. AgentMail uses the inbox address.",
+    example: "Stampa <stampa-support@agentmail.to>",
+    schema: z.string().default("Stampa <stampa-support@agentmail.to>"),
+  },
+  SUPPORT_EMAIL: {
+    group: "Messaging",
+    comment: "Public support address shown on the site and help screen.",
+    example: "stampa-support@agentmail.to",
+    schema: z.string().default("stampa-support@agentmail.to"),
+  },
 } satisfies Record<string, Spec>;
 
 export type EnvName = keyof typeof SPEC;
@@ -135,17 +224,34 @@ export type Env = {
   APP_PARTNER_BASE_URL?: string;
   APP_PARTNER_CLIENT_ID?: string;
   APP_PARTNER_CLIENT_SECRET?: string;
+  APP_PARTNER_BUSINESS_ID?: string;
+  APP_PARTNER_SERVICE_ID: string;
   OTP_PEPPER?: string;
   STAMPA_OPERATORS: string[];
+  TERMII_API_KEY?: string;
+  TERMII_SENDER_ID: string;
+  TERMII_BASE_URL: string;
+  WHATSAPP_TOKEN?: string;
+  WHATSAPP_PHONE_NUMBER_ID?: string;
+  WHATSAPP_OTP_TEMPLATE?: string;
+  AGENTMAIL_API_KEY?: string;
+  AGENTMAIL_INBOX_ID: string;
+  RESEND_API_KEY?: string;
+  MAIL_FROM: string;
+  SUPPORT_EMAIL: string;
 };
 
 /** Reads the raw flag so callers do not have to boot the full contract. */
-export function isDemo(source?: { STAMPA_DEMO?: string }): boolean {
-  const value = (source ?? process.env).STAMPA_DEMO;
+export function isDemo(source: { STAMPA_DEMO?: string } = process.env as { STAMPA_DEMO?: string }): boolean {
+  const value = source.STAMPA_DEMO;
   return value === "true" || value === "1";
 }
 
 export type EnvProblem = { name: string; problem: string };
+
+function hasMailer(env: Env): boolean {
+  return Boolean(env.AGENTMAIL_API_KEY || env.RESEND_API_KEY);
+}
 
 /**
  * Validate without throwing, so the caller decides whether a problem is fatal.
@@ -175,15 +281,55 @@ export function checkEnv(source: NodeJS.ProcessEnv = process.env): {
 
   const env = parsed as Env;
 
+  if (production && isDemo({ STAMPA_DEMO: source.STAMPA_DEMO })) {
+    problems.push({
+      name: "STAMPA_DEMO",
+      problem: "demo doors are not allowed in production",
+    });
+  }
+
+  if (production && env.STAMPA_GATEWAY === "fake") {
+    problems.push({
+      name: "STAMPA_GATEWAY",
+      problem: "fake is not allowed in production; set sandbox or partner",
+    });
+  }
+
   // Cross-field rules. A gateway pointed at a partner with no credentials
   // would fail on the first real invoice, which is the worst possible moment
   // to discover a missing secret.
   if (env.STAMPA_GATEWAY !== "fake") {
-    for (const name of ["APP_PARTNER_BASE_URL", "APP_PARTNER_CLIENT_ID", "APP_PARTNER_CLIENT_SECRET"] as const) {
+    for (const name of [
+      "APP_PARTNER_BASE_URL",
+      "APP_PARTNER_CLIENT_ID",
+      "APP_PARTNER_CLIENT_SECRET",
+      "APP_PARTNER_BUSINESS_ID",
+    ] as const) {
       if (!env[name]) {
         problems.push({ name, problem: `required when STAMPA_GATEWAY=${env.STAMPA_GATEWAY}` });
       }
     }
+  }
+
+  if (production && !env.TERMII_API_KEY) {
+    problems.push({
+      name: "TERMII_API_KEY",
+      problem: "required in production so one-time codes are delivered, not logged",
+    });
+  }
+
+  if (production && !hasMailer(env)) {
+    problems.push({
+      name: "AGENTMAIL_API_KEY",
+      problem: "required in production (or set RESEND_API_KEY) so magic links leave the server",
+    });
+  }
+
+  if (env.WHATSAPP_TOKEN && !env.WHATSAPP_PHONE_NUMBER_ID) {
+    problems.push({
+      name: "WHATSAPP_PHONE_NUMBER_ID",
+      problem: "required when WHATSAPP_TOKEN is set",
+    });
   }
 
   return { env, problems };

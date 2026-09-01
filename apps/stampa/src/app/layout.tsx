@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { copy } from "@/lib/copy";
 import "./globals.css";
 
 /**
@@ -26,13 +28,14 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stampa",
-  description: "Get the NRS reference number your customer needs, in about ninety seconds.",
+  title: {
+    default: copy.site.title,
+    template: "%s · Stampa",
+  },
+  description: copy.site.description,
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      // The simplified glyph below 32px. The perforated mark loses its
-      // perforations at that size and reads as a smudge (Phase 9).
       { url: "/brand/favicon.svg", type: "image/svg+xml" },
       { url: "/brand/icon-192.png", sizes: "192x192", type: "image/png" },
     ],
@@ -40,8 +43,13 @@ export const metadata: Metadata = {
   },
   applicationName: "Stampa",
   appleWebApp: { capable: true, title: "Stampa", statusBarStyle: "default" },
-  // A supplier's invoice list has no business in a search index.
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: copy.site.title,
+    description: copy.site.description,
+    locale: "en_NG",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
@@ -55,7 +63,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-NG" className={`${archivo.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <ServiceWorkerRegister />
+        {children}
+      </body>
     </html>
   );
 }
