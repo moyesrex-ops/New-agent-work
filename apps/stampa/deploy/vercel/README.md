@@ -59,3 +59,8 @@ npx vercel --cwd apps/stampa --prod --yes
 
 Or connect the GitHub repository in the Vercel dashboard, set the root
 directory to `apps/stampa`, add the environment variables, and deploy.
+
+An anonymous `vercel deploy --temporary` URL expires in about an hour unless
+you claim it in the Vercel dashboard. Do not put a claim link in a public
+pull request.
+
