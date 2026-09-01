@@ -1,0 +1,22 @@
+{
+  "packageId": "ng.stampa.app",
+  "host": "stampa.ng",
+  "name": "Stampa",
+  "launcherName": "Stampa",
+  "display": "standalone",
+  "themeColor": "#4C2A85",
+  "navigationColor": "#4C2A85",
+  "backgroundColor": "#FBF9F4",
+  "enableNotifications": false,
+  "startUrl": "/s",
+  "icon": "../../public/brand/icon-512.png",
+  "maskableIcon": "../../public/brand/maskable-512.png",
+  "shortcuts": [
+    {
+      "name": "New invoice",
+      "shortName": "New invoice",
+      "url": "/s/new"
+    }
+  ],
+  "generatorApp": "bubblewrap"
+}

@@ -1,0 +1,446 @@
+/* App shell (ticket F-03). Three route trees, one set of tokens. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* ---------- Supplier app ---------- */
+/* One column, thumb-reachable, capped so it does not sprawl on a laptop. */
+.supplier {
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  padding-inline: var(--space-gutter);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding-block: var(--space-3);
+}
+
+.headerSpacer {
+  margin-left: auto;
+}
+
+/*
+ * A text action is a tap target before it is a link. The floor comes from the
+ * Phase 14.7 accessibility rules, and a bare link is where it is easiest to
+ * forget: an 18px "Help" reads fine on a monitor and is a coin-flip for a
+ * thumb on a bus. Used by the header, and by every "call us instead" escape
+ * hatch in the body flow.
+ */
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-2);
+  margin-inline: calc(var(--space-2) * -1);
+  color: var(--color-ink-700);
+  font-size: var(--font-size-label);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.textLink:hover {
+  color: var(--color-ink-900);
+}
+
+/* The mark itself. No underline, and the same floor as everything beside it. */
+.headerHome {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  text-decoration: none;
+}
+
+.consoleHome {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-console);
+  text-decoration: none;
+}
+
+.main {
+  flex: 1;
+  padding-bottom: var(--space-8);
+}
+
+/*
+ * The primary action sits in the bottom third and stays there. Phase 14.5:
+ * one hand, holding something in the other.
+ */
+.actionBar {
+  position: sticky;
+  bottom: 0;
+  padding-block: var(--space-4);
+  background: linear-gradient(to bottom, transparent, var(--color-paper) var(--space-4));
+}
+
+/*
+ * The provenance block under a figure. Four separate claims, so they get four
+ * separate lines with air between them: run together they read as one grey
+ * paragraph nobody finishes.
+ */
+.method {
+  margin-top: var(--space-6);
+}
+
+.method > * + * {
+  margin-top: var(--space-2);
+}
+
+/* Two full-width actions of equal weight, one above the other. */
+.buttonStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  line-height: var(--font-lineHeight-title);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-2);
+}
+
+.display {
+  font-size: var(--font-size-display);
+  line-height: var(--font-lineHeight-display);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lede {
+  font-size: var(--font-size-body-lg);
+  line-height: var(--font-lineHeight-body-lg);
+  color: var(--color-ink-700);
+}
+
+.note {
+  font-size: var(--font-size-caption);
+  line-height: var(--font-lineHeight-caption);
+  color: var(--color-ink-500);
+}
+
+.free {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success-700);
+}
+
+.faqQ {
+  font-weight: var(--font-weight-semibold);
+}
+
+.stack > * + * {
+  margin-top: var(--space-4);
+}
+
+.stackTight > * + * {
+  margin-top: var(--space-2);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.mono {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.monoLarge {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-mono-lg);
+  line-height: var(--font-lineHeight-mono-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+/*
+ * A label and a money figure. At 200% text a long total cannot share a line
+ * with its label on a 360px phone, so the figure drops to its own line and
+ * stays right-aligned there rather than running off the edge.
+ */
+.amountRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+
+.amountRow > :last-child {
+  margin-left: auto;
+}
+
+/* A rule above the total is what makes numbers read as an account. */
+.totalRow {
+  composes: amountRow;
+  border-top: var(--stroke-rule) solid var(--color-ink-900);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+/* Read-only display row, used on Confirm business. */
+/*
+ * Label above value, not beside it.
+ *
+ * Both children are spans, so without this they render as one run of text and
+ * the review screen reads "ToAgbara Foods Plc". Stacking also survives the
+ * long case — a registered name like "Nigerian Bottling Company Limited
+ * (Coca-Cola Hellenic)" has the full 360px to wrap into instead of whatever a
+ * label leaves it.
+ */
+.displayRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-bottom: var(--stroke-hairline) solid var(--color-ink-100);
+}
+
+.displayLabel {
+  font-size: var(--font-size-caption);
+  color: var(--color-ink-500);
+}
+
+.displayValue {
+  font-size: var(--font-size-body-lg);
+  line-height: var(--font-lineHeight-body-lg);
+}
+
+.lockedRow {
+  background: var(--color-paper-sunken);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.lockLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------- Console (buyer and operator) ---------- */
+.console {
+  width: 100%;
+  max-width: var(--layout-consoleMax);
+  margin-inline: auto;
+  padding-inline: var(--space-gutter-console);
+  font-size: var(--font-size-body);
+}
+
+.consoleHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 64px;
+  border-bottom: var(--stroke-hairline) solid var(--color-ink-100);
+  margin-bottom: var(--space-6);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-5);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* 40px is the console floor from the visual finish spec. Denser than the
+   supplier app's 48px on purpose: a mouse is more accurate than a thumb. */
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-console);
+  color: var(--color-ink-700);
+  text-decoration: none;
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  padding-block: var(--space-2);
+}
+
+.navLink:hover {
+  color: var(--color-ink-900);
+  text-decoration: underline;
+}
+
+/* Operator context is visibly different: sunken page, permanent warning bar. */
+.operatorPage {
+  background: var(--color-paper-sunken);
+}
+
+.operatorBar {
+  background: var(--color-ink-900);
+  color: var(--color-paper);
+  font-size: var(--font-size-micro);
+  letter-spacing: var(--font-tracking-micro);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  padding-block: var(--space-2);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+
+.metricValue {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-display);
+  line-height: var(--font-lineHeight-display);
+  font-weight: var(--font-weight-medium);
+}
+
+.metricLabel {
+  font-size: var(--font-size-caption);
+  color: var(--color-ink-500);
+}
+
+.grid2 {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.section {
+  margin-bottom: var(--space-8);
+}
+
+/* A whole-row target, so the checkbox is not the only thing you can hit. */
+/* The whole row is the target, not the box. A default checkbox is 13px, which
+   is a miss waiting to happen when the consequence is inviting the wrong
+   supplier — or not inviting the right one. */
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target-min);
+  cursor: pointer;
+}
+
+.checkRow input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--color-stamp-700);
+}
+
+/* Share fallbacks (S9). Three equal targets on one row at 360px, wrapping
+   rather than shrinking below the 48px floor on anything narrower. */
+.shareFallbacks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.shareFallback {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-3);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-raised);
+  color: var(--color-ink-700);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.shareFallback:hover {
+  color: var(--color-ink-900);
+  border-color: var(--color-ink-300);
+}
+
+.inlineForm {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Console search. A plain GET form, so a filtered list is a shareable URL. */
+.searchInput {
+  min-height: var(--target-console);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper-raised);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-label);
+  color: var(--color-ink-900);
+  min-width: 220px;
+}
+
+.searchButton {
+  min-height: var(--target-console);
+  padding-inline: var(--space-4);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-raised);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink-900);
+}
+
+/* Supplier search (S5). Same GET-form idea as the console, sized for a thumb:
+   48px targets, and the input takes the whole row so the placeholder is not
+   truncated on a 320px screen. */
+.findRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.findInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--target-min);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-paper-sunken);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  color: var(--color-ink-900);
+}
+
+.findInput::placeholder {
+  color: var(--color-ink-500);
+}
+
+.findButton {
+  flex: 0 0 auto;
+  min-height: var(--target-min);
+  padding-inline: var(--space-4);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper-raised);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink-900);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-heading);
+  line-height: var(--font-lineHeight-heading);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-3);
+}

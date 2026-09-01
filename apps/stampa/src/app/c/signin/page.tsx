@@ -1,0 +1,65 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Button } from "@/components/Button";
+import { Field } from "@/components/Field";
+import { Banner, Card } from "@/components/Surfaces";
+import { currentPrincipal } from "@/lib/auth/session";
+import { copy } from "@/lib/copy";
+import { requestMagicLink } from "../actions";
+import shell from "@/components/shell.module.css";
+
+export const dynamic = "force-dynamic";
+
+const ERRORS: Record<string, string> = copy.buyer.signInErrors;
+
+export default async function BuyerSignIn({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; sent?: string }>;
+}) {
+  const principal = await currentPrincipal();
+  if (principal.role === "buyer_admin" || principal.role === "buyer_member") redirect("/c");
+
+  const { error, sent } = await searchParams;
+
+  return (
+    <div style={{ maxWidth: 420, marginInline: "auto", paddingTop: "var(--space-10)" }}>
+      <Card>
+        <h1 className={shell.title}>{copy.buyer.signInHeading}</h1>
+        <p className={shell.lede} style={{ marginBottom: "var(--space-5)" }}>
+          {copy.buyer.signInBody}
+        </p>
+
+        {sent ? (
+          <div style={{ marginBottom: "var(--space-5)" }}>
+            <Banner tone="neutral">{copy.buyer.signInSent(sent)}</Banner>
+          </div>
+        ) : null}
+
+        <form action={requestMagicLink}>
+          <Field
+            name="email"
+            label={copy.buyer.signInLabel}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder={copy.buyer.signInPlaceholder}
+            required
+            error={error ? (ERRORS[error] ?? copy.errors.generic) : undefined}
+          />
+          <Button type="submit" block>
+            {copy.buyer.signInCta}
+          </Button>
+        </form>
+
+        <p className={shell.note} style={{ marginTop: "var(--space-5)" }}>
+          <Link href="/contact" className={shell.textLink}>
+            {copy.buyer.signInNoAccount}
+          </Link>
+        </p>
+      </Card>
+    </div>
+  );
+}
