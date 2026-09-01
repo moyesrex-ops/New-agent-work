@@ -1,14 +1,13 @@
 /**
  * Boot check (release test RT-07).
  *
- * Next runs this once per server process before it takes traffic, which makes
- * it the only place a configuration mistake can be turned into a failed deploy
- * rather than a failed invoice. The alternative — discovering a missing
- * OTP_PEPPER when a supplier requests their first code — puts the cost of our
- * mistake on the one person who has least reason to forgive it.
+ * Paths that need configuration still fail closed through `env()`. The public
+ * site does not: a Vercel host with `STAMPA_GATEWAY=hold` and no Postgres yet
+ * must still serve the FAQ rather than a 500. Problems are named on
+ * `/api/health` and in this log.
  */
 export async function register(): Promise<void> {
   const { checkEnv, formatProblems } = await import("./lib/env");
   const { problems } = checkEnv();
-  if (problems.length) throw new Error(formatProblems(problems));
+  if (problems.length) console.error(formatProblems(problems));
 }
