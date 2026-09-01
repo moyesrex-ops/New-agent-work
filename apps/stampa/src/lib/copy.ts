@@ -19,7 +19,7 @@ export const BRAND = {
   supportHours: "8am–8pm WAT",
   supportWhatsApp: "https://wa.me/2348165096822",
   supportEmail: "stampa-support@agentmail.to",
-  verifyHost: "nrs.gov.ng",
+  verifyHost: "einvoice.nrs.gov.ng",
 } as const;
 
 /**
@@ -567,6 +567,7 @@ export const copy = {
   a11y: {
     supplierHome: `${BRAND.name} home`,
     siteHome: `${BRAND.name} website`,
+    skipToContent: "Skip to the main content",
     consoleHome: `${BRAND.name} console`,
     filterByStatus: "Filter by status",
     /** Read before the stamp card, so the amount is announced as an amount. */
@@ -633,6 +634,9 @@ export const copy = {
     faqMore: "See every question",
     contactTeaser: "Talk to a person.",
     footerLegal: "Stampa. Lagos, Nigeria.",
+    footerProduct: "Product",
+    footerTalk: "Talk to us",
+    footerLegalNav: "Legal",
     verifyHeading: "Check this number at the NRS.",
     verifyBody: (irn: string) => `Reference ${irn}. Stampa did not issue this number.`,
     verifyCta: "Open the NRS check",
@@ -648,7 +652,7 @@ export const copy = {
       },
       {
         q: "Who issues the reference number?",
-        a: "The Nigeria Revenue Service. Anyone can check it at nrs.gov.ng. Stampa did not issue it.",
+        a: "The Nigeria Revenue Service. Anyone can check it at einvoice.nrs.gov.ng. Stampa did not issue it.",
       },
       {
         q: "What is an IRN?",
@@ -698,6 +702,18 @@ export const copy = {
         q: "Where is the Android app?",
         a: "Install from your browser first. Store listings need a live domain and developer accounts.",
       },
+      {
+        q: "Where do I check an IRN?",
+        a: "On the NRS e-invoicing portal at einvoice.nrs.gov.ng. Paste the reference there.",
+      },
+      {
+        q: "Does Stampa stamp invoices itself?",
+        a: "No. An accredited access point sends them to the NRS. The NRS returns the reference.",
+      },
+      {
+        q: "What data do you keep?",
+        a: "Your phone number, the invoice you send, and stamped records the law requires us to keep.",
+      },
     ],
   },
 
@@ -715,6 +731,8 @@ export const copy = {
     cta: "Send",
     sent: "We have the message. We will reply from 8am if we are closed.",
     empty: "Write a message first.",
+    failed: "The message did not leave our server. Call us, or try again.",
+    tooMany: "Too many messages from this network. Call us instead.",
   },
 
   legal: {
@@ -726,6 +744,10 @@ export const copy = {
       "You can download or delete your account from the account screen.",
       `To ask about your data, call ${BRAND.supportPhone} or email ${BRAND.supportEmail}.`,
       "Nigeria Data Protection Act 2023 applies. Lagos is the venue.",
+      "Termii delivers one-time codes. AgentMail or Resend sends sign-in links.",
+      "We do not run advertising cookies.",
+      "You can ask for a copy of your data, or to correct it, by calling or emailing us.",
+      "Lawful bases are performing our contract with you and keeping tax records.",
     ],
     termsHeading: "Terms",
     terms: [
@@ -734,6 +756,9 @@ export const copy = {
       "Suppliers are never charged.",
       "Buyers pay under a separate agreement invoiced by email.",
       "Nigerian law applies. Lagos courts hear disputes.",
+      "Stampa is not a tax adviser.",
+      "Live stamps require an accredited access point. We do not invent reference numbers.",
+      "NRS availability is outside our control. Saved invoices are retried.",
     ],
   },
 

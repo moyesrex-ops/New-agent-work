@@ -9,14 +9,7 @@ import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
 
-const ERRORS: Record<string, string> = {
-  empty: copy.buyer.signInErrors.empty,
-  malformed: copy.buyer.signInErrors.malformed,
-  not_work_email: copy.buyer.signInWorkEmail,
-  expired: "That link has expired. We will send you another one.",
-  used: "That link has already been used. Ask for a new one.",
-  invalid: "That link is not valid. Ask for a new one.",
-};
+const ERRORS: Record<string, string> = copy.buyer.signInErrors;
 
 export default async function BuyerSignIn({
   searchParams,

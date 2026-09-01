@@ -59,7 +59,7 @@ export default async function Help() {
         <h2 className={shell.sectionTitle}>{copy.help.faqHeading}</h2>
         {copy.faq.items.map((item) => (
           <Card key={item.q}>
-            <p style={{ fontWeight: "var(--font-weight-semibold)" }}>{item.q}</p>
+            <p className={shell.faqQ}>{item.q}</p>
             <p className={shell.note} style={{ marginTop: "var(--space-2)" }}>
               {item.a}
             </p>

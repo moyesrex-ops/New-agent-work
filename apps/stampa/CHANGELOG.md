@@ -6,7 +6,7 @@ each step was for.
 
 ## Unreleased — P0
 
-- **Production cutover.** Demo doors and one-click fake sessions are gone. `/` is the public site. Production refuses `STAMPA_GATEWAY=fake`, `STAMPA_DEMO`, a missing Termii key, and a missing mailer. OTP goes out on Termii DND, then WhatsApp, then voice. Magic links go out through AgentMail (`stampa-support@agentmail.to`) or Resend. `PartnerGateway` talks to Interswitch SwitchTax. Support is 0816 509 6822. Store listing copy lives in `apps/stampa/stores/`; uploads need developer accounts this environment does not have.
+- **Production cutover.** Demo doors and one-click fake sessions are gone. `/` is the public site. Production refuses `STAMPA_GATEWAY=fake`, `STAMPA_DEMO`, a missing Termii key, and a missing mailer. OTP goes out on Termii DND, then WhatsApp, then voice. Magic links go out through AgentMail (`stampa-support@agentmail.to`) or Resend. `PartnerGateway` talks to Interswitch SwitchTax. Support is 0816 509 6822. IRN checks point at `einvoice.nrs.gov.ng`. Store listing copy lives in `apps/stampa/stores/`; uploads need developer accounts this environment does not have.
 
 ### Foundations
 

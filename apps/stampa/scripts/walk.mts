@@ -185,6 +185,7 @@ async function audit(page: Page, where: string, floor = TARGET_FLOOR.phone): Pro
     for (const control of document.querySelectorAll<HTMLElement>(
       "button, a[href], input:not([type=hidden]), select",
     )) {
+      if (control.closest("[aria-hidden='true']")) continue;
       // A checkbox inside a label is hit by clicking anywhere on the label, so
       // the row is the target, not the 20px box drawn inside it.
       const target = control.closest("label") ?? control;
@@ -204,6 +205,7 @@ async function audit(page: Page, where: string, floor = TARGET_FLOOR.phone): Pro
     for (const field of document.querySelectorAll<HTMLElement>(
       "input:not([type=hidden]), select, textarea",
     )) {
+      if (field.closest("[aria-hidden='true']")) continue;
       const id = field.getAttribute("id");
       const labelled =
         field.getAttribute("aria-label") ||
@@ -436,6 +438,49 @@ async function signIn(page: Page, phone: string, lands: RegExp): Promise<void> {
   const code = await waitForLog(/\[dev\] OTP for [^:]+: (\d{6})/g, "an OTP");
   await page.getByLabel(/6-digit code/i).fill(code);
   await submit(page, /continue/i, lands);
+}
+
+async function site(browser: Browser): Promise<void> {
+  console.log("\nPublic site");
+  const laptop = await open(browser, LAPTOP);
+  const page = await laptop.newPage();
+  let where = "site";
+  watch(page, () => where);
+
+  for (const [path, name] of [
+    ["/", "site-home"],
+    ["/faq", "site-faq"],
+    ["/contact", "site-contact"],
+    ["/privacy", "site-privacy"],
+    ["/terms", "site-terms"],
+    ["/s/start", "site-supplier-start"],
+    ["/c/signin", "site-buyer-signin"],
+  ] as const) {
+    where = name;
+    await visit(page, path, name, TARGET_FLOOR.laptop);
+  }
+
+  where = "site-home";
+  await go(page, "/");
+  if (await page.getByText(/three doors/i).count()) {
+    fail(where, "demo doors are on the public site");
+  }
+  if (!(await page.getByText(/0816 509 6822/).count())) {
+    fail(where, "the support number is missing from the public site");
+  }
+  if (await page.getByRole("button", { name: /skip|demo/i }).count()) {
+    fail(where, "a demo skip control is still on the public site");
+  }
+  await laptop.close();
+
+  const phone = await open(browser, PHONE, 2);
+  const mobile = await phone.newPage();
+  watch(mobile, () => where);
+  where = "site-home-phone";
+  await visit(mobile, "/", "site-home-phone");
+  where = "site-contact-phone";
+  await visit(mobile, "/contact", "site-contact-phone");
+  await phone.close();
 }
 
 async function supplier(browser: Browser): Promise<void> {
@@ -893,6 +938,7 @@ async function main(): Promise<void> {
   });
 
   try {
+    await site(browser);
     await supplier(browser);
     await failures(browser);
     await buyer(browser);

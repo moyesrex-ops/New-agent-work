@@ -125,6 +125,11 @@
   border-color: var(--color-danger-700);
 }
 
+.textarea {
+  min-height: calc(var(--target-primary) * 4);
+  resize: vertical;
+}
+
 .fieldError {
   display: block;
   margin-top: var(--space-2);

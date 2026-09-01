@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { ButtonLink } from "@/components/Button";
 import { SiteShell } from "@/components/SiteChrome";
-import { BRAND, copy } from "@/lib/copy";
+import { nrsPortalUrl } from "@/lib/nrs";
+import { copy } from "@/lib/copy";
 import site from "@/components/site.module.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default async function VerifyPage({ params }: { params: Promise<{ irn: string }> }) {
   const { irn } = await params;
   const decoded = decodeURIComponent(irn);
-  const href = `https://${BRAND.verifyHost}/verify/${encodeURIComponent(decoded)}`;
+  const href = nrsPortalUrl();
 
   return (
     <SiteShell>

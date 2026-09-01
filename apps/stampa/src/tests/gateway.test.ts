@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { kobo } from "@/lib/money";
 import { computeInvoiceTotals } from "@/lib/vat";
@@ -116,7 +117,7 @@ describe("FakeGateway", () => {
   it("points the QR at the NRS, not at us", async () => {
     const gateway = new FakeGateway();
     const stamp = await gateway.transmit(invoice(), "key-qr");
-    expect(stamp.qrPayload).toContain("nrs.gov.ng");
+    expect(stamp.qrPayload).toContain("einvoice.nrs.gov.ng");
     expect(stamp.qrPayload).toContain(stamp.irn);
   });
 
@@ -243,10 +244,12 @@ describe("PartnerGateway", () => {
         return new Response(JSON.stringify({ Token: "tok", expires_in: 3600 }), { status: 200 });
       }
       if (url.endsWith("/Api/SwitchTax/SignInvoice")) {
+        const digest = new Headers(init?.headers).get("X-UBL-SHA256");
+        expect(digest).toBe(createHash("sha256").update(toUblXml(invoice())).digest("hex"));
         return new Response(
           JSON.stringify({
             Code: 201,
-            data: { IRN: "NRS-REAL-1", QRCodeData: "https://nrs.gov.ng/verify/NRS-REAL-1" },
+            data: { IRN: "NRS-REAL-1", QRCodeData: "https://einvoice.nrs.gov.ng/#NRS-REAL-1" },
           }),
           { status: 201 },
         );
@@ -269,7 +272,7 @@ describe("PartnerGateway", () => {
 
     const stamp = await gateway.transmit(invoice(), "key-live");
     expect(stamp.irn).toBe("NRS-REAL-1");
-    expect(stamp.qrPayload).toContain("nrs.gov.ng");
+    expect(stamp.qrPayload).toContain("einvoice.nrs.gov.ng");
     expect(calls.some((line) => line.includes("SignInvoice"))).toBe(true);
     expect(calls.some((line) => line.includes("Token"))).toBe(true);
 

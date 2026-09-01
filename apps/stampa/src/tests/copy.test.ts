@@ -165,4 +165,10 @@ describe("Given the public site copy", () => {
     expect(contact?.a).toContain(BRAND.supportPhone);
     expect(contact?.a).toContain(BRAND.supportEmail);
   });
+
+  it("Then the check-an-IRN answer points at the NRS portal, not at us", () => {
+    expect(BRAND.verifyHost).toBe("einvoice.nrs.gov.ng");
+    const check = copy.faq.items.find((item) => item.q.includes("check an IRN"));
+    expect(check?.a).toContain("einvoice.nrs.gov.ng");
+  });
 });

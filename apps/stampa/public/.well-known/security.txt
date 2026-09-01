@@ -1,0 +1,5 @@
+Contact: mailto:stampa-support@agentmail.to
+Contact: tel:+2348165096822
+Expires: 2027-09-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://stampa.ng/.well-known/security.txt

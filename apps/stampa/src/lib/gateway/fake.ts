@@ -12,6 +12,7 @@
  *      reachable from a seeded demo without editing code.
  */
 import { totalsReconcile, computeInvoiceTotals } from "../vat";
+import { nrsQrPayload } from "../nrs";
 import { toGatewayError } from "./errors";
 import type {
   EInvoiceGateway,
@@ -22,8 +23,6 @@ import type {
 
 /** Excludes I, O, 0, 1 — an IRN gets read aloud over a bad phone line. */
 const IRN_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
-
-const NRS_VERIFY_BASE = "https://nrs.gov.ng/verify";
 
 /**
  * Scripted failures, triggered by data rather than by configuration so a
@@ -87,7 +86,7 @@ export class FakeGateway implements EInvoiceGateway {
   constructor(private readonly options: FakeGatewayOptions = {}) {}
 
   verifyUrl(irn: string): string {
-    return `${NRS_VERIFY_BASE}/${encodeURIComponent(irn)}`;
+    return nrsQrPayload(irn);
   }
 
   async status(idempotencyKey: string): Promise<TransmissionStatus> {

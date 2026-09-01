@@ -14,7 +14,9 @@
  * There is no fallback to FakeGateway. A missing credential is a boot
  * failure, not a silent invented tax reference.
  */
+import { createHash } from "node:crypto";
 import { env } from "../env";
+import { nrsQrPayload } from "../nrs";
 import { toGatewayError } from "./errors";
 import { toNrsJson } from "./nrs-json";
 import { toUblXml } from "./ubl";
@@ -36,7 +38,6 @@ type PostResponse = {
   irn?: string;
 };
 
-const NRS_VERIFY_BASE = "https://nrs.gov.ng/verify";
 const SIGN_PATH = "/Api/SwitchTax/SignInvoice";
 const POST_PATH = "/Api/SwitchTax/postInvoice";
 const TRANSMIT_PATH = "/Api/SwitchTax/Transmit";
@@ -59,7 +60,7 @@ function extractQr(body: PostResponse, irn: string): string {
     body.data?.qrCodeData ??
     body.Data?.QRCodeData ??
     body.Data?.qrCodeData ??
-    `${NRS_VERIFY_BASE}/${encodeURIComponent(irn)}`
+    nrsQrPayload(irn)
   );
 }
 
@@ -108,7 +109,7 @@ export class PartnerGateway implements EInvoiceGateway {
   }
 
   verifyUrl(irn: string): string {
-    return `${NRS_VERIFY_BASE}/${encodeURIComponent(irn)}`;
+    return nrsQrPayload(irn);
   }
 
   async status(idempotencyKey: string): Promise<TransmissionStatus> {
@@ -134,7 +135,7 @@ export class PartnerGateway implements EInvoiceGateway {
         Accept: "application/json",
         "Content-Type": "application/json",
         "Idempotency-Key": idempotencyKey,
-        "X-UBL-SHA256": Buffer.from(ubl).toString("base64").slice(0, 64),
+        "X-UBL-SHA256": createHash("sha256").update(ubl).digest("hex"),
       },
       body: JSON.stringify(payload),
     });

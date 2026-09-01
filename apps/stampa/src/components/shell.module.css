@@ -132,6 +132,10 @@
   color: var(--color-success-700);
 }
 
+.faqQ {
+  font-weight: var(--font-weight-semibold);
+}
+
 .stack > * + * {
   margin-top: var(--space-4);
 }

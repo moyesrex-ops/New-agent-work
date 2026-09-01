@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { copy } from "@/lib/copy";
+import { BRAND, copy } from "@/lib/copy";
 import "./globals.css";
 
 /**
@@ -27,7 +27,10 @@ const plexMono = IBM_Plex_Mono({
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
 });
 
+const origin = process.env.APP_URL ?? "https://stampa.ng";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(origin),
   title: {
     default: copy.site.title,
     template: "%s · Stampa",
@@ -49,6 +52,14 @@ export const metadata: Metadata = {
     description: copy.site.description,
     locale: "en_NG",
     type: "website",
+    siteName: BRAND.name,
+    url: origin,
+    images: [{ url: "/brand/icon-512.png", width: 512, height: 512, alt: BRAND.name }],
+  },
+  twitter: {
+    card: "summary",
+    title: copy.site.title,
+    description: copy.site.description,
   },
 };
 
@@ -60,10 +71,38 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+function OrganizationJsonLd() {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: BRAND.name,
+    email: BRAND.supportEmail,
+    telephone: BRAND.supportPhoneTel,
+    url: origin,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Lagos",
+      addressCountry: "NG",
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: BRAND.supportPhoneTel,
+      email: BRAND.supportEmail,
+      contactType: "customer support",
+      areaServed: "NG",
+      availableLanguage: ["en"],
+    },
+  };
+  return (
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+  );
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-NG" className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
+        <OrganizationJsonLd />
         <ServiceWorkerRegister />
         {children}
       </body>

@@ -10,7 +10,7 @@ Get the government number your customer can pay. Free for suppliers.
 **Description:**
 From July 2026 a buyer in Nigeria can only pay an invoice that carries an NRS reference. Stampa gets that number for you, in about ninety seconds, on the phone you already have.
 
-Your customer invites you. You confirm what they already know. You send the invoice. The Nigeria Revenue Service stamps it. Anyone can check the number at nrs.gov.ng.
+Your customer invites you. You confirm what they already know. You send the invoice. The Nigeria Revenue Service stamps it. Anyone can check the number at einvoice.nrs.gov.ng.
 
 Stampa does not issue the number. Stampa does not charge suppliers. Bank details cannot be edited in the app.
 

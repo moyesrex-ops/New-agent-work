@@ -5,6 +5,7 @@ import { Banner, DocumentCard, ErrorState } from "@/components/Surfaces";
 import { Sending } from "@/components/Sending";
 import { ShareStamp } from "@/components/ShareStamp";
 import { StampBlock } from "@/components/StampBlock";
+import { nrsQrPayload } from "@/lib/nrs";
 import { copy, formatDateTime, BRAND, TRUST } from "@/lib/copy";
 import { formatNaira, kobo, koboToWords } from "@/lib/money";
 import {
@@ -63,7 +64,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
 async function Stamped({ invoice }: { invoice: Invoice }) {
   const [line] = invoice.lines;
   const amount = formatNaira(kobo(invoice.totalKobo));
-  const qr = invoice.irn ? await qrSvg(`https://${BRAND.verifyHost}/verify/${invoice.irn}`) : null;
+  const qr = invoice.irn ? await qrSvg(nrsQrPayload(invoice.irn)) : null;
 
   const shareText = copy.stamped.shareText({
     number: invoice.invoiceNumber,

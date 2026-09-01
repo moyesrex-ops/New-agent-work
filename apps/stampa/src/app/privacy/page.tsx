@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <SiteShell>
       <section className={site.section}>
         <h1 className={site.display}>{copy.legal.privacyHeading}</h1>
-        <div className={site.prose} style={{ marginTop: "var(--space-8)" }}>
+        <div className={`${site.prose} ${site.stackStart}`}>
           {copy.legal.privacy.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}

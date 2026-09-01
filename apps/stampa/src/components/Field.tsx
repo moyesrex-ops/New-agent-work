@@ -49,6 +49,13 @@ export type FieldProps = Omit<ComponentProps<"input">, "id" | "className" | "nam
   error?: string;
 };
 
+export type TextAreaProps = Omit<ComponentProps<"textarea">, "id" | "className" | "name"> & {
+  name: string;
+  label: string;
+  hint?: ReactNode;
+  error?: string;
+};
+
 function inputClass(...extra: Array<string | false | undefined>): string {
   return [styles.input, ...extra].filter(Boolean).join(" ");
 }
@@ -64,6 +71,23 @@ export function Field({ name, label, hint, error, ...input }: FieldProps) {
           aria-describedby={describedBy}
           aria-invalid={invalid || undefined}
           className={inputClass(invalid && styles.inputError)}
+        />
+      )}
+    </FieldShell>
+  );
+}
+
+export function TextAreaField({ name, label, hint, error, ...input }: TextAreaProps) {
+  return (
+    <FieldShell name={name} label={label} hint={hint} error={error}>
+      {({ id, describedBy, invalid }) => (
+        <textarea
+          {...input}
+          id={id}
+          name={name}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
+          className={inputClass(styles.textarea, invalid && styles.inputError)}
         />
       )}
     </FieldShell>

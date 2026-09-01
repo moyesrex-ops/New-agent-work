@@ -20,16 +20,18 @@ export default function Home() {
         <span className={site.heroMark} aria-hidden="true">
           <Mark size={280} />
         </span>
-        <p className={site.kicker}>{copy.site.heroKicker}</p>
-        <h1 className={site.display}>{copy.site.heroHeading}</h1>
-        <p className={site.lede}>{copy.site.heroLede}</p>
-        <div className={site.ctaRow}>
-          <ButtonLink href="/s/start">{copy.site.heroSupplier}</ButtonLink>
-          <ButtonLink href="/c/signin" variant="secondary">
-            {copy.site.heroBuyer}
-          </ButtonLink>
+        <div className={site.heroInner}>
+          <p className={site.kicker}>{copy.site.heroKicker}</p>
+          <h1 className={site.display}>{copy.site.heroHeading}</h1>
+          <p className={site.lede}>{copy.site.heroLede}</p>
+          <div className={site.ctaRow}>
+            <ButtonLink href="/s/start">{copy.site.heroSupplier}</ButtonLink>
+            <ButtonLink href="/c/signin" variant="secondary">
+              {copy.site.heroBuyer}
+            </ButtonLink>
+          </div>
+          <p className={site.free}>{TRUST.free}</p>
         </div>
-        <p className={site.free}>{TRUST.free}</p>
       </section>
 
       <section className={site.section} id="how">
