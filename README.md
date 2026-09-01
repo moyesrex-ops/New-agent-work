@@ -14,7 +14,12 @@ and the kill criteria are in `company/06-comparison.md`.
 
 **The build:** `apps/stampa`. It runs. See `apps/stampa/README.md`.
 
-**Live demo:** a simulated instance with one-click doors into the supplier app, the buyer console, and the operator console. Stamps are fake. Nothing is sent to the NRS. Link is at the top of the pull request once the host is up.
+**Live demo:** [https://lectures-broader-successfully-affair.trycloudflare.com](https://lectures-broader-successfully-affair.trycloudflare.com)
+— three doors (supplier, buyer, operator), no phone number required. Stamps are
+simulated. This URL is a Cloudflare quick tunnel in front of the P0; it lives
+as long as the agent environment does. For a lasting host, `Dockerfile` at the
+repository root builds the same demo (Hugging Face Space files in
+`deploy/huggingface/`).
 
 **The gate:** `company/HANDOVER.md` answers the fifteen quality-gate questions,
 
