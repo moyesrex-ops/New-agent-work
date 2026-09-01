@@ -85,6 +85,6 @@ describe("AgentMailer", () => {
       body: "https://stampa.ng/c/signin/token",
     });
     expect(result.ok).toBe(true);
-    expect(url).toContain("/v0/inboxes/stampa-support%40agentmail.to/messages");
+    expect(url).toContain("/v0/inboxes/stampa-support%40agentmail.to/messages/send");
   });
 });

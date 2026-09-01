@@ -21,7 +21,7 @@ export class AgentMailer implements Mailer {
     const fetchFn = this.options.fetch ?? fetch;
     const inbox = encodeURIComponent(this.options.inboxId);
     try {
-      const response = await fetchFn(`https://api.agentmail.to/v0/inboxes/${inbox}/messages`, {
+      const response = await fetchFn(`https://api.agentmail.to/v0/inboxes/${inbox}/messages/send`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.options.apiKey}`,
