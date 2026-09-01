@@ -1,26 +1,32 @@
-# Hosting the public demo
+# Hosting Stampa
 
-The P0 is a Node server (Next.js + embedded Postgres). Static hosts
-(GitHub Pages, Netlify Drop) cannot run it. The image in the repository root
-`Dockerfile` is the thing to deploy.
+## Production: Vercel
 
-## Hugging Face Spaces (free CPU)
+The public web app is a Next.js server. Static hosts cannot run it.
 
-1. Create a Docker Space named `stampa`.
-2. Copy `deploy/huggingface/README.md` and `deploy/huggingface/Dockerfile`
-   into the Space (they clone this GitHub branch and boot the demo).
-3. Wait for the build. The app listens on port 7860.
+Follow `apps/stampa/deploy/vercel/README.md`. Root directory `apps/stampa`,
+region Cape Town, `STAMPA_GATEWAY=hold` until an accredited access point
+exists. Postgres is required. IRNs are never invented.
+
+## Hugging Face Spaces (Docker)
+
+The image in the repository root `Dockerfile` still boots, but production
+refuses the fake gateway and demo doors. Supply the same live credentials
+as Vercel, including a `postgres://` `DATABASE_URL`.
 
 Direct URL shape: `https://<user>-stampa.hf.space`
-
-`STAMPA_DEMO=true` is already set in the image. The door page at `/` mints
-sessions. Nothing is sent to the NRS.
 
 ## Docker, anywhere
 
 ```bash
 docker build -t stampa .
-docker run -p 7860:7860 stampa
+docker run -p 7860:7860 \
+  -e NODE_ENV=production \
+  -e STAMPA_GATEWAY=hold \
+  -e DATABASE_URL=postgres://... \
+  -e APP_URL=https://example.com \
+  -e OTP_PEPPER=... \
+  -e TERMII_API_KEY=... \
+  -e AGENTMAIL_API_KEY=... \
+  stampa
 ```
-
-Open `http://localhost:7860`.

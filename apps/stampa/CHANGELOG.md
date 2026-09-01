@@ -7,11 +7,12 @@ each step was for.
 ## Unreleased — P0
 
 - **Production cutover.** Demo doors and one-click fake sessions are gone. `/` is the public site. Production refuses `STAMPA_GATEWAY=fake`, `STAMPA_DEMO`, a missing Termii key, and a missing mailer. OTP goes out on Termii DND, then WhatsApp, then voice. Magic links go out through AgentMail (`stampa-support@agentmail.to`) or Resend. `PartnerGateway` talks to Interswitch SwitchTax. Support is 0816 509 6822. IRN checks point at `einvoice.nrs.gov.ng`. Store listing copy lives in `apps/stampa/stores/`; uploads need developer accounts this environment does not have.
+- **Web host.** Vercel, Cape Town, root directory `apps/stampa`. `STAMPA_GATEWAY=hold` runs the site without inventing IRNs. PGlite is refused in production. `/api/health` names problems, never secrets. `/api/cron/retry` retries transmissions and day-three nudges. Confirm Business parses the TIN. OTP resend and voice waits are enforced in the HTML, not only as a disabled button. Invite, phone and upload cookies are Secure in production. FAQ and help no longer send people to a store listing.
 
 ### Foundations
 
 - **Domain primitives.** Money as integer kobo end to end, TIN parsing and validation, Nigerian phone normalisation, deterministic PDF generation without a headless browser, ID generation.
-- **Gateway.** One `transmit()` interface with three implementations: `fake`, `sandbox`, `partner`. Partner error codes mapped to a supplier/buyer/neither fault class, because the screen a supplier sees depends entirely on whose problem it is. `FakeGateway` fails on demand so every failure path is exercised rather than imagined.
+- **Gateway.** One `transmit()` interface with four implementations: `fake`, `hold`, `sandbox`, `partner`. Partner error codes mapped to a supplier/buyer/neither/platform fault class, because the screen a supplier sees depends entirely on whose problem it is. `hold` is production without an APP: stamps fail closed and no IRN is invented. `FakeGateway` fails on demand so every failure path is exercised rather than imagined.
 - **Schema and access policy.** Drizzle over Postgres, append-only audit logging for anything touching money or identity, and a policy layer that decides what each actor may see before a query runs.
 - **Auth.** Phone plus one-time code for suppliers, magic link for buyers and operators. No passwords anywhere. Codes are peppered before hashing.
 
@@ -38,7 +39,7 @@ each step was for.
 
 ### Quality
 
-- **238 tests** against a real Postgres via PGlite, not a mock.
+- **301 tests** against a real Postgres via PGlite, not a mock.
 - **Config contract.** Every environment variable declared with a schema and description in one place, validated at boot, with `.env.example` generated from it and a check that fails when the two drift.
 - **Migrations as an explicit deploy step** in production; automatic on PGlite.
 - **Copy discipline.** Every customer-facing string in one catalogue, with an automated check that fails the build on a literal in a governed component, on banned words, and on sentences over twenty words.

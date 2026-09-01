@@ -39,16 +39,13 @@ it is talking to.
 Support is **0816 509 6822**, WhatsApp the same number, email
 `stampa-support@agentmail.to`.
 
-Production Docker needs live credentials and refuses the fake gateway:
+Production Docker needs live credentials and refuses the fake gateway.
+Until an accredited access point exists, run `STAMPA_GATEWAY=hold`:
 
 ```bash
 docker build -t stampa .
 docker run -p 7860:7860 \
-  -e STAMPA_GATEWAY=partner \
-  -e APP_PARTNER_BASE_URL=https://partner.example.ng \
-  -e APP_PARTNER_CLIENT_ID=... \
-  -e APP_PARTNER_CLIENT_SECRET=... \
-  -e APP_PARTNER_BUSINESS_ID=... \
+  -e STAMPA_GATEWAY=hold \
   -e TERMII_API_KEY=... \
   -e AGENTMAIL_API_KEY=... \
   -e OTP_PEPPER=... \
@@ -56,6 +53,8 @@ docker run -p 7860:7860 \
   -e APP_URL=https://stampa.ng \
   stampa
 ```
+
+Vercel is the production host. See `deploy/vercel/README.md`.
 
 Hugging Face Space files live in `deploy/huggingface/`. The Space will not
 boot without those secrets.
@@ -80,7 +79,7 @@ Seeded credentials: supplier `08030000001`, buyer
 | `npm run dev` | Development server |
 | `npm run seed` | Fresh demo data: one buyer, six suppliers at every onboarding stage, stamped and rejected invoice history |
 | `npm run migrate` | Apply SQL migrations. Automatic on PGlite, an explicit deploy step in production |
-| `npm run verify` | The gate: tokens, env example, assets, copy discipline, types, lint, 283 tests |
+| `npm run verify` | The gate: tokens, env example, assets, copy discipline, types, lint, 301 tests |
 | `npm run walk` | Drive all 37 screens in a real browser and audit each one |
 | `npm run budget` | Build for production and measure the first-load payload |
 | `npm run tokens` | Regenerate `src/styles/tokens.css` and `tokens.ts` from `design-tokens/tokens.json` |
@@ -122,9 +121,10 @@ apart. The short version:
 | `DATABASE_URL` | `pglite://` locally, `postgres://` in production |
 | `APP_URL` | Absolute origin. Every WhatsApp and SMS deep link is built from it |
 | `OTP_PEPPER` | Peppers one-time codes before hashing. `openssl rand -base64 32` |
-| `STAMPA_GATEWAY` | `fake` locally and in tests. Production must be `sandbox` or `partner` |
+| `STAMPA_GATEWAY` | `fake` locally and in tests. Production is `hold` until APP credentials exist, then `sandbox` or `partner` |
 | `STAMPA_OPERATORS` | Comma-separated emails allowed into `/ops`. Empty means nobody, which is the right default |
-| `APP_PARTNER_*` | Accredited partner credentials, required when the gateway is not `fake` |
+| `APP_PARTNER_*` | Accredited partner credentials, required when the gateway is `sandbox` or `partner` |
+| `CRON_SECRET` | Bearer token for `/api/cron/retry`. Empty disables the route |
 | `TERMII_API_KEY` | Required in production. SMS on the DND route, then WhatsApp, then voice |
 | `AGENTMAIL_API_KEY` | Company inbox `stampa-support@agentmail.to`. `RESEND_API_KEY` is the other mailer |
 
@@ -144,8 +144,8 @@ partner, behind one interface:
 transmit(invoice, idempotencyKey) -> { irn, stampedAt, qrPayload } | GatewayError
 ```
 
-Three implementations: `fake` (deterministic, used by every test and the walk),
-`sandbox`, and `partner`. `PartnerGateway` speaks Interswitch SwitchTax
+Three implementations plus hold: `fake` (deterministic, used by every test and the walk),
+`hold` (production web host, never invents an IRN), `sandbox`, and `partner`. `PartnerGateway` speaks Interswitch SwitchTax
 (`Token`, `SignInvoice`, `Transmit`, with `postInvoice` if SignInvoice is
 404). Swapping providers — or becoming our own provider once accredited — is
 one module. Production will not boot on `fake`.
