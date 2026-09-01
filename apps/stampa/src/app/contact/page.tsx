@@ -75,7 +75,6 @@ export default async function ContactPage({
                 <TextAreaField
                   name="message"
                   label={copy.contact.message}
-                  required
                   rows={6}
                   error={error ? ERRORS[error] : undefined}
                 />
