@@ -6,6 +6,11 @@ each step was for.
 
 ## Unreleased — P0
 
+- **Public demo.** `STAMPA_DEMO=true` seeds on boot, puts a door page at `/`, and
+  mints one-click sessions for the seeded supplier, buyer and operator. Docker
+  image at the repository root; Hugging Face Space files in `deploy/huggingface/`.
+  The fake gateway stays labelled on every stamp.
+
 ### Foundations
 
 - **Domain primitives.** Money as integer kobo end to end, TIN parsing and validation, Nigerian phone normalisation, deterministic PDF generation without a headless browser, ID generation.

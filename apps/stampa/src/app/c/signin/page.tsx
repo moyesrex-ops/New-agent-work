@@ -4,7 +4,9 @@ import { Field } from "@/components/Field";
 import { Banner, Card } from "@/components/Surfaces";
 import { currentPrincipal } from "@/lib/auth/session";
 import { copy } from "@/lib/copy";
+import { isDemo } from "@/lib/env";
 import { requestMagicLink } from "../actions";
+import { enterDemo } from "@/app/actions";
 import shell from "@/components/shell.module.css";
 
 const ERRORS: Record<string, string> = {
@@ -57,6 +59,14 @@ export default async function BuyerSignIn({
             {copy.buyer.signInCta}
           </Button>
         </form>
+        {isDemo() ? (
+          <form action={enterDemo} style={{ marginTop: "var(--space-3)" }}>
+            <input type="hidden" name="door" value="buyer" />
+            <Button type="submit" variant="quiet" block>
+              {copy.demo.skipSignIn}
+            </Button>
+          </form>
+        ) : null}
       </Card>
     </div>
   );

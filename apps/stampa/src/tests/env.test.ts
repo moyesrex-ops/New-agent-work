@@ -118,6 +118,10 @@ describe("Given a real gateway is selected, When credentials are absent", () => 
   it("Then the fake gateway needs no partner credentials", () => {
     expect(production({ STAMPA_GATEWAY: "fake" }).problems).toEqual([]);
   });
+
+  it("Then a demo flag is optional and does not block boot", () => {
+    expect(production({ STAMPA_DEMO: "true" }).problems).toEqual([]);
+  });
 });
 
 describe("the message a deploy sees", () => {

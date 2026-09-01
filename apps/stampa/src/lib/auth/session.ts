@@ -9,6 +9,7 @@ import { and, eq, gt, isNull } from "drizzle-orm";
 import { getDb } from "../db/client";
 import { sessions } from "../db/schema";
 import { newId, randomToken } from "../ids";
+import { isDemo } from "../env";
 import type { Principal } from "./policy";
 
 export const SUPPLIER_COOKIE = "stampa_s";
@@ -45,7 +46,7 @@ export async function startSession(subjectType: SubjectType, subjectId: string):
   const store = await cookies();
   store.set(COOKIE_FOR[subjectType], token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: isDemo() && process.env.NODE_ENV === "production" ? "none" : "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     expires: expiresAt,

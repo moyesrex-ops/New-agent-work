@@ -21,6 +21,7 @@ import {
 } from "../db/schema";
 import { newId } from "../ids";
 import { kobo } from "../money";
+import { isDemo } from "../env";
 import { FAKE_TRIGGERS } from "../gateway";
 import { MAX_ATTEMPTS, createInvoice, transmitInvoice } from "./invoices";
 
@@ -50,6 +51,9 @@ const SECOND_BUYER = {
 /** Every seeded invite lands on a predictable code so QA can bookmark it. */
 export const DEMO_INVITE_CODE = "AGB-4471";
 export const DEMO_SUPPLIER_PHONE = "+2348030000001";
+/** Ify Packaging: live, with stamped history and all three rejection variants. */
+export const DEMO_LIVE_SUPPLIER_PHONE = "+2348030000002";
+export const DEMO_OPERATOR_EMAIL = "ops@stampa.ng";
 
 type SeedSupplier = {
   name: string;
@@ -77,7 +81,7 @@ const SUPPLIERS: SeedSupplier[] = [
   },
   {
     name: "Ify Packaging Enterprises",
-    phone: "+2348030000002",
+    phone: DEMO_LIVE_SUPPLIER_PHONE,
     tin: "20481167-0001",
     address: "9 Trade Fair Road, Ojo, Lagos",
     bank: "GTBank",
@@ -128,7 +132,7 @@ const SUPPLIERS: SeedSupplier[] = [
 ];
 
 export async function seed(): Promise<{ inviteCode: string; organisationId: string }> {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !isDemo()) {
     throw new Error("Refusing to seed a production database");
   }
 

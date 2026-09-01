@@ -3,6 +3,7 @@ import { Mark } from "@/components/Logo";
 import { copy } from "@/lib/copy";
 import { currentPrincipal } from "@/lib/auth/session";
 import { isSimulatedGateway } from "@/lib/gateway";
+import { DemoBanner } from "@/components/DemoBanner";
 import shell from "@/components/shell.module.css";
 
 /**
@@ -20,6 +21,7 @@ export default async function OperatorLayout({ children }: { children: React.Rea
   return (
     <div className={[shell.page, shell.operatorPage].join(" ")}>
       <p className={shell.operatorBar}>{copy.operator.banner}</p>
+      <DemoBanner />
       {isSimulatedGateway() ? (
         <p className={shell.operatorBar} style={{ background: "var(--color-warning-700)" }}>
           FAKE GATEWAY — references on this instance are not real tax records

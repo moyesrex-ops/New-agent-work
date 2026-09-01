@@ -14,6 +14,10 @@ and the kill criteria are in `company/06-comparison.md`.
 
 **The build:** `apps/stampa`. It runs. See `apps/stampa/README.md`.
 
+**Live demo:** a simulated instance with one-click doors into the supplier app, the buyer console, and the operator console. Stamps are fake. Nothing is sent to the NRS. Link is at the top of the pull request once the host is up.
+
+**The gate:** `company/HANDOVER.md` answers the fifteen quality-gate questions,
+
 **The gate:** `company/HANDOVER.md` answers the fifteen quality-gate questions,
 lists what must be true before a real supplier touches this, and says what I
 would attack first. Read it second, after the decision.

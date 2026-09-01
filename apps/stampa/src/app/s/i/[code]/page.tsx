@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/Button";
 import { DocumentCard, ErrorState } from "@/components/Surfaces";
 import { copy, BRAND } from "@/lib/copy";
+import { isDemo } from "@/lib/env";
 import { openInvite } from "@/lib/services/onboarding";
 import { beginInvite } from "../../actions";
+import { enterDemo } from "@/app/actions";
 import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
@@ -76,6 +78,15 @@ export default async function InviteLanding({ params }: { params: Promise<{ code
           {copy.invite.cta}
         </Button>
       </form>
+
+      {isDemo() ? (
+        <form action={enterDemo}>
+          <input type="hidden" name="door" value="invite" />
+          <Button type="submit" variant="quiet" block>
+            {copy.demo.skipCode}
+          </Button>
+        </form>
+      ) : null}
 
       <p className={shell.note}>{copy.invite.doubt}</p>
     </div>

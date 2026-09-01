@@ -588,6 +588,24 @@ export const copy = {
     stuck: "Stuck",
   },
 
+  // ---- Public demo doors (only rendered when STAMPA_DEMO is set) ----
+  demo: {
+    banner: "This is a public demo. Stamps are simulated. Nothing is sent to the NRS.",
+    home: "Back to the demo",
+    heading: "Three doors into Stampa.",
+    lede: "The data is seeded, the stamps are fake, and you do not need a phone number.",
+    supplierCta: "Open as a supplier",
+    supplierHint: "Ify Packaging. Invoices already stamped, plus the three ways a stamp can fail.",
+    buyerCta: "Open as a buyer",
+    buyerHint: "Agbara Foods. The vendor tail, the exposure report, and the invite list.",
+    operatorCta: "Open as an operator",
+    operatorHint: "The failure queue. Every action is logged, including yours.",
+    inviteCta: "Start from the invitation instead",
+    skipCode: "Skip the code, this is a demo",
+    skipSignIn: "Skip this, this is a demo",
+    source: "Decision, brand and code are on GitHub.",
+  },
+
   // ---- Framework-level errors, in brand voice rather than a stack trace ----
   errors: {
     notFoundHeading: "That page is not here.",

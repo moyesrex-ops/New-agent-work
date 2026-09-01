@@ -151,3 +151,11 @@ describe("Given the copy deck forbids a paraphrase", () => {
     expect(message).not.toMatch(/update/i);
   });
 });
+
+describe("Given the public demo copy", () => {
+  it("Then the banner says the stamps are simulated and not sent to the NRS", () => {
+    expect(copy.demo.banner).toMatch(/simulated/i);
+    expect(copy.demo.banner).toMatch(/NRS/);
+    expect(copy.demo.lede).toMatch(/do not need a phone number/i);
+  });
+});

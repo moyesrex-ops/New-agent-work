@@ -19,4 +19,13 @@ export async function register(): Promise<void> {
     // on every surface that shows one.
     console.warn("[stampa] running in production on the FAKE gateway — references are simulated");
   }
+
+  const { isDemo } = await import("./lib/env");
+  if (isDemo()) {
+    const { isSeeded, seed } = await import("./lib/services/seed");
+    if (!(await isSeeded())) {
+      console.info("[stampa] demo instance is empty, seeding");
+      await seed();
+    }
+  }
 }

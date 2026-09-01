@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 import { BRAND, copy } from "@/lib/copy";
 import { currentPrincipal } from "@/lib/auth/session";
+import { DemoBanner } from "@/components/DemoBanner";
 import shell from "@/components/shell.module.css";
 
 /**
@@ -17,6 +18,7 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
 
   return (
     <div className={shell.page}>
+      <DemoBanner />
       <div className={shell.console}>
         <header className={shell.consoleHeader}>
           <Link href="/c" aria-label={copy.a11y.consoleHome} className={shell.consoleHome}>

@@ -33,6 +33,22 @@ which is Postgres compiled to WebAssembly running in-process. Production uses
 the same SQL against a managed Postgres, so nothing in the app knows which one
 it is talking to.
 
+### Public demo
+
+Set `STAMPA_DEMO=true` (and, in production, `OTP_PEPPER` and `APP_URL`). The
+root path becomes a door page. Three buttons mint sessions for the seeded
+supplier, buyer, and operator. The fake gateway stays labelled on every stamp.
+
+Docker, from the repository root:
+
+```bash
+docker build -t stampa .
+docker run -p 7860:7860 stampa
+```
+
+Then open <http://localhost:7860>. Hugging Face Spaces uses the same image;
+the Space files live in `deploy/huggingface/`.
+
 ### Signing in locally
 
 There are no passwords anywhere in the product.
@@ -95,6 +111,7 @@ apart. The short version:
 | `DATABASE_URL` | `pglite://` locally, `postgres://` in production |
 | `APP_URL` | Absolute origin. Every WhatsApp and SMS deep link is built from it |
 | `OTP_PEPPER` | Peppers one-time codes before hashing. `openssl rand -base64 32` |
+| `STAMPA_DEMO` | `true` turns the instance into a public demo: seeds on boot, door page at `/`, one-click sessions. Never set on a real buyer |
 | `STAMPA_GATEWAY` | `fake`, `sandbox` or `partner` |
 | `STAMPA_OPERATORS` | Comma-separated emails allowed into `/ops`. Empty means nobody, which is the right default |
 | `APP_PARTNER_*` | Accredited partner credentials, read only when the gateway is not `fake` |

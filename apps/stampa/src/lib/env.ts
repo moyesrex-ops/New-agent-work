@@ -59,6 +59,14 @@ const SPEC = {
     schema: z.url("APP_URL must be an absolute URL").optional(),
   },
 
+  STAMPA_DEMO: {
+    group: "Application",
+    comment:
+      "When true, this instance is a public demo: it seeds itself, shows a door\npage at /, and offers one-click sessions. Never set this on a real buyer.",
+    example: "",
+    schema: z.string().optional(),
+  },
+
   STAMPA_GATEWAY: {
     group: "E-invoicing gateway",
     comment:
@@ -121,6 +129,7 @@ export type EnvName = keyof typeof SPEC;
 export type Env = {
   DATABASE_URL?: string;
   APP_URL?: string;
+  STAMPA_DEMO?: string;
   STAMPA_GATEWAY: "fake" | "sandbox" | "partner";
   STAMPA_FAKE_LATENCY_MS: number;
   APP_PARTNER_BASE_URL?: string;
@@ -129,6 +138,12 @@ export type Env = {
   OTP_PEPPER?: string;
   STAMPA_OPERATORS: string[];
 };
+
+/** Reads the raw flag so callers do not have to boot the full contract. */
+export function isDemo(source?: { STAMPA_DEMO?: string }): boolean {
+  const value = (source ?? process.env).STAMPA_DEMO;
+  return value === "true" || value === "1";
+}
 
 export type EnvProblem = { name: string; problem: string };
 
