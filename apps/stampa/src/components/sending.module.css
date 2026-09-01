@@ -1,0 +1,56 @@
+.track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-paper-sunken);
+  overflow: hidden;
+}
+
+/*
+ * Determinate-feeling, capped at 92%: it never reaches the end on its own, so
+ * it cannot sit at 99% lying about being nearly finished. The real completion
+ * is the navigation away from this screen.
+ */
+.determinate {
+  height: 100%;
+  background: var(--color-stamp-700);
+  border-radius: var(--radius-full);
+  animation: fill 20s var(--motion-easing) forwards;
+}
+
+@keyframes fill {
+  from {
+    width: 4%;
+  }
+  to {
+    width: 92%;
+  }
+}
+
+/* Past sixty seconds we stop pretending to know. */
+.indeterminate {
+  height: 100%;
+  width: 35%;
+  background: var(--color-stamp-700);
+  border-radius: var(--radius-full);
+  animation: sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .determinate {
+    width: 50%;
+    animation: none;
+  }
+  .indeterminate {
+    width: 100%;
+    animation: none;
+  }
+}

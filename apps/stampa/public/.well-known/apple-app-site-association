@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["REPLACE.TEAM.ng.stampa.app"],
+        "components": [
+          { "/": "/s/*" },
+          { "/": "/s/i/*" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["REPLACE.TEAM.ng.stampa.app"]
+  }
+}

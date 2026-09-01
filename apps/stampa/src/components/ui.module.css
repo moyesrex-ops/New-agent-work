@@ -1,0 +1,557 @@
+/*
+ * The fourteen components from Phase 15.1.
+ *
+ * Every value is a token. There are no magic numbers below this line except
+ * the two animation keyframe percentages, which are geometry rather than
+ * design decisions.
+ */
+
+/* ---------- Button ---------- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  padding-inline: var(--space-5);
+  min-height: var(--target-primary);
+  transition: background-color var(--motion-duration-state) var(--motion-easing),
+    border-color var(--motion-duration-state) var(--motion-easing);
+  text-decoration: none;
+  text-align: center;
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+/* Console density: 40px, per Phase 15.2. */
+/* Console density. A mouse is more accurate than a thumb, and the table
+   beside it is denser too (visual finish spec). */
+.compact {
+  min-height: var(--target-console);
+  font-size: var(--font-size-label);
+  padding-inline: var(--space-4);
+}
+
+.primary {
+  background: var(--color-stamp-700);
+  color: var(--color-paper-raised);
+}
+.primary:hover:not(:disabled) {
+  background: var(--color-stamp-900);
+}
+/* No scale transform on press. A button that shrinks reads as a toy. */
+.primary:active:not(:disabled) {
+  background: var(--color-stamp-900);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--color-ink-900);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--color-paper-sunken);
+}
+
+.quiet {
+  background: transparent;
+  color: var(--color-stamp-700);
+  padding-inline: var(--space-2);
+  min-height: var(--target-min);
+}
+.quiet:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.destructive {
+  background: var(--color-danger-700);
+  color: var(--color-paper-raised);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* A disabled button is never shown without adjacent text saying what is missing. */
+.disabledReason {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-caption);
+  line-height: var(--font-lineHeight-caption);
+  color: var(--color-ink-500);
+  text-align: center;
+}
+
+/* ---------- Field ---------- */
+.field {
+  display: block;
+  margin-bottom: var(--space-5);
+}
+
+.label {
+  display: block;
+  font-size: var(--font-size-label);
+  line-height: var(--font-lineHeight-label);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink-700);
+  margin-bottom: var(--space-2);
+}
+
+.input {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-paper-sunken);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--font-lineHeight-body-lg);
+  color: var(--color-ink-900);
+}
+
+.input::placeholder {
+  color: var(--color-ink-300);
+}
+
+.inputError {
+  border-color: var(--color-danger-700);
+}
+
+.textarea {
+  min-height: calc(var(--target-primary) * 4);
+  resize: vertical;
+}
+
+.fieldError {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-caption);
+  line-height: var(--font-lineHeight-caption);
+  color: var(--color-danger-700);
+}
+
+.fieldHint {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-caption);
+  line-height: var(--font-lineHeight-caption);
+  color: var(--color-ink-500);
+}
+
+/* ---------- AmountField ---------- */
+.amountWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.amountPrefix {
+  position: absolute;
+  left: var(--space-4);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-label);
+  color: var(--color-ink-500);
+  pointer-events: none;
+}
+
+.amountInput {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  padding-left: var(--space-12);
+}
+
+/* ---------- Select ---------- */
+/* Native, on purpose. A custom listbox is a keyboard and screen-reader
+   liability, and the console is where keyboard users actually are. */
+.select {
+  display: block;
+  width: 100%;
+  min-height: var(--space-10);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper-raised);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-label);
+  color: var(--color-ink-900);
+}
+
+/* ---------- File input ---------- */
+.file {
+  display: block;
+  width: 100%;
+  padding: var(--space-6);
+  background: var(--color-paper-sunken);
+  border: var(--stroke-rule) dashed var(--color-ink-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-label);
+  color: var(--color-ink-700);
+  cursor: pointer;
+}
+
+/* ---------- OTP input ---------- */
+.otpInput {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-display);
+  letter-spacing: 0.4em;
+  text-align: center;
+  padding-inline: var(--space-2);
+  min-height: 64px;
+}
+
+/* ---------- StatusChip ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.chipDot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  flex: none;
+}
+
+.chipStamped {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+.chipWaiting {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+.chipRejected {
+  background: var(--color-danger-100);
+  color: var(--color-danger-700);
+}
+.chipOffline,
+.chipDraft {
+  background: var(--color-paper-sunken);
+  color: var(--color-ink-700);
+}
+.chipDisputed {
+  background: var(--color-stamp-100);
+  color: var(--color-stamp-900);
+}
+
+/* ---------- Card / DocumentCard ---------- */
+/* The distinction between these two is the whole visual thesis (Phase 15.1). */
+.card {
+  background: var(--color-paper-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-raised);
+  padding: var(--space-5);
+}
+
+.documentCard {
+  background: var(--color-paper-raised);
+  border-radius: var(--radius-sm);
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  box-shadow: none;
+  padding: var(--space-6) var(--space-5);
+}
+
+/* ---------- StampBlock ---------- */
+.stampBlock {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  border: 1.8px solid var(--color-stamp-700);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  transform: rotate(-4deg);
+  color: var(--color-stamp-700);
+  background: var(--color-paper-raised);
+}
+
+.stampPressed {
+  animation: stampPress var(--motion-duration-stamp) var(--motion-easing) 1;
+}
+
+@keyframes stampPress {
+  0% {
+    transform: rotate(-4deg) scale(1.06);
+    opacity: 0.4;
+  }
+  100% {
+    transform: rotate(-4deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.stampWord {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  line-height: 1;
+}
+
+.stampMeta {
+  font-family: var(--font-family-mono);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+}
+
+.stampTime {
+  font-family: var(--font-family-mono);
+  font-size: 9.5px;
+  color: var(--color-ink-500);
+  line-height: 1.4;
+}
+
+/* ---------- ListRow ---------- */
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 72px;
+  padding: var(--space-3) 0;
+  border-bottom: var(--stroke-hairline) solid var(--color-ink-100);
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+}
+
+.listRowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.listRowTitle {
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listRowSub {
+  margin-top: var(--space-1);
+}
+
+.listRowAmount {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-mono);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---------- EmptyState ---------- */
+.emptyState {
+  padding: var(--space-10) var(--space-4);
+  text-align: center;
+}
+
+.emptyHeading {
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.emptyBody {
+  margin: var(--space-2) auto var(--space-6);
+  max-width: 34ch;
+  font-size: var(--font-size-caption);
+  line-height: var(--font-lineHeight-caption);
+  color: var(--color-ink-500);
+}
+
+/* ---------- ErrorState ---------- */
+.errorState > * + * {
+  margin-top: var(--space-3);
+}
+
+.errorWhat {
+  font-size: var(--font-size-title);
+  line-height: var(--font-lineHeight-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.errorWhy {
+  font-size: var(--font-size-body);
+  line-height: var(--font-lineHeight-body);
+  color: var(--color-ink-700);
+}
+
+.errorValue {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-mono);
+  background: var(--color-paper-sunken);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  word-break: break-all;
+}
+
+.errorReassurance {
+  font-size: var(--font-size-caption);
+  line-height: var(--font-lineHeight-caption);
+  color: var(--color-ink-500);
+}
+
+/* ---------- Skeleton ---------- */
+.skeleton {
+  background: var(--color-paper-sunken);
+  border-radius: var(--radius-sm);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ---------- Sheet ---------- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 26, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+
+.sheet {
+  background: var(--color-paper-raised);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--elevation-overlay);
+  padding: var(--space-6) var(--space-5) var(--space-8);
+  width: 100%;
+  max-width: 480px;
+  animation: sheetUp var(--motion-duration-sheet) var(--motion-easing);
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 600px) {
+  .scrim {
+    align-items: center;
+  }
+  .sheet {
+    border-radius: var(--radius-lg);
+  }
+}
+
+/* ---------- Banner ---------- */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-label);
+  line-height: var(--font-lineHeight-label);
+}
+
+.bannerNeutral {
+  background: var(--color-paper-sunken);
+  color: var(--color-ink-700);
+}
+.bannerWarning {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+.bannerDanger {
+  background: var(--color-danger-100);
+  color: var(--color-danger-700);
+}
+
+/* Pinned to the top of the viewport: the network dropping is the one thing
+   that must be visible whatever the user has scrolled to. */
+.offlineBanner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.bannerAction {
+  margin-left: auto;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+/* ---------- DataTable ---------- */
+.tableWrap {
+  overflow-x: auto;
+  border: var(--stroke-hairline) solid var(--color-ink-100);
+  border-radius: var(--radius-md);
+  background: var(--color-paper-raised);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-label);
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  background: var(--color-paper-sunken);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-caption);
+  color: var(--color-ink-700);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--stroke-hairline) solid var(--color-ink-100);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--space-2) var(--space-4);
+  height: 44px;
+  border-bottom: var(--stroke-hairline) solid var(--color-ink-100);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.numeric {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tableCaption {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-caption);
+  color: var(--color-ink-500);
+  border-top: var(--stroke-hairline) solid var(--color-ink-100);
+}

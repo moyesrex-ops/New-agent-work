@@ -1,0 +1,15 @@
+node_modules
+.next
+.next-walk
+.next-budget
+.walk
+.budget
+.data
+.vercel
+.git
+**/.env
+**/.env.local
+**/coverage
+research
+company
+design-tokens

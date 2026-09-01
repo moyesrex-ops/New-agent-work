@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="1240" viewBox="0 0 1180 1240">
+  <defs>
+    <path id="sPath" d="M 72.6 47 A 13.2 13.2 0 1 0 60 60 A 13.2 13.2 0 1 1 47.4 73"/>
+    <mask id="sKnock">
+      <rect width="120" height="120" fill="#fff"/>
+      <use href="#sPath" fill="none" stroke="#000" stroke-width="12.5" stroke-linecap="butt"/>
+    </mask>
+    <mask id="perfBig">
+      <rect x="6" y="6" width="108" height="108" rx="8" fill="#fff"/>
+      <g fill="#000">
+        <circle cx="24" cy="6"  r="7.5"/><circle cx="60" cy="6"  r="7.5"/><circle cx="96" cy="6"  r="7.5"/>
+        <circle cx="24" cy="114" r="7.5"/><circle cx="60" cy="114" r="7.5"/><circle cx="96" cy="114" r="7.5"/>
+        <circle cx="6"  cy="24" r="7.5"/><circle cx="6"  cy="60" r="7.5"/><circle cx="6"  cy="96" r="7.5"/>
+        <circle cx="114" cy="24" r="7.5"/><circle cx="114" cy="60" r="7.5"/><circle cx="114" cy="96" r="7.5"/>
+      </g>
+    </mask>
+
+    <symbol id="m0" viewBox="0 0 120 120"><g mask="url(#sKnock)"><rect x="6" y="6" width="108" height="108" rx="8" fill="currentColor" mask="url(#perfBig)"/></g></symbol>
+    <symbol id="m5" viewBox="0 0 120 120"><g transform="rotate(-5 60 60)"><g mask="url(#sKnock)"><rect x="6" y="6" width="108" height="108" rx="8" fill="currentColor" mask="url(#perfBig)"/></g></g></symbol>
+    <symbol id="m8" viewBox="0 0 120 120"><g transform="rotate(-8 60 60)"><g mask="url(#sKnock)"><rect x="6" y="6" width="108" height="108" rx="8" fill="currentColor" mask="url(#perfBig)"/></g></g></symbol>
+    <!-- simplified small-size mark: perforations dropped, corners kept -->
+    <symbol id="mSmall" viewBox="0 0 120 120"><g transform="rotate(-8 60 60)"><g mask="url(#sKnock)"><rect x="8" y="8" width="104" height="104" rx="14" fill="currentColor"/></g></g></symbol>
+  </defs>
+
+  <rect width="1180" height="1240" fill="#FBF9F4"/>
+
+  <g font-family="Archivo" font-size="13" fill="#6B6675" letter-spacing="1.4">
+    <text x="40"  y="40">0 DEGREES</text><text x="400" y="40">5 DEGREES</text><text x="760" y="40">8 DEGREES</text>
+  </g>
+  <g color="#4C2A85">
+    <use href="#m0" x="40"  y="58" width="170" height="170"/>
+    <use href="#m5" x="400" y="58" width="170" height="170"/>
+    <use href="#m8" x="760" y="58" width="170" height="170"/>
+  </g>
+
+  <text x="40" y="272" font-family="Archivo" font-size="11" fill="#9A94A5">horizontal lockup, each angle</text>
+  <g color="#14121A">
+    <use href="#m0" x="40"  y="288" width="56" height="56"/><text x="110" y="331" font-family="Archivo" font-weight="600" font-size="44" fill="#14121A" letter-spacing="-1.6">Stampa</text>
+    <use href="#m5" x="400" y="288" width="56" height="56"/><text x="470" y="331" font-family="Archivo" font-weight="600" font-size="44" fill="#14121A" letter-spacing="-1.6">Stampa</text>
+    <use href="#m8" x="760" y="288" width="56" height="56"/><text x="830" y="331" font-family="Archivo" font-weight="600" font-size="44" fill="#14121A" letter-spacing="-1.6">Stampa</text>
+  </g>
+
+  <text x="40" y="392" font-family="Archivo" font-size="11" fill="#9A94A5">full mark vs simplified small mark, at 32 / 24 / 20 / 16 px</text>
+  <g color="#14121A">
+    <use href="#m8" x="40" y="404" width="32" height="32"/><use href="#m8" x="84" y="412" width="24" height="24"/><use href="#m8" x="120" y="416" width="20" height="20"/><use href="#m8" x="152" y="420" width="16" height="16"/>
+    <text x="185" y="428" font-family="Archivo" font-size="11" fill="#9A94A5">full mark (perforations mush below 24)</text>
+    <use href="#mSmall" x="40" y="452" width="32" height="32"/><use href="#mSmall" x="84" y="460" width="24" height="24"/><use href="#mSmall" x="120" y="464" width="20" height="20"/><use href="#mSmall" x="152" y="468" width="16" height="16"/>
+    <text x="185" y="476" font-family="Archivo" font-size="11" fill="#9A94A5">simplified mark for 16-24px, favicon, notification icon</text>
+  </g>
+
+  <!-- HERO: the stamped invoice -->
+  <text x="620" y="392" font-family="Archivo" font-size="11" fill="#9A94A5">hero surface: the stamped invoice as the supplier forwards it</text>
+  <g transform="translate(620,404)">
+    <rect x="0" y="0" width="500" height="320" rx="6" fill="#FFFFFF" stroke="#E3DED4"/>
+    <g color="#14121A"><use href="#m8" x="24" y="22" width="30" height="30"/></g>
+    <text x="62" y="44" font-family="Archivo" font-weight="600" font-size="19" fill="#14121A" letter-spacing="-0.6">Stampa</text>
+    <text x="476" y="41" text-anchor="end" font-family="Archivo" font-size="11" fill="#6B6675">TAX INVOICE</text>
+    <line x1="24" y1="66" x2="476" y2="66" stroke="#E3DED4"/>
+
+    <text x="24" y="92"  font-family="Archivo" font-size="10.5" fill="#6B6675" letter-spacing="0.8">FROM</text>
+    <text x="24" y="110" font-family="Archivo" font-weight="600" font-size="14" fill="#14121A">Emeka Aluminium Works Ltd</text>
+    <text x="24" y="128" font-family="IBM Plex Mono" font-size="11" fill="#6B6675">TIN 20481166-0001</text>
+    <text x="270" y="92"  font-family="Archivo" font-size="10.5" fill="#6B6675" letter-spacing="0.8">TO</text>
+    <text x="270" y="110" font-family="Archivo" font-weight="600" font-size="14" fill="#14121A">Agbara Foods Plc</text>
+    <text x="270" y="128" font-family="IBM Plex Mono" font-size="11" fill="#6B6675">TIN 10229384-0001</text>
+
+    <line x1="24" y1="146" x2="476" y2="146" stroke="#F0EDE6"/>
+    <text x="24" y="170" font-family="Archivo" font-size="13" fill="#14121A">Aluminium railings, 42 units</text>
+    <text x="476" y="170" text-anchor="end" font-family="IBM Plex Mono" font-size="13" fill="#14121A">1,721,000.00</text>
+    <text x="24" y="192" font-family="Archivo" font-size="13" fill="#6B6675">VAT 7.5%</text>
+    <text x="476" y="192" text-anchor="end" font-family="IBM Plex Mono" font-size="13" fill="#6B6675">129,075.00</text>
+    <line x1="300" y1="206" x2="476" y2="206" stroke="#14121A" stroke-width="1.2"/>
+    <text x="300" y="230" font-family="Archivo" font-weight="600" font-size="15" fill="#14121A">Total</text>
+    <text x="476" y="230" text-anchor="end" font-family="IBM Plex Mono" font-size="16" fill="#14121A">NGN 1,850,075.00</text>
+
+    <!-- the stamp: the mark pressed over the document -->
+    <g transform="translate(26,214)">
+      <rect x="0" y="0" width="196" height="80" rx="5" fill="none" stroke="#4C2A85" stroke-width="1.6" transform="rotate(-4 98 40)"/>
+      <g transform="rotate(-4 98 40)">
+        <g color="#4C2A85"><use href="#m0" x="9" y="18" width="44" height="44"/></g>
+        <text x="62" y="34" font-family="Archivo" font-weight="700" font-size="15" fill="#4C2A85" letter-spacing="1.2">STAMPED</text>
+        <text x="62" y="50" font-family="IBM Plex Mono" font-size="10.5" fill="#4C2A85">IRN-7K2M-88QX-2026</text>
+        <text x="62" y="64" font-family="IBM Plex Mono" font-size="9" fill="#6B6675">14 SEP 2026 10:42 WAT</text>
+      </g>
+    </g>
+    <rect x="404" y="230" width="72" height="72" fill="#14121A"/>
+    <rect x="410" y="236" width="60" height="60" fill="#fff"/>
+    <g fill="#14121A">
+      <rect x="414" y="240" width="16" height="16"/><rect x="450" y="240" width="16" height="16"/><rect x="414" y="276" width="16" height="16"/>
+      <rect x="436" y="262" width="8" height="8"/><rect x="450" y="276" width="8" height="8"/><rect x="462" y="262" width="8" height="8"/><rect x="436" y="240" width="6" height="6"/>
+    </g>
+    <text x="476" y="314" text-anchor="end" font-family="Archivo" font-size="9" fill="#9A94A5">Verify at nrs.gov.ng</text>
+  </g>
+
+  <!-- app icon full bleed -->
+  <text x="40" y="536" font-family="Archivo" font-size="11" fill="#9A94A5">app icon: mark full-bleed on violet, 128 / 64 / 40 / 24</text>
+  <g>
+    <rect x="40" y="550" width="128" height="128" rx="28" fill="#4C2A85"/><g color="#FBF9F4"><use href="#m8" x="52" y="562" width="104" height="104"/></g>
+    <rect x="186" y="614" width="64" height="64" rx="14" fill="#4C2A85"/><g color="#FBF9F4"><use href="#m8" x="192" y="620" width="52" height="52"/></g>
+    <rect x="266" y="638" width="40" height="40" rx="9" fill="#4C2A85"/><g color="#FBF9F4"><use href="#mSmall" x="270" y="642" width="32" height="32"/></g>
+    <rect x="322" y="654" width="24" height="24" rx="6" fill="#4C2A85"/><g color="#FBF9F4"><use href="#mSmall" x="324" y="656" width="20" height="20"/></g>
+  </g>
+
+  <!-- reversed + mono + thermal -->
+  <rect x="0" y="700" width="1180" height="150" fill="#14121A"/>
+  <g color="#FBF9F4">
+    <use href="#m8" x="40" y="720" width="110" height="110"/>
+    <use href="#m8" x="180" y="748" width="56" height="56"/><text x="250" y="791" font-family="Archivo" font-weight="600" font-size="44" fill="#FBF9F4" letter-spacing="-1.6">Stampa</text>
+  </g>
+  <text x="520" y="782" font-family="Archivo" font-size="11" fill="#7E7889">reversed on ink</text>
+
+  <text x="40" y="884" font-family="Archivo" font-size="11" fill="#9A94A5">thermal receipt, 1-bit, 44px  /  agent ID card  /  WhatsApp avatar at 48px</text>
+  <rect x="30" y="896" width="380" height="110" fill="#D9D6CF"/>
+  <g color="#000000"><use href="#m8" x="56" y="922" width="44" height="44"/></g>
+  <g font-family="IBM Plex Mono" font-size="12" fill="#000">
+    <text x="112" y="942">STAMPA</text><text x="112" y="959">IRN-7K2M-88QX-2026</text><text x="112" y="976">14 SEP 2026 10:42 WAT</text>
+  </g>
+
+  <rect x="440" y="896" width="240" height="150" rx="8" fill="#14121A"/>
+  <g color="#FBF9F4"><use href="#m8" x="458" y="912" width="26" height="26"/></g>
+  <text x="492" y="932" font-family="Archivo" font-weight="600" font-size="15" fill="#FBF9F4" letter-spacing="-0.4">Stampa</text>
+  <circle cx="480" cy="985" r="26" fill="#4C2A85"/>
+  <text x="516" y="980" font-family="Archivo" font-weight="600" font-size="14" fill="#FBF9F4">Ibrahim Sule</text>
+  <text x="516" y="998" font-family="IBM Plex Mono" font-size="10" fill="#9A94A5">AGENT 0114</text>
+  <text x="458" y="1032" font-family="Archivo" font-size="9.5" fill="#9A94A5">Stampa is free for suppliers. Never pay an agent.</text>
+
+  <circle cx="740" cy="960" r="24" fill="#4C2A85"/>
+  <g color="#FBF9F4"><use href="#mSmall" x="724" y="944" width="32" height="32"/></g>
+  <text x="776" y="956" font-family="Archivo" font-weight="600" font-size="14" fill="#14121A">Stampa</text>
+  <text x="776" y="972" font-family="Archivo" font-size="11" fill="#6B6675">Business account</text>
+
+  <!-- confusion row -->
+  <text x="40" y="1090" font-family="Archivo" font-size="11" fill="#9A94A5">confusion check: bank / government portal / lottery / loan app / dating / Stampa</text>
+  <defs><linearGradient id="loan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00C853"/><stop offset="1" stop-color="#00E5A0"/></linearGradient></defs>
+  <rect x="40"  y="1104" width="64" height="64" rx="14" fill="#0B2A5B"/><text x="58" y="1148" font-family="Archivo" font-weight="700" font-size="26" fill="#D4A017">GT</text>
+  <rect x="120" y="1104" width="64" height="64" rx="14" fill="#006B3C"/><circle cx="152" cy="1136" r="18" fill="none" stroke="#fff" stroke-width="3"/><text x="145" y="1142" font-family="Archivo" font-size="14" fill="#fff">NG</text>
+  <rect x="200" y="1104" width="64" height="64" rx="14" fill="#E31E24"/><text x="212" y="1146" font-family="Archivo" font-weight="700" font-size="24" fill="#FFD200">WIN</text>
+  <rect x="280" y="1104" width="64" height="64" rx="14" fill="url(#loan)"/><text x="292" y="1146" font-family="Archivo" font-weight="700" font-size="26" fill="#fff">N</text>
+  <rect x="360" y="1104" width="64" height="64" rx="14" fill="#FF4458"/><path d="M392 1122 l10 10 -10 14 -10 -14 z" fill="#fff"/>
+  <rect x="452" y="1104" width="64" height="64" rx="14" fill="#4C2A85"/><g color="#FBF9F4"><use href="#m8" x="458" y="1110" width="52" height="52"/></g>
+</svg>
