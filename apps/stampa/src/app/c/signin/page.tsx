@@ -9,6 +9,8 @@ import { requestMagicLink } from "../actions";
 import { enterDemo } from "@/app/actions";
 import shell from "@/components/shell.module.css";
 
+export const dynamic = "force-dynamic";
+
 const ERRORS: Record<string, string> = {
   empty: copy.buyer.signInErrors.empty,
   malformed: copy.buyer.signInErrors.malformed,

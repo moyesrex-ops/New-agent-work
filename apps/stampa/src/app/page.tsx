@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import { DocumentCard } from "@/components/Surfaces";
@@ -8,6 +9,8 @@ import { copy } from "@/lib/copy";
 import { enterDemo } from "./actions";
 import shell from "@/components/shell.module.css";
 
+export const dynamic = "force-dynamic";
+
 /**
  * There is no marketing site in P0. A supplier arrives on an invite link and a
  * buyer arrives on the console; anyone else goes to the sign-in that fits the
@@ -16,7 +19,8 @@ import shell from "@/components/shell.module.css";
  * A public demo is the exception: visitors have no invite and no SMS, so the
  * root becomes a door page into the three seeded surfaces.
  */
-export default function Root() {
+export default async function Root() {
+  await connection();
   if (!isDemo()) redirect("/s");
 
   return (
