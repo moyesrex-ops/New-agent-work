@@ -14,13 +14,13 @@ and the kill criteria are in `company/06-comparison.md`.
 
 **The build:** `apps/stampa`. It runs. See `apps/stampa/README.md`.
 
-**Live demo (use this on a phone):** [https://9e8ac92daaa42c.lhr.life](https://9e8ac92daaa42c.lhr.life)
+**Live demo (use this on a phone):** [https://06f5a85f405f7f.lhr.life](https://06f5a85f405f7f.lhr.life)
 — three doors (supplier, buyer, operator), no phone number required. Stamps are
-simulated. `*.trycloudflare.com` often fails on iPhone Safari (“server can’t be
-found”) because iCloud Private Relay cannot resolve those names. This URL is a
-tunnel in front of the P0; it lives as long as the agent environment does. For
-a lasting host, `Dockerfile` at the repository root builds the same demo
-(Hugging Face Space files in `deploy/huggingface/`).
+simulated. Free tunnels expire; if Safari says “no tunnel here”, ask for a fresh
+link. `*.trycloudflare.com` often fails on iPhone Safari (“server can’t be
+found”) because iCloud Private Relay cannot resolve those names. For a lasting
+host, `Dockerfile` at the repository root builds the same demo (Hugging Face
+Space files in `deploy/huggingface/`).
 
 **The gate:** `company/HANDOVER.md` answers the fifteen quality-gate questions,
 lists what must be true before a real supplier touches this, and says what I
