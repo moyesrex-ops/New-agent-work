@@ -41,7 +41,7 @@ const SPEC = {
   DATABASE_URL: {
     group: "Database",
     comment:
-      "A pglite:// URL runs an embedded Postgres for local development and needs\nno service installed. Production is a standard postgres:// connection\nstring to the managed instance in Lagos.",
+      "A pglite:// URL runs an embedded Postgres for local development and needs\nno service installed. Production is a standard postgres:// connection\nstring. PGlite is refused in production: a serverless filesystem is not a database.",
     example: "pglite://./.data/dev",
     requiredInProduction: true,
     schema: z
@@ -73,9 +73,9 @@ const SPEC = {
   STAMPA_GATEWAY: {
     group: "E-invoicing gateway",
     comment:
-      "Which transmission path is live: fake | sandbox | partner.\n`fake` is local and tests only. Production must be sandbox or partner and\nrequires the credentials below. Silently falling back to invented IRNs is\nrefused at boot.",
+      "Which transmission path is live: fake | hold | sandbox | partner.\n`fake` is local and tests only. `hold` is production without an accredited\nAPP/SI: the site runs, stamps fail closed, and no IRN is invented.\n`sandbox` and `partner` require the credentials below.",
     example: "fake",
-    schema: z.enum(["fake", "sandbox", "partner"]).default("fake"),
+    schema: z.enum(["fake", "hold", "sandbox", "partner"]).default("fake"),
   },
 
   STAMPA_FAKE_LATENCY_MS: {
@@ -137,6 +137,14 @@ const SPEC = {
       "Comma-separated emails allowed to open /ops. Empty means nobody can,\nwhich is the correct default: an operator console that anyone can reach is\nworse than no operator console.",
     example: "",
     schema: emailList,
+  },
+
+  CRON_SECRET: {
+    group: "Application",
+    comment:
+      "Bearer token Vercel sends to /api/cron/retry. Empty disables the route.\nGenerate with: openssl rand -hex 32",
+    example: "",
+    schema: z.string().optional(),
   },
 
   TERMII_API_KEY: {
@@ -219,7 +227,7 @@ export type Env = {
   DATABASE_URL?: string;
   APP_URL?: string;
   STAMPA_DEMO?: string;
-  STAMPA_GATEWAY: "fake" | "sandbox" | "partner";
+  STAMPA_GATEWAY: "fake" | "hold" | "sandbox" | "partner";
   STAMPA_FAKE_LATENCY_MS: number;
   APP_PARTNER_BASE_URL?: string;
   APP_PARTNER_CLIENT_ID?: string;
@@ -227,6 +235,7 @@ export type Env = {
   APP_PARTNER_BUSINESS_ID?: string;
   APP_PARTNER_SERVICE_ID: string;
   OTP_PEPPER?: string;
+  CRON_SECRET?: string;
   STAMPA_OPERATORS: string[];
   TERMII_API_KEY?: string;
   TERMII_SENDER_ID: string;
@@ -291,14 +300,22 @@ export function checkEnv(source: NodeJS.ProcessEnv = process.env): {
   if (production && env.STAMPA_GATEWAY === "fake") {
     problems.push({
       name: "STAMPA_GATEWAY",
-      problem: "fake is not allowed in production; set sandbox or partner",
+      problem: "fake is not allowed in production; set hold, sandbox or partner",
+    });
+  }
+
+  if (production && env.DATABASE_URL?.startsWith("pglite:")) {
+    problems.push({
+      name: "DATABASE_URL",
+      problem: "pglite is not durable on a serverless host; use postgres://",
     });
   }
 
   // Cross-field rules. A gateway pointed at a partner with no credentials
   // would fail on the first real invoice, which is the worst possible moment
-  // to discover a missing secret.
-  if (env.STAMPA_GATEWAY !== "fake") {
+  // to discover a missing secret. `hold` is the production web host until
+  // those credentials exist: it never invents an IRN.
+  if (env.STAMPA_GATEWAY === "sandbox" || env.STAMPA_GATEWAY === "partner") {
     for (const name of [
       "APP_PARTNER_BASE_URL",
       "APP_PARTNER_CLIENT_ID",

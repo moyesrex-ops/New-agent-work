@@ -9,7 +9,10 @@ import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
 
-const ERRORS: Record<string, string> = copy.phone.errors;
+const ERRORS: Record<string, string> = {
+  ...copy.phone.errors,
+  too_soon: copy.otp.errors.too_soon,
+};
 
 /** S2 — Phone entry. Two fields stand between suspicion and a first invoice. */
 export default async function PhoneEntry({

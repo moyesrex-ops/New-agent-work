@@ -12,6 +12,8 @@ import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
 
+const TIN_ERRORS = new Set(["tin", "not_numeric", "wrong_length"]);
+
 /**
  * S4 — Confirm business. The single strongest trust move in the product.
  *
@@ -32,6 +34,11 @@ export default async function ConfirmBusiness({
   const invite = inviteCode ? await openInvite(inviteCode) : null;
   if (!invite || invite.state !== "open") redirect("/s");
 
+  const tinError =
+    error && TIN_ERRORS.has(error)
+      ? copy.confirm.errors[error as keyof typeof copy.confirm.errors]
+      : undefined;
+
   return (
     <div className={shell.stack}>
       <h1 className={shell.title}>{copy.confirm.heading}</h1>
@@ -43,7 +50,7 @@ export default async function ConfirmBusiness({
             name="businessName"
             label={copy.confirm.businessName}
             defaultValue={invite.supplierName}
-            error={error === "businessName" ? "Enter your business name." : undefined}
+            error={error === "businessName" ? copy.confirm.errors.businessName : undefined}
             required
           />
           <Field
@@ -52,7 +59,7 @@ export default async function ConfirmBusiness({
             defaultValue={invite.tin ?? ""}
             inputMode="numeric"
             hint={invite.tin ? undefined : copy.confirm.missingTin}
-            error={error === "tin" ? "Enter your TIN." : undefined}
+            error={tinError}
             required
           />
           <Field
@@ -68,7 +75,7 @@ export default async function ConfirmBusiness({
             <span className={shell.lockLine}>
               <Lock size={16} strokeWidth={1.75} aria-hidden="true" />
               <span className={shell.displayValue}>
-                {invite.bankName ?? "Not provided"}
+                {invite.bankName ?? copy.confirm.notProvided}
                 {invite.bankLast4 ? ` ••••${invite.bankLast4}` : ""}
               </span>
             </span>
@@ -85,9 +92,7 @@ export default async function ConfirmBusiness({
         </div>
       </form>
 
-      <p className={shell.note}>
-        {copy.confirm.wrong}? Call {BRAND.supportPhone}.
-      </p>
+      <p className={shell.note}>{copy.confirm.wrongCall(BRAND.supportPhone)}</p>
     </div>
   );
 }

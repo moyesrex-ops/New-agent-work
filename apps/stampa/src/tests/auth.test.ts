@@ -74,12 +74,37 @@ describe("OTP", () => {
   });
 
   it("rate-limits repeated requests for the same number", async () => {
+    const start = new Date();
     for (let i = 0; i < MAX_ISSUES_PER_WINDOW; i += 1) {
-      expect((await issueOtp(fixture.db, PHONE)).ok).toBe(true);
+      const now = new Date(start.getTime() + i * 31_000);
+      expect((await issueOtp(fixture.db, PHONE, "sms", now)).ok).toBe(true);
     }
-    const blocked = await issueOtp(fixture.db, PHONE);
+    const blocked = await issueOtp(
+      fixture.db,
+      PHONE,
+      "sms",
+      new Date(start.getTime() + MAX_ISSUES_PER_WINDOW * 31_000),
+    );
     expect(blocked.ok).toBe(false);
     expect(!blocked.ok && blocked.error).toBe("rate_limited");
+  });
+
+  it("refuses a resend before thirty seconds, so a disabled button is not the only guard", async () => {
+    const start = new Date();
+    expect((await issueOtp(fixture.db, PHONE, "sms", start)).ok).toBe(true);
+    const again = await issueOtp(fixture.db, PHONE, "sms", new Date(start.getTime() + 10_000));
+    expect(again.ok).toBe(false);
+    expect(!again.ok && again.error).toBe("too_soon");
+  });
+
+  it("refuses a voice call before sixty seconds", async () => {
+    const start = new Date();
+    expect((await issueOtp(fixture.db, PHONE, "sms", start)).ok).toBe(true);
+    const voice = await issueOtp(fixture.db, PHONE, "voice", new Date(start.getTime() + 40_000));
+    expect(voice.ok).toBe(false);
+    expect(!voice.ok && voice.error).toBe("too_soon");
+    const later = await issueOtp(fixture.db, PHONE, "voice", new Date(start.getTime() + 61_000));
+    expect(later.ok).toBe(true);
   });
 
   it("says nothing about a phone number that has no challenge", async () => {
@@ -192,6 +217,7 @@ describe("confirming business details", () => {
       where: eq(suppliers.id, fixture.supplierId),
     });
     expect(supplier?.confirmedAt).toBeInstanceOf(Date);
+    expect(supplier?.tin).toBe("20481166-0001");
 
     const link = await fixture.db.query.supplierLinks.findFirst();
     expect(link?.status).toBe("live");
@@ -199,6 +225,24 @@ describe("confirming business details", () => {
 
     const events = await fixture.db.query.auditEvents.findMany();
     expect(events.map((event) => event.action)).toContain("supplier.confirmed");
+  });
+
+  it("stores a bare eight-digit TIN in canonical form", async () => {
+    await bindSupplierToInvite(fixture.code, PHONE);
+    await confirmSupplierDetails(
+      fixture.supplierId,
+      fixture.organisationId,
+      {
+        businessName: "Emeka Aluminium Works Ltd",
+        tin: "20481166",
+        address: "14 Ladipo Street, Oshodi, Lagos",
+      },
+      { type: "supplier", id: fixture.supplierId },
+    );
+    const supplier = await fixture.db.query.suppliers.findFirst({
+      where: eq(suppliers.id, fixture.supplierId),
+    });
+    expect(supplier?.tin).toBe("20481166-0001");
   });
 
   it("throws if a caller ever tries to smuggle a bank field through this path", async () => {

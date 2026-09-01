@@ -152,6 +152,15 @@ describe("Given the copy deck forbids a paraphrase", () => {
   });
 });
 
+describe("Given stamps are on hold because there is no accredited access point", () => {
+  it("Then the screen does not put Stampa's words in the NRS's mouth", () => {
+    expect(copy.notStamped.platform.why).not.toMatch(/the nrs says/i);
+    expect(copy.notStamped.platform.next).toMatch(/saved/i);
+    expect(copy.notify.rejectedHold({ number: "INV-0032" })).toContain("INV-0032");
+    expect(copy.notify.rejectedHold({ number: "INV-0032" })).not.toMatch(/the nrs says/i);
+  });
+});
+
 describe("Given the public site copy", () => {
   it("Then the support number is the live customer line", () => {
     expect(BRAND.supportPhone).toBe("0816 509 6822");
@@ -170,5 +179,11 @@ describe("Given the public site copy", () => {
     expect(BRAND.verifyHost).toBe("einvoice.nrs.gov.ng");
     const check = copy.faq.items.find((item) => item.q.includes("check an IRN"));
     expect(check?.a).toContain("einvoice.nrs.gov.ng");
+  });
+
+  it("Then it does not send a supplier to a store that does not exist", () => {
+    const android = copy.faq.items.find((item) => item.q.includes("Android app"));
+    expect(android?.a).toMatch(/home screen/i);
+    expect(android?.a).not.toMatch(/play store/i);
   });
 });

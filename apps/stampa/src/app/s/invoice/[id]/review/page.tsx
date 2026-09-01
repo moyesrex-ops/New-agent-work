@@ -7,6 +7,7 @@ import { formatNaira, kobo } from "@/lib/money";
 import { requireSupplier } from "@/lib/auth/require";
 import { getInvoiceForSupplier } from "@/lib/services/invoices";
 import { sendDraft } from "../../../actions";
+import { isHoldGateway } from "@/lib/gateway";
 import shell from "@/components/shell.module.css";
 
 export const dynamic = "force-dynamic";
@@ -56,7 +57,7 @@ export default async function ReviewInvoice({ params }: { params: Promise<{ id: 
       <form action={sendDraft} className={shell.actionBar}>
         <input type="hidden" name="invoiceId" value={invoice.id} />
         <Button type="submit" block>
-          {copy.invoice.send}
+          {isHoldGateway() ? copy.invoice.sendHold : copy.invoice.send}
         </Button>
       </form>
 

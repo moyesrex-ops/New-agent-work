@@ -2,7 +2,7 @@
  * The error-code mapping table (ticket C-03).
  *
  * Partner and NRS codes are translated here, once. Every screen downstream
- * branches on `fault`, never on a code, which is what keeps the three S10 copy
+ * branches on `fault`, never on a code, which is what keeps the four S10 copy
  * variants from multiplying into thirty.
  *
  * An unmapped code does not fall silent: it becomes a "neither" fault with a
@@ -108,6 +108,11 @@ export const ERROR_MAP: Record<string, Mapping> = {
     fault: "neither",
     retryable: false,
     reason: "we could not connect to the transmission service",
+  },
+  ACCESS_POINT_PENDING: {
+    fault: "platform",
+    retryable: false,
+    reason: "stampa is not yet an accredited access point",
   },
 };
 

@@ -13,6 +13,7 @@ import { newId } from "../ids";
 import { writeAudit, type Actor } from "../audit";
 import { track } from "../analytics";
 import { parsePhone, type E164 } from "../phone";
+import { parseTin } from "../tin";
 import { assertNoBankWrite } from "../auth/policy";
 
 export type InviteView =
@@ -192,6 +193,9 @@ export async function confirmSupplierDetails(
   // future caller tries, it throws rather than writes.
   assertNoBankWrite(input as unknown as Record<string, unknown>);
 
+  const parsedTin = parseTin(input.tin);
+  if (!parsedTin.ok) throw new Error(`invalid TIN (${parsedTin.error})`);
+
   const db = await getDb();
   const before = await db.query.suppliers.findFirst({ where: eq(suppliers.id, supplierId) });
 
@@ -199,7 +203,7 @@ export async function confirmSupplierDetails(
     .update(suppliers)
     .set({
       businessName: input.businessName.trim(),
-      tin: input.tin.trim(),
+      tin: parsedTin.value,
       address: input.address.trim(),
       confirmedAt: now,
     })
@@ -221,7 +225,7 @@ export async function confirmSupplierDetails(
     subjectType: "supplier",
     subjectId: supplierId,
     before: before ? { businessName: before.businessName, tin: before.tin } : null,
-    after: { businessName: input.businessName, tin: input.tin },
+    after: { businessName: input.businessName, tin: parsedTin.value },
   });
   await track(db, "supplier_confirmed_details", actor);
 }

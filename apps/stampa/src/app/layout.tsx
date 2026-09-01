@@ -71,6 +71,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/** Hold-mode copy and session cookies must be request-time, not build-time. */
+export const dynamic = "force-dynamic";
+
 function OrganizationJsonLd() {
   const data = {
     "@context": "https://schema.org",

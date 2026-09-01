@@ -1,9 +1,13 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/Button";
+import { OtpChannelActions } from "@/components/OtpChannelActions";
 import { OtpField } from "@/components/Field";
 import { copy } from "@/lib/copy";
-import { formatPhone } from "@/lib/phone";
+import { getDb } from "@/lib/db/client";
+import { latestOtpAt, otpChannelWait } from "@/lib/auth/otp";
+import { formatPhone, parsePhone } from "@/lib/phone";
 import { checkCode, resendCode, sendVoiceCode } from "../actions";
 import shell from "@/components/shell.module.css";
 
@@ -22,13 +26,17 @@ export default async function CodeEntry({
 }) {
   const { error, voice } = await searchParams;
   const store = await cookies();
-  const phone = store.get("stampa_pending_phone")?.value ?? "";
+  const parsed = parsePhone(store.get("stampa_pending_phone")?.value ?? "");
+  if (!parsed.ok) redirect("/s/start");
+
+  const db = await getDb();
+  const wait = otpChannelWait(await latestOtpAt(db, parsed.value));
 
   return (
     <div className={shell.stack}>
       <h1 className={shell.title}>{copy.otp.heading}</h1>
       <p className={shell.lede}>
-        {voice ? copy.otp.voiceSent : copy.otp.sentTo(formatPhone(phone))}{" "}
+        {voice ? copy.otp.voiceSent : copy.otp.sentTo(formatPhone(parsed.value))}{" "}
         <Link href="/s/start">{copy.otp.change}</Link>
       </p>
 
@@ -47,19 +55,12 @@ export default async function CodeEntry({
         </div>
       </form>
 
-      <p className={shell.note}>{copy.otp.resendPrompt}</p>
-      <div className={shell.row}>
-        <form action={resendCode}>
-          <Button type="submit" variant="quiet">
-            {copy.otp.resend}
-          </Button>
-        </form>
-        <form action={sendVoiceCode}>
-          <Button type="submit" variant="quiet">
-            {copy.otp.voice}
-          </Button>
-        </form>
-      </div>
+      <OtpChannelActions
+        resendAfterMs={wait.resendAfterMs}
+        voiceAfterMs={wait.voiceAfterMs}
+        resend={resendCode}
+        voice={sendVoiceCode}
+      />
     </div>
   );
 }

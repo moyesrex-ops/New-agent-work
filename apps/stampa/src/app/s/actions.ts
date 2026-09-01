@@ -10,6 +10,7 @@ import { endSession, startSession } from "@/lib/auth/session";
 import { requireSupplier } from "@/lib/auth/require";
 import { authorise } from "@/lib/auth/policy";
 import { parsePhone } from "@/lib/phone";
+import { parseTin } from "@/lib/tin";
 import { parseAmountToKobo } from "@/lib/money";
 import {
   InviteAlreadyBoundError,
@@ -22,6 +23,11 @@ import { track } from "@/lib/analytics";
 import { canDelete, softDeleteAccount } from "@/lib/services/account";
 import { sendOtp, sendVoiceOtp } from "@/lib/messaging";
 import { copy } from "@/lib/copy";
+import {
+  appCookie,
+  INVITE_COOKIE_MAX_AGE,
+  PHONE_COOKIE_MAX_AGE,
+} from "@/lib/cookies";
 
 const INVITE_COOKIE = "stampa_invite";
 const PHONE_COOKIE = "stampa_pending_phone";
@@ -42,7 +48,7 @@ export async function beginInvite(formData: FormData): Promise<void> {
   if (invite.state !== "open") redirect(`/s/i/${encodeURIComponent(code)}`);
 
   const store = await cookies();
-  store.set(INVITE_COOKIE, code, { httpOnly: true, sameSite: "lax", path: "/" });
+  store.set(INVITE_COOKIE, code, appCookie(INVITE_COOKIE_MAX_AGE));
   redirect("/s/start");
 }
 
@@ -52,10 +58,10 @@ export async function sendCode(formData: FormData): Promise<void> {
 
   const db = await getDb();
   const issued = await issueOtp(db, phone.value);
-  if (!issued.ok) fail("/s/start", "rate_limited");
+  if (!issued.ok) fail("/s/start", issued.error);
 
   const store = await cookies();
-  store.set(PHONE_COOKIE, phone.value, { httpOnly: true, sameSite: "lax", path: "/" });
+  store.set(PHONE_COOKIE, phone.value, appCookie(PHONE_COOKIE_MAX_AGE));
 
   const delivered = await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
   if (!delivered.ok) fail("/s/start", "delivery_failed");
@@ -70,7 +76,7 @@ export async function resendCode(): Promise<void> {
 
   const db = await getDb();
   const issued = await issueOtp(db, phone.value, "sms");
-  if (!issued.ok) fail("/s/code", "rate_limited");
+  if (!issued.ok) fail("/s/code", issued.error);
   const result = await sendOtp(phone.value, issued.code, copy.notify.otp(issued.code));
   if (!result.ok) fail("/s/code", "delivery_failed");
   redirect("/s/code");
@@ -83,7 +89,7 @@ export async function sendVoiceCode(): Promise<void> {
 
   const db = await getDb();
   const issued = await issueOtp(db, phone.value, "voice");
-  if (!issued.ok) fail("/s/code", "rate_limited");
+  if (!issued.ok) fail("/s/code", issued.error);
   const result = await sendVoiceOtp(phone.value, issued.code, copy.notify.otp(issued.code));
   if (!result.ok) fail("/s/code", "delivery_failed");
   redirect("/s/code?voice=1");
@@ -160,12 +166,13 @@ export async function confirmDetails(formData: FormData): Promise<void> {
   const address = String(formData.get("address") ?? "").trim();
 
   if (!businessName) fail("/s/confirm", "businessName");
-  if (!tin) fail("/s/confirm", "tin");
+  const parsedTin = parseTin(tin);
+  if (!parsedTin.ok) fail("/s/confirm", parsedTin.error === "empty" ? "tin" : parsedTin.error);
 
   await confirmSupplierDetails(
     principal.supplierId,
     link.organisationId,
-    { businessName, tin, address },
+    { businessName, tin: parsedTin.value, address },
     { type: "supplier", id: principal.supplierId },
   );
 

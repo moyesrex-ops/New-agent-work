@@ -2,8 +2,9 @@
  * The one interface that everything NRS-specific hides behind
  * (Architecture §16.7).
  *
- * Three implementations exist: FakeGateway (deterministic, tests and local
- * dev), SandboxGateway and PartnerGateway (the accredited APP/SI partner).
+ * Four implementations exist: FakeGateway (deterministic, tests and local
+ * dev), HoldGateway (production without an APP — fails closed, never invents
+ * an IRN), and PartnerGateway for sandbox and live accredited APP/SI.
  * Moving to direct NRS accreditation later replaces one file and nothing else.
  */
 import type { Kobo } from "../money";
@@ -43,11 +44,11 @@ export type Stamp = {
 };
 
 /**
- * `fault` drives which of the three S10 copy variants the supplier sees, and
+ * `fault` drives which of the four S10 copy variants the supplier sees, and
  * it is the only thing the UI is allowed to branch on. Raw codes never reach a
- * screen.
+ * screen. `platform` is Stampa's own hold, never something the NRS said.
  */
-export type GatewayFault = "supplier" | "buyer" | "neither";
+export type GatewayFault = "supplier" | "buyer" | "neither" | "platform";
 
 export class GatewayError extends Error {
   constructor(

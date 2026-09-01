@@ -46,7 +46,29 @@ function safeEqual(a: string, b: string): boolean {
 export type IssueResult =
   /** `code` is the plaintext, for the adapter only. It is never persisted. */
   | { ok: true; challengeId: string; expiresAt: Date; code: string }
-  | { ok: false; error: "rate_limited"; retryAfterMs: number };
+  | { ok: false; error: "rate_limited" | "too_soon"; retryAfterMs: number };
+
+export async function latestOtpAt(db: Db, phone: E164): Promise<Date | null> {
+  const [row] = await db
+    .select({ createdAt: otpChallenges.createdAt })
+    .from(otpChallenges)
+    .where(eq(otpChallenges.phone, phone))
+    .orderBy(desc(otpChallenges.createdAt))
+    .limit(1);
+  return row?.createdAt ?? null;
+}
+
+export function otpChannelWait(
+  lastIssuedAt: Date | null,
+  now: Date = new Date(),
+): { resendAfterMs: number; voiceAfterMs: number } {
+  if (!lastIssuedAt) return { resendAfterMs: 0, voiceAfterMs: 0 };
+  const age = now.getTime() - lastIssuedAt.getTime();
+  return {
+    resendAfterMs: Math.max(0, RESEND_AFTER_MS - age),
+    voiceAfterMs: Math.max(0, VOICE_AFTER_MS - age),
+  };
+}
 
 export type VerifyResult =
   | { ok: true; challengeId: string }
@@ -65,6 +87,13 @@ export async function issueOtp(
   channel: OtpChannel = "sms",
   now: Date = new Date(),
 ): Promise<IssueResult> {
+  const lastIssuedAt = await latestOtpAt(db, phone);
+  const wait = otpChannelWait(lastIssuedAt, now);
+  const remaining = channel === "voice" ? wait.voiceAfterMs : wait.resendAfterMs;
+  if (remaining > 0) {
+    return { ok: false, error: "too_soon", retryAfterMs: remaining };
+  }
+
   const windowStart = new Date(now.getTime() - ISSUE_WINDOW_MS);
   const [recent] = await db
     .select({ count: sql<number>`count(*)::int` })

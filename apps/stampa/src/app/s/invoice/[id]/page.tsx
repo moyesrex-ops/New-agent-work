@@ -135,7 +135,7 @@ async function Stamped({ invoice }: { invoice: Invoice }) {
   );
 }
 
-/** S10 — three causes, three copies, one frame. */
+/** S10 — four causes, four copies, one frame. */
 function NotStamped({ invoice }: { invoice: Invoice }) {
   const mapping = invoice.failureCode ? ERROR_MAP[invoice.failureCode] : undefined;
   const reason = mapping?.reason ?? "the NRS returned something we have not seen before";
@@ -145,6 +145,23 @@ function NotStamped({ invoice }: { invoice: Invoice }) {
       ? formatOffendingValue(invoice.failureCode, transmission.offendingValue)
       : (transmission?.offendingValue ?? undefined);
   const buyerName = invoice.organisation.legalName;
+
+  if (invoice.failureFault === "platform") {
+    return (
+      <ErrorState
+        status="rejected"
+        what={copy.notStamped.platform.heading}
+        why={copy.notStamped.platform.why}
+        next={copy.notStamped.platform.next}
+        reassurance={copy.notStamped.saved}
+        action={
+          <a href={`tel:${BRAND.supportPhoneTel}`} className={shell.textLink}>
+            {copy.notStamped.platform.cta}
+          </a>
+        }
+      />
+    );
+  }
 
   if (invoice.failureFault === "supplier") {
     return (

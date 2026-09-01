@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
+import { HoldNotice } from "@/components/HoldNotice";
 import { BRAND, copy } from "@/lib/copy";
 import site from "@/components/site.module.css";
 
@@ -75,6 +76,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <div className={site.page}>
       <SiteHeader />
+      <HoldNotice />
       <main id="content" className={site.main}>
         {children}
       </main>

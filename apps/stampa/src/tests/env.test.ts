@@ -147,6 +147,24 @@ describe("Given a real gateway is selected, When credentials are absent", () => 
     expect(named(production({ STAMPA_GATEWAY: "fake" }).problems)).toContain("STAMPA_GATEWAY");
   });
 
+  it("Then hold is allowed without partner credentials, and invents no IRN path", () => {
+    const { problems, env } = production({
+      STAMPA_GATEWAY: "hold",
+      APP_PARTNER_BASE_URL: "",
+      APP_PARTNER_CLIENT_ID: "",
+      APP_PARTNER_CLIENT_SECRET: "",
+      APP_PARTNER_BUSINESS_ID: "",
+    });
+    expect(problems).toEqual([]);
+    expect(env.STAMPA_GATEWAY).toBe("hold");
+  });
+
+  it("Then pglite is refused in production, because a serverless disk is not a database", () => {
+    expect(named(production({ DATABASE_URL: "pglite://./.data/dev" }).problems)).toContain(
+      "DATABASE_URL",
+    );
+  });
+
   it("Then a demo flag is refused in production", () => {
     expect(named(production({ STAMPA_DEMO: "true" }).problems)).toContain("STAMPA_DEMO");
   });

@@ -112,10 +112,12 @@ export async function notifyTransmissionOutcome(
       ? copy.notify.rejectedSupplier({ number: notice.invoiceNumber, reason: result.reason })
       : result.fault === "buyer"
         ? copy.notify.rejectedBuyer({ number: notice.invoiceNumber, buyer: notice.buyerName })
-        : copy.notify.rejectedNeither({
-            number: notice.invoiceNumber,
-            caseNumber: result.caseNumber,
-          });
+        : result.fault === "platform"
+          ? copy.notify.rejectedHold({ number: notice.invoiceNumber })
+          : copy.notify.rejectedNeither({
+              number: notice.invoiceNumber,
+              caseNumber: result.caseNumber,
+            });
 
   await sendOnce({
     template: `invoice_rejected_${result.fault}`,

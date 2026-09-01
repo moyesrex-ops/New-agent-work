@@ -14,6 +14,7 @@ import { importVendors, nudgeSupplier, sendInvitations } from "@/lib/services/bu
 import { ingestVendorMaster, type ColumnKey, type Mapping } from "@/lib/services/vendor-master";
 import { dropUpload, readUpload, stageUpload } from "@/lib/services/staging";
 import { writeAudit } from "@/lib/audit";
+import { appCookie, UPLOAD_COOKIE_MAX_AGE } from "@/lib/cookies";
 
 const UPLOAD_COOKIE = "stampa_upload";
 /** A 5,000-row vendor master is around 500KB. Ten times that is generous. */
@@ -68,7 +69,7 @@ export async function uploadVendorMaster(formData: FormData): Promise<void> {
 
   const token = stageUpload(principal.organisationId, file.name, text);
   const store = await cookies();
-  store.set(UPLOAD_COOKIE, token, { httpOnly: true, sameSite: "lax", path: "/" });
+  store.set(UPLOAD_COOKIE, token, appCookie(UPLOAD_COOKIE_MAX_AGE));
 
   redirect("/c/upload/review");
 }

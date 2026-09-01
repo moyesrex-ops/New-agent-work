@@ -19,6 +19,7 @@ import {
   getGateway,
   GatewayError,
   toUblXml,
+  type GatewayFault,
   type GatewayInvoice,
 } from "../gateway";
 import { notifyTransmissionOutcome } from "./notify";
@@ -190,7 +191,7 @@ export type TransmitResult =
   | { state: "stamped"; irn: string; stampedAt: Date }
   | {
       state: "rejected";
-      fault: "supplier" | "buyer" | "neither";
+      fault: GatewayFault;
       reason: string;
       offendingValue?: string;
       caseNumber: string;
@@ -387,7 +388,7 @@ async function attemptTransmission(
 function rejectionFrom(row: typeof transmissions.$inferSelect): TransmitResult {
   return {
     state: "rejected",
-    fault: (row.fault ?? "neither") as "supplier" | "buyer" | "neither",
+    fault: (row.fault as GatewayFault | null) ?? "neither",
     reason: row.responseCode ?? "unknown",
     offendingValue: row.offendingValue ?? undefined,
     caseNumber: caseNumber(row.id),

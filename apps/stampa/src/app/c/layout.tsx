@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
+import { HoldNotice } from "@/components/HoldNotice";
 import { BRAND, copy } from "@/lib/copy";
 import { currentPrincipal } from "@/lib/auth/session";
 import shell from "@/components/shell.module.css";
@@ -44,7 +45,10 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
             </nav>
           ) : null}
         </header>
-        <main className={shell.main}>{children}</main>
+        <main className={shell.main}>
+          <HoldNotice />
+          {children}
+        </main>
         <footer className={shell.note} style={{ paddingBottom: "var(--space-6)" }}>
           {BRAND.name} · <a href={`tel:${BRAND.supportPhoneTel}`}>{BRAND.supportPhone}</a> ·{" "}
           {BRAND.supportHours}

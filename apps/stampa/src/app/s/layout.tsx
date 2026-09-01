@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/Logo";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { HoldNotice } from "@/components/HoldNotice";
 import { BRAND, copy } from "@/lib/copy";
 import shell from "@/components/shell.module.css";
 
@@ -18,6 +19,7 @@ export default function SupplierLayout({ children }: { children: React.ReactNode
   return (
     <div className={shell.page}>
       <OfflineBanner />
+      <HoldNotice />
       <div className={shell.supplier}>
           <header className={shell.header}>
             <Link href="/s" aria-label={copy.a11y.supplierHome} className={shell.headerHome}>

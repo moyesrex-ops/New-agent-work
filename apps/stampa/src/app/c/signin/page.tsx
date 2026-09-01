@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Field } from "@/components/Field";
@@ -44,7 +45,7 @@ export default async function BuyerSignIn({
             autoComplete="email"
             autoCapitalize="none"
             spellCheck={false}
-            placeholder="tax.manager@yourcompany.com"
+            placeholder={copy.buyer.signInPlaceholder}
             required
             error={error ? (ERRORS[error] ?? copy.errors.generic) : undefined}
           />
@@ -52,6 +53,12 @@ export default async function BuyerSignIn({
             {copy.buyer.signInCta}
           </Button>
         </form>
+
+        <p className={shell.note} style={{ marginTop: "var(--space-5)" }}>
+          <Link href="/contact" className={shell.textLink}>
+            {copy.buyer.signInNoAccount}
+          </Link>
+        </p>
       </Card>
     </div>
   );

@@ -11,6 +11,8 @@ import {
   formatOffendingValue,
   GatewayError,
   PartnerGateway,
+  HoldGateway,
+  HOLD_CODE,
   toGatewayError,
   toNrsJson,
   toUblXml,
@@ -60,6 +62,8 @@ describe("error mapping", () => {
     expect(toGatewayError("VAT_TOTAL_MISMATCH").fault).toBe("supplier");
     expect(toGatewayError("BUYER_TIN_INVALID").fault).toBe("buyer");
     expect(toGatewayError("NRS_UNAVAILABLE").fault).toBe("neither");
+    expect(toGatewayError("ACCESS_POINT_PENDING").fault).toBe("platform");
+    expect(toGatewayError("ACCESS_POINT_PENDING").retryable).toBe(false);
   });
 
   it("resolves aliases, so a published-code change is not an outage", () => {
@@ -330,6 +334,26 @@ describe("PartnerGateway", () => {
     await expect(gateway.transmit(invoice(), "key-empty")).rejects.toMatchObject({
       code: "NRS_UNAVAILABLE",
     });
+  });
+});
+
+describe("HoldGateway", () => {
+  it("never invents an IRN", async () => {
+    const gateway = new HoldGateway();
+    await expect(gateway.transmit(invoice(), "hold-1")).rejects.toMatchObject({
+      code: HOLD_CODE,
+      fault: "platform",
+      retryable: false,
+    });
+    const status = await gateway.status("hold-1");
+    expect(status.state).toBe("rejected");
+    if (status.state === "rejected") {
+      expect(status.error.code).toBe(HOLD_CODE);
+    }
+  });
+
+  it("points verify at the NRS portal, not at us", () => {
+    expect(new HoldGateway().verifyUrl("anything")).toContain("einvoice.nrs.gov.ng");
   });
 });
 

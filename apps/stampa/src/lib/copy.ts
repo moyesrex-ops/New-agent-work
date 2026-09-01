@@ -44,6 +44,14 @@ export const copy = {
   /** The escape hatch, repeated on every dead end. */
   callUs: (phone: string) => `Call ${phone}`,
 
+  /**
+   * Said while STAMPA_GATEWAY=hold. Stamps fail closed. No IRN is invented.
+   */
+  hold: {
+    banner:
+      "Stamps are not live yet. You can confirm details and save drafts. Sending keeps the invoice until we can transmit.",
+  },
+
   // ---- S1 Invite landing ----
   invite: {
     cardLabel: (buyer: string) => `Invitation from ${buyer}`,
@@ -95,6 +103,7 @@ export const copy = {
     resend: "Resend",
     resendIn: (seconds: number) => `Resend in ${seconds}s`,
     voice: "Call me instead",
+    voiceIn: (seconds: number) => `Call me in ${seconds}s`,
     voiceSent: "We are calling you now with the code.",
     errors: {
       wrong_code: "That code is not right. Check the last message.",
@@ -102,6 +111,7 @@ export const copy = {
       no_challenge: "Ask for a new code.",
       locked_out: `Too many tries. Wait a few minutes, or call us on ${BRAND.supportPhone}.`,
       delivery_failed: "The code could not be sent. Try again, or ask for a voice call.",
+      too_soon: "Wait a few seconds, then ask again.",
     },
   },
 
@@ -118,7 +128,15 @@ export const copy = {
       "Your bank details come from your customer and cannot be changed here. If they are wrong, tell your customer directly. This protects you from fraud.",
     cta: "This is correct",
     wrong: "Something is wrong",
+    wrongCall: (phone: string) => `Something is wrong? Call ${phone}.`,
     missingTin: "We do not have your TIN. Add it so your invoices can be stamped.",
+    notProvided: "Not provided",
+    errors: {
+      businessName: "Enter your business name.",
+      tin: "Enter your TIN.",
+      not_numeric: "A TIN is digits and a hyphen only.",
+      wrong_length: "A TIN is eight digits, a hyphen, then four digits.",
+    },
   },
 
   // ---- S5 Home ----
@@ -157,6 +175,7 @@ export const copy = {
     reviewHeading: "Check before you send",
     reviewBody: "This is exactly what goes to the NRS.",
     send: "Send to NRS",
+    sendHold: "Save for when stamps are live",
     back: "Change something",
     showAll: "Show all",
     confirmLarge: (amount: string) => `This invoice is for ${amount}. Is that right?`,
@@ -200,7 +219,7 @@ export const copy = {
       "Demo mode: this reference came from a test gateway, not from the NRS. It is not a valid tax record.",
   },
 
-  // ---- S10 Not stamped, three causes ----
+  // ---- S10 Not stamped, four causes ----
   notStamped: {
     supplier: {
       heading: "Not stamped.",
@@ -230,6 +249,12 @@ export const copy = {
        */
       exhausted: (caseNumber: string) =>
         `We tried six times and stopped. Call us with case ${caseNumber} and we will send it by hand.`,
+      cta: "Call us",
+    },
+    platform: {
+      heading: "Not stamped yet.",
+      why: "Stampa is not yet an accredited access point.",
+      next: "Your invoice is saved. We will send it when the access point is live.",
       cta: "Call us",
     },
     saved: TRUST.saved,
@@ -300,6 +325,8 @@ export const copy = {
       `${params.number} was not stamped. The problem is on ${params.buyer}'s side, not yours. We have told them and we will message you when it is fixed.`,
     rejectedNeither: (params: { number: string; caseNumber: string }) =>
       `${params.number} is not stamped yet. The NRS is not responding. We are retrying and we will message you. Case ${params.caseNumber}.`,
+    rejectedHold: (params: { number: string }) =>
+      `Invoice ${params.number} is saved. Stampa is not yet an access point. We will message you when we can send it.`,
     nudge: (buyer: string) =>
       `You opened the ${buyer} invoice link but did not finish. It takes about ninety seconds and it is free. Pick up where you left off:`,
     otp: (code: string) => `${code} is your Stampa code. We will never ask you for it.`,
@@ -312,6 +339,8 @@ export const copy = {
     signInCta: "Send magic link",
     signInSent: (email: string) => `Check ${email} for your link.`,
     signInWorkEmail: "Use your work email.",
+    signInPlaceholder: "tax.manager@yourcompany.com",
+    signInNoAccount: "No account yet? Send us a message.",
     overviewHeading: "Overview",
     overviewEmpty: "Upload your vendor list to see your exposure.",
     overviewEmptyBody: "It takes one CSV and about a minute.",
@@ -660,7 +689,7 @@ export const copy = {
       },
       {
         q: "Do I need to download an app?",
-        a: "No. Open the link your customer sent. You can add Stampa to your home screen later.",
+        a: "No. Open the link in your browser. You can add Stampa to your home screen later.",
       },
       {
         q: "Why can I not change my bank details?",
@@ -672,11 +701,11 @@ export const copy = {
       },
       {
         q: "What if the NRS rejects my invoice?",
-        a: "The screen says whose problem it is. Yours, your customer's, or the NRS being down.",
+        a: "The screen says whose problem it is. Yours, your customer's, the NRS, or us.",
       },
       {
         q: "Is my data kept in Nigeria?",
-        a: "Yes. Production Postgres runs in Lagos. We do not sell your data.",
+        a: "Not on this host. This host runs in Cape Town. We do not sell your data.",
       },
       {
         q: "How do I delete my account?",
@@ -692,7 +721,7 @@ export const copy = {
       },
       {
         q: "What phones work?",
-        a: "Any phone with a browser. The supplier app is built for a small Android on a slow network.",
+        a: "Any phone with a browser. The supplier screens are built for a small Android on a slow network.",
       },
       {
         q: "Can I stamp without an invite?",
@@ -700,7 +729,11 @@ export const copy = {
       },
       {
         q: "Where is the Android app?",
-        a: "Install from your browser first. Store listings need a live domain and developer accounts.",
+        a: "There is no store listing yet. Open the site in your browser, then use Add to Home Screen.",
+      },
+      {
+        q: "Can I stamp an invoice today?",
+        a: "Not until Stampa is an accredited access point. You can still confirm your details and save a draft.",
       },
       {
         q: "Where do I check an IRN?",
