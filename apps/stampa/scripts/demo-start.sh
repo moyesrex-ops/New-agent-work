@@ -3,7 +3,7 @@
 set -eu
 
 if [ "${STAMPA_GATEWAY:-}" = "fake" ] || [ -z "${STAMPA_GATEWAY:-}" ]; then
-  echo "Production start refuses the fake gateway. Set STAMPA_GATEWAY=partner (or sandbox) and APP_PARTNER_* credentials." >&2
+  echo "Production start refuses the fake gateway. Set STAMPA_GATEWAY=hold, sandbox or partner." >&2
   exit 1
 fi
 

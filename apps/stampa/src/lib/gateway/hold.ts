@@ -7,7 +7,7 @@
  */
 import { nrsPortalUrl } from "../nrs";
 import { toGatewayError } from "./errors";
-import type { EInvoiceGateway, Stamp, TransmissionStatus } from "./types";
+import type { EInvoiceGateway, GatewayInvoice, Stamp, TransmissionStatus } from "./types";
 
 export const HOLD_CODE = "ACCESS_POINT_PENDING";
 
@@ -18,15 +18,19 @@ function pendingError() {
 export class HoldGateway implements EInvoiceGateway {
   readonly name = "hold";
 
-  async transmit(): Promise<Stamp> {
+  async transmit(invoice: GatewayInvoice, idempotencyKey: string): Promise<Stamp> {
+    void invoice;
+    void idempotencyKey;
     throw pendingError();
   }
 
-  async status(): Promise<TransmissionStatus> {
+  async status(idempotencyKey: string): Promise<TransmissionStatus> {
+    void idempotencyKey;
     return { state: "rejected", error: pendingError() };
   }
 
-  verifyUrl(): string {
+  verifyUrl(irn: string): string {
+    void irn;
     return nrsPortalUrl();
   }
 }
